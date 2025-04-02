@@ -29,7 +29,7 @@ const Otp = ({route, navigation}) => {
   const [activeInput, setActiveInput] = useState(0);
 
   useEffect(() => {
-    navigation.navigate('Register', {number: number});
+    // navigation.navigate('Register', {number: number});
     if (!verificationSent) {
       dispatch(sendVerify(number));
       setVerificationSent(true);
