@@ -27,7 +27,6 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import DrawerNavigation from './navigators/DrawerNavigation';
-
 let persistor = persistStore(store);
 export default function App() {
   useEffect(() => {

@@ -29,6 +29,7 @@ const Otp = ({route, navigation}) => {
   const [activeInput, setActiveInput] = useState(0);
 
   useEffect(() => {
+    navigation.navigate('Register', {number: number});
     if (!verificationSent) {
       dispatch(sendVerify(number));
       setVerificationSent(true);
@@ -50,8 +51,8 @@ const Otp = ({route, navigation}) => {
 
     // Verify the entered OTP
     dispatch(verify({phoneNumber: number, code: enteredOTP})).then(res => {
-      console.log(res, 'otp');
-      if (!res.payload.status) {
+      console.log(res.payload, '==================');
+      if (!res.payload.success) {
         setError(true);
       } else {
         if (res.payload.user_role !== 'client' && res.payload.authToken) {

@@ -171,7 +171,7 @@ const Login = ({navigation}) => {
               <View
                 style={{
                   gap: 30,
-                  backgroundColor: 'white',
+                  backgroundColor: '#23252F',
                   padding: 30,
                   width: wp('90%'),
                   alignSelf: 'center',
@@ -202,7 +202,7 @@ const Login = ({navigation}) => {
                 />
                 <Text
                   style={{
-                    color: colors.primary,
+                    color: "white",
                     fontWeight: '700',
                     marginBottom: -30,
                     fontSize: hp(2),
@@ -213,6 +213,7 @@ const Login = ({navigation}) => {
                   onChangeText={text => setEmail(text)}
                   variant={'underlined'}
                   placeholder="Email@example.com"
+                  color="white"
                 />
                 {Errors.email && (
                   <Text style={{color: 'red'}}>{Errors.email}</Text>
@@ -237,7 +238,7 @@ const Login = ({navigation}) => {
           </View>
 
           {sent && (
-            <Text style={{color: colors.primary, alignSelf: 'center'}}>
+            <Text style={{color: "white", alignSelf: 'center'}}>
               Email de récuperation a été envouyer
             </Text>
           )}

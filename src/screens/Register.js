@@ -131,7 +131,7 @@ const Register = ({route}) => {
                 <Text
                   style={{
                     fontWeight: '900',
-                    color: colors.primary,
+                    color: 'white',
                     fontSize: 24,
                   }}>
                   Entrez votre adresse email
@@ -140,7 +140,7 @@ const Register = ({route}) => {
                   <Text
                     style={{
                       fontWeight: '600',
-                      color: colors.primary,
+                      color: 'white',
                       fontSize: 20,
                     }}>
                     Email
@@ -148,6 +148,7 @@ const Register = ({route}) => {
                   <Input
                     variant="underlined"
                     placeholder="name@example.com"
+                    color="white"
                     value={user.email}
                     onChangeText={text =>
                       setUser({
@@ -183,7 +184,7 @@ const Register = ({route}) => {
                 <Text
                   style={{
                     fontWeight: '900',
-                    color: colors.primary,
+                    color: 'white',
                     fontSize: 24,
                   }}>
                   Quel est votre nom?
@@ -192,7 +193,7 @@ const Register = ({route}) => {
                   <Text
                     style={{
                       fontWeight: '600',
-                      color: colors.primary,
+                      color: 'white',
                       fontSize: 20,
                     }}>
                     Nom
@@ -200,6 +201,7 @@ const Register = ({route}) => {
                   <Input
                     variant="underlined"
                     placeholder="Entrez votre nom"
+                    color="white"
                     value={user.firstName}
                     onChangeText={text =>
                       setUser(prevUser => ({
@@ -220,7 +222,7 @@ const Register = ({route}) => {
                   <Text
                     style={{
                       fontWeight: '600',
-                      color: colors.primary,
+                      color: 'white',
                       fontSize: 20,
                     }}>
                     Prénom
@@ -228,6 +230,7 @@ const Register = ({route}) => {
                   <Input
                     variant="underlined"
                     placeholder="Entrez votre prénom"
+                    color="white"
                     value={user.lastName}
                     onChangeText={text =>
                       setUser(prevUser => ({
@@ -267,7 +270,7 @@ const Register = ({route}) => {
                 <Text
                   style={{
                     fontWeight: '900',
-                    color: colors.primary,
+                    color: 'white',
                     fontSize: 24,
                   }}>
                   Tapez une mot de passe
@@ -276,7 +279,7 @@ const Register = ({route}) => {
                   <Text
                     style={{
                       fontWeight: '600',
-                      color: colors.primary,
+                      color: 'white',
                       fontSize: 20,
                     }}>
                     Mot de passe
@@ -297,6 +300,7 @@ const Register = ({route}) => {
                       </TouchableOpacity>
                     }
                     placeholder="Password"
+                    color="white"
                   />
                   {errors.password && (
                     <Text style={{color: 'red'}}>{errors.password}</Text>
@@ -324,6 +328,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'black',
   },
   inputContainer: {
     width: wp('100%'),
@@ -335,12 +340,13 @@ const styles = StyleSheet.create({
   },
   btn: {
     padding: 20,
-    backgroundColor: colors.primary,
+    backgroundColor: '#F0C877',
     borderRadius: 20,
     marginTop: 30,
   },
   btnText: {
-    color: colors.secondary,
+    color: "black",
     textAlign: 'center',
+    
   },
 });

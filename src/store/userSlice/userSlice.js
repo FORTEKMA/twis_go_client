@@ -8,10 +8,7 @@ console.log(API_URL_IOS, API_URL_ANDROID, API_URL);
 
 export const userRegister = createAsyncThunk('user/register', async user => {
   try {
-    let response = await axios.post(
-      `${API_URL}/api/auth/local/register?populate=deep,4`,
-      user,
-    );
+    let response = await axios.post(`${API_URL}/api/register/client`, user);
 
     return response;
   } catch (error) {
@@ -21,7 +18,6 @@ export const userRegister = createAsyncThunk('user/register', async user => {
 
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
-    console.log(login, '==========', API_URL);
     let response = await axios.post(`${API_URL}/api/auth/local`, login);
 
     return response.data;
@@ -64,6 +60,7 @@ export const logOut = createAsyncThunk('user/logout', async thunkApi => {
 export const sendVerify = createAsyncThunk(
   'user/sendverify',
   async (phoneNumber, code) => {
+    console.log(phoneNumber,code)
     try {
       let response = await axios.post(`${API_URL}/api/send-sms`, {
         phoneNumber: phoneNumber,
@@ -183,7 +180,7 @@ export const forgetPassword = createAsyncThunk(
       const response = await axios.post(`${API_URL}/api/auth/forgot-password`, {
         email: email,
       });
-
+      console.log(response.data,"==============<>==========")
       return response.data;
     } catch (error) {
       throw error; // Add this line to propagate the error up to the component
