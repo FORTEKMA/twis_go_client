@@ -30,8 +30,11 @@ import DrawerNavigation from './navigators/DrawerNavigation';
 let persistor = persistStore(store);
 export default function App() {
   useEffect(() => {
-    OneSignal.initialize('2b6f2b0c-0070-4da7-b3c8-f8632a306bcb');
+
+    OneSignal.initialize('42fd5097-a56d-47c5-abaa-6f4a836a143f');
     OneSignal.Notifications.requestPermission(true);
+
+     
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
