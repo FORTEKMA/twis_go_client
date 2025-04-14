@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "287155723728",
+    "project_id": "tawsilte",
+    "storage_bucket": "tawsilte.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:287155723728:android:286b56246b6149b0d6add5",
+        "android_client_info": {
+          "package_name": "com.sheelni"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSHtk4qv5NsNxg1fQ4qiiwSvlpuUXyFQM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
