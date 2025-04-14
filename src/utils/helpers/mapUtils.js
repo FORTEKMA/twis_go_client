@@ -11,7 +11,7 @@ export const filterDataByName = (data, filter) => {
 
 export const getAddressFromCoordinates = async (lat, lng) => {
   try {
-    const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+    const apiKey = process.env.API_GOOGLE;
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
     );

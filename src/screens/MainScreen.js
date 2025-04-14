@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,14 @@ import {
   TextInput,
   SafeAreaView,
   Switch,
-  ScrollView,
-  Button,
   PermissionsAndroid,
   Pressable,
   KeyboardAvoidingView,
   Image,
-  ImageBackground,
+  Alert,
+  Animated,
+  Easing,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {
   widthPercentageToDP as wp,
@@ -25,18 +24,13 @@ import {
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from 'react-native-geolocation-service';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import CheckBox from '@react-native-community/checkbox';
-import MapView, {PROVIDER_GOOGLE, Polygon} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
 import {colors} from '../utils/colors';
-import PickUpAdress from '../components/PickUpAdress';
 import {useSelector} from 'react-redux';
-import GeoJSONBounds from '../utils/GeoJSON/TN-gouvernorats.json';
-import {AutocompleteDropdown} from 'react-native-autocomplete-dropdown';
-import {Divider, Input} from 'native-base';
-import EstimationCard from '../components/estimation/EstimationCard';
-import {formatDateTime} from '../utils/formatDateTime';
 import Payemant from '../components/Payemant';
+import polyline from '@mapbox/polyline';
+import {getAddressFromCoordinates} from '../utils/helpers/mapUtils';
+import WaveCircle from '../components/WaveCircle';
 
 const requestLocationPermission = async () => {
   try {
@@ -65,196 +59,70 @@ const MainScreen = () => {
   const miniCar = require('../assets/miniCar.png');
 
   const [step, setStep] = useState(1);
+
   const [formData, setFormData] = useState({
     useCurrentLocation: false,
+    selectedDate: null,
     pickup: {
       address: '',
       latitude: null,
       longitude: null,
     },
-    date: new Date('2025-01-29'), // Set initial date to match the image
-    time: new Date(),
     drop: {
       address: '',
       latitude: null,
       longitude: null,
     },
-    objects: [],
   });
-  const autoCompleteOptions = objet?.map(item => ({
-    id: item.attributes.objet.id,
-    title: `${item.attributes.objet.name} (${item.attributes.objet.volume})m³`,
-  }));
 
   const getCurrentLocation = async () => {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) return;
 
     Geolocation.getCurrentPosition(
-      position => {
-        setFormData(prev => ({
-          ...prev,
-          useCurrentLocation: true,
-          pickup: {
-            address: `Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          },
-          drop: {
-            address: `Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`,
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          },
-        }));
+      async position => {
+        // Make the callback function async
+        try {
+          const address = await getAddressFromCoordinates(
+            position.coords.latitude,
+            position.coords.longitude,
+          );
+
+          setFormData(prev => ({
+            ...prev,
+            useCurrentLocation: true,
+            pickup: {
+              address: JSON.stringify(address), // Use the address from the geocoding function
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            },
+          }));
+        } catch (error) {
+          console.log('Error fetching address:', error);
+        }
       },
       error => console.log(error),
       {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
     );
+
+    setStep(2);
   };
   const GOOGLE_LOGO =
     'https://i.pinimg.com/564x/7a/62/ec/7a62ecaa696f10c3b1c9b88eede32e79.jpg';
-  const [selectedArticles, setSelectedArticles] = useState([]);
-  const [maxVolumeReached, setMaxVolumeReached] = useState(false);
-  const [inputerrors, setInputErrorss] = useState({});
   const [address, setAddress] = useState('');
   const [date, setDate] = useState(new Date());
-  const [volume, setVolume] = useState(0);
   const [selectedCard, setSelectedCard] = useState(1);
   const [minPrice, setMinPrice] = useState(null);
   const [maxPrice, setMaxPrice] = useState(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [hours, setHours] = useState('00');
-  const [minutes, setMinutes] = useState('00');
   const [isSwitchOn, setIsSwitchOn] = useState(false);
   const [switchChecked, setSwitchChecked] = useState(false);
-  const [outOfService, setOutOfService] = useState(false);
-  const [selectedOption, setSelectedOption] = useState('Au pied du camion');
-  const [visible, setVisible] = useState(false);
-  const [count, setCount] = useState(0);
-  const [inputErrors, setInputErrors] = useState({});
   const [newreservation, setNewreservation] = useState(initialState);
   const current = useSelector(state => state?.user?.currentUser);
   const objet = useSelector(state => state.objects?.objects?.data);
   const initialState = useSelector(state => state?.commandes?.newCommande);
   const [hasElevator, setHasElevator] = useState(false);
-  const handleOptionSelect = (option, updatedCount, updatedHasElevator) => {
-    setSelectedOption(option);
-    let updatedPickUpAccess = {
-      options: 'Camion',
-      floor: 0,
-    };
 
-    if (option === 'chez moi') {
-      if (updatedCount === 0) {
-        updatedPickUpAccess = {
-          options: 'Rez-de-chaussée',
-          floor: 0,
-        };
-      } else {
-        updatedPickUpAccess = {
-          options: updatedHasElevator ? 'Ascenseur' : 'Monter',
-          floor: updatedCount,
-        };
-      }
-    }
-  };
-
-  const handleOptionSelectDrop = (option, updatedCount, updatedHasElevator) => {
-    setSelectedOption2(option);
-
-    let updatedDropUpAccess = {
-      options: 'Camion',
-      floor: 0,
-    };
-
-    if (option === 'chez moi') {
-      if (updatedCount === 0) {
-        updatedDropUpAccess = {
-          options: 'Rez-de-chaussée',
-          floor: 0,
-        };
-      } else {
-        updatedDropUpAccess = {
-          options: updatedHasElevator ? 'Ascenseur' : 'Monter',
-          floor: updatedCount,
-        };
-      }
-    }
-
-    setNewreservation(prevReservation => ({
-      ...prevReservation,
-      data: {
-        ...prevReservation.data,
-        dropAcces: updatedDropUpAccess,
-      },
-    }));
-  };
-  const handleIncrease = () => {
-    const updatedCount = count + 1;
-    setCount(updatedCount);
-    handleOptionSelect(selectedOption, updatedCount, hasElevator);
-  };
-  const handleSelectChange = value => {
-    const findObject = objet?.find(
-      el => el?.attributes?.objet?.id === value?.id,
-    );
-
-    if (findObject) {
-      setSelectedArticles(prevSelectedArticles => {
-        const updatedArticles = [...prevSelectedArticles];
-        const existingItemIndex = updatedArticles.findIndex(
-          item => item.item.name === findObject?.attributes?.objet?.name,
-        );
-
-        if (existingItemIndex !== -1) {
-          // If the item already exists, increment the count
-          updatedArticles[existingItemIndex].quant += 1;
-        } else {
-          // If the item doesn't exist and the total volume is less than or equal to 20, add it to the list
-          const totalVolume = calculateTotalVolume(updatedArticles);
-
-          if (totalVolume + findObject?.attributes?.objet?.volume <= 20) {
-            updatedArticles.push({
-              item: {
-                id: findObject?.attributes?.objet?.id,
-                name: findObject?.attributes?.objet?.name,
-                volume: findObject?.attributes?.objet?.volume,
-                category: findObject?.attributes?.objet?.category,
-                weight: findObject?.attributes?.objet?.weight,
-              },
-              quant: 1,
-            });
-          }
-        }
-
-        const totalVolume = calculateTotalVolume(updatedArticles);
-        setVolume(totalVolume);
-        if (totalVolume > 20) {
-          setMaxVolumeReached(true);
-        } else {
-          setMaxVolumeReached(false);
-        }
-
-        return updatedArticles;
-      });
-    }
-  };
-  const handleDecrease = () => {
-    const updatedCount = count - 1;
-    setCount(updatedCount);
-    handleOptionSelect(selectedOption, updatedCount, hasElevator);
-  };
-  const handleIncreaseDrop = () => {
-    const updatedCount = count2 + 1;
-    setCount2(updatedCount);
-    handleOptionSelectDrop(selectedOption2, updatedCount, hasElevator);
-  };
-
-  const handleDecreaseDrop = () => {
-    const updatedCount = count2 - 1;
-    setCount2(updatedCount);
-    handleOptionSelectDrop(selectedOption2, updatedCount, hasElevator);
-  };
   // Handle Google Places Autocomplete selection
   const handleAddressSelect = (data, details) => {
     setAddress(details?.formatted_address || '');
@@ -271,6 +139,19 @@ const MainScreen = () => {
 
   // Handle date selection
   const handleDateConfirm = selectedDate => {
+    const now = new Date();
+    console.log(selectedDate, selectedDate < now, now);
+    if (selectedDate < now) {
+      Alert.alert('Invalid Date', "You can't select a date/time in the past.");
+      setDatePickerVisibility(false);
+
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      selectedDate: selectedDate, // replace `newDate` with your actual date
+    }));
+
     setDate(selectedDate);
     hideDatePicker();
   };
@@ -279,14 +160,6 @@ const MainScreen = () => {
   const toggleSwitch = () => {
     setIsSwitchOn(previousState => !previousState);
   };
-
-  const objectsList = [
-    {id: 1, name: 'Furniture'},
-    {id: 2, name: 'Electronics'},
-    {id: 3, name: 'Boxes'},
-    {id: 4, name: 'Clothing'},
-  ];
-
   // Request location permission
   const requestLocationPermission = async () => {
     try {
@@ -316,56 +189,6 @@ const MainScreen = () => {
     // Return formatted string
     return `${dateString} ${hours}:${minutes}`;
   };
-  const grandTunisCoordinates = [
-    {latitude: 36.8901, longitude: 10.1879}, // La Marsa (start)
-    {latitude: 36.8651, longitude: 10.1992}, // Côté Sidi Daoud
-    {latitude: 36.8222, longitude: 10.2243}, // Ariana côté nord
-    {latitude: 36.81, longitude: 10.219}, // Ariana (northern boundary)
-    {latitude: 36.796, longitude: 10.2065}, // Raoued
-    {latitude: 36.7666, longitude: 10.1354}, // Kalaat Landlous
-    {latitude: 36.7311, longitude: 10.1056}, // Sud Ariana
-    {latitude: 36.698, longitude: 10.0831}, // Borj Touil
-    {latitude: 36.665, longitude: 10.0785}, // Manouba
-    {latitude: 36.6689, longitude: 10.0598}, // Manouba
-    {latitude: 36.6503, longitude: 10.0801}, // Mornaguia
-    {latitude: 36.6358, longitude: 10.1184}, // Djebel Oust
-    {latitude: 36.6685, longitude: 10.2003}, // Fouchana
-    {latitude: 36.7041, longitude: 10.2328}, // Ben Arous
-    {latitude: 36.7406, longitude: 10.2679}, // Megrine
-    {latitude: 36.7816, longitude: 10.2746}, // Tunis centre
-    {latitude: 36.8109, longitude: 10.2833}, // Côté Lac
-    {latitude: 36.8437, longitude: 10.2575}, // La Goulette
-    {latitude: 36.8739, longitude: 10.2304}, // Gammarth
-    {latitude: 36.8901, longitude: 10.1879}, // Retour à La Marsa (close loop)
-  ];
-  // Get current position
-  // const getCurrentLocation = async () => {
-  //   const hasPermission = await requestLocationPermission();
-  //   if (!hasPermission) return;
-
-  //   Geolocation.getCurrentPosition(
-  //     position => {
-  //       setFormData(prev => ({
-  //         ...prev,
-  //         drop: {
-  //           latitude: position.coords.latitude,
-  //           longitude: position.coords.longitude,
-  //         },
-  //       }));
-  //     },
-  //     error => console.log(error),
-  //     {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-  //   );
-  // };
-
-  const handleObjectToggle = id => {
-    setFormData(prev => ({
-      ...prev,
-      objects: prev.objects.includes(id)
-        ? prev.objects.filter(item => item !== id)
-        : [...prev.objects, id],
-    }));
-  };
 
   const renderStep = () => {
     switch (step) {
@@ -387,73 +210,78 @@ const MainScreen = () => {
                 <MaterialIcons name="my-location" size={24} color="white" />
               </TouchableOpacity>
             </View>
+
             <Text style={styles.title}>Where are you going today?</Text>
+
             <SafeAreaView style={styles.container}>
               <KeyboardAvoidingView
                 behavior="padding"
                 style={styles.formContainer}>
                 <View style={styles.inputContainer}>
-                  {/* Address Checkbox and Input */}
-                  {/* <View style={styles.checkboxContainer}>
-                    <CheckBox
-                      value={formData.pickup !== null}
-                      disabled={true}
-                    />
-                    <Text style={styles.checkboxLabel}>Adresse de départ</Text>
-                  </View> */}
+                  {/* You can add checkboxes or other fields here if needed */}
                 </View>
+
                 <View style={styles.currentLocation}>
-                  {!formData.useCurrentLocation && (
-                    <GooglePlacesAutocomplete
-                      placeholder="Type the address..."
-                      onPress={(data, details = null) => {
+                  <GooglePlacesAutocomplete
+                    placeholder="Type the address..."
+                    fetchDetails
+                    onPress={(data, details = null) => {
+                      if (details) {
                         setFormData(prev => ({
                           ...prev,
                           pickup: {
-                            address: data.description,
-                            latitude: details?.geometry?.location?.lat || null,
-                            longitude: details?.geometry?.location?.lng || null,
+                            address: JSON.stringify(data.description),
+                            latitude: parseFloat(
+                              JSON.stringify(details?.geometry?.location?.lat),
+                            ),
+                            longitude: parseFloat(
+                              JSON.stringify(details?.geometry?.location?.lng),
+                            ),
                           },
                         }));
-                      }}
-                      query={{
-                        key: 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE',
-                        language: 'fr',
-                        components: 'country:tn',
-                        location: '36.8,10.1',
-                      }}
-                      styles={{
-                        textInputContainer: {
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          borderWidth: 1,
-                          borderColor: '#ccc',
-                          borderRadius: 8,
-                          paddingHorizontal: 10,
-                          backgroundColor: '#fff',
-                          marginBottom: 5,
-                        },
-                        textInput: {
-                          flex: 1,
-                          fontSize: 16,
-                          height: 40,
-                        },
-                      }}
-                      renderLeftButton={() => (
-                        <View
-                          style={{paddingLeft: 10, justifyContent: 'center'}}>
-                          <Image
-                            source={{uri: GOOGLE_LOGO}}
-                            style={{
-                              width: 18,
-                              height: 18,
-                              resizeMode: 'contain',
-                            }}
-                          />
-                        </View>
-                      )}
-                    />
-                  )}
+                      }
+                    }}
+                    query={{
+                      key: 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE',
+                      language: 'fr',
+                      components: 'country:tn',
+                      location: '36.8,10.1',
+                      radius: 30000,
+                    }}
+                    styles={{
+                      textInputContainer: {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        borderWidth: 1,
+                        borderColor: '#ccc',
+                        borderRadius: 8,
+                        paddingHorizontal: 10,
+                        backgroundColor: '#fff',
+                        marginBottom: 5,
+                      },
+                      textInput: {
+                        flex: 1,
+                        fontSize: 16,
+                        height: 40,
+                      },
+                    }}
+                    renderLeftButton={() => (
+                      <View
+                        style={{
+                          paddingLeft: 10,
+                          justifyContent: 'center',
+                        }}>
+                        <Image
+                          source={{uri: GOOGLE_LOGO}}
+                          style={{
+                            width: 18,
+                            height: 18,
+                            resizeMode: 'contain',
+                          }}
+                        />
+                      </View>
+                    )}
+                  />
                   {formData.useCurrentLocation && (
                     <TextInput
                       style={styles.input}
@@ -462,6 +290,7 @@ const MainScreen = () => {
                     />
                   )}
                 </View>
+
                 <View
                   style={{
                     display: 'flex',
@@ -469,7 +298,7 @@ const MainScreen = () => {
                     flexDirection: 'row',
                     gap: 20,
                   }}>
-                  {/* Time Inputs */}
+                  {/* Add additional fields (time, notes, etc.) here */}
                 </View>
               </KeyboardAvoidingView>
             </SafeAreaView>
@@ -482,16 +311,20 @@ const MainScreen = () => {
                 backgroundColor: '#F9DC76',
                 borderRadius: 5,
                 alignItems: 'center',
-
                 borderWidth: 2,
                 borderColor: colors.primary,
-
                 borderRightWidth: 5,
                 borderBottomWidth: 5,
                 borderTopWidth: 2,
                 borderLeftWidth: 2,
               }}
-              onPress={() => setStep(2)}>
+              onPress={() => {
+                if (formData.pickup.latitude) {
+                  setStep(2);
+                } else {
+                  Alert.alert('pick location');
+                }
+              }}>
               <Text
                 style={{
                   color: 'black',
@@ -503,7 +336,6 @@ const MainScreen = () => {
             </Pressable>
           </View>
         );
-
       case 2:
         return (
           <View style={styles.stepContainer}>
@@ -542,52 +374,57 @@ const MainScreen = () => {
                 </View>
               </View>
               <View style={styles.currentLocation}>
-                {!formData.useCurrentLocation && (
-                  <GooglePlacesAutocomplete
-                    placeholder="Type the address..."
-                    onPress={(data, details = null) => {
+                <GooglePlacesAutocomplete
+                  placeholder="Search"
+                  fetchDetails={true} // this is required to get lat/lng
+                  onPress={(data, details = null) => {
+                    if (details) {
                       setFormData(prev => ({
                         ...prev,
                         drop: {
-                          address: data.description,
-                          latitude: details?.geometry?.location?.lat || null,
-                          longitude: details?.geometry?.location?.lng || null,
+                          address: JSON.stringify(data.description),
+                          latitude: parseFloat(
+                            JSON.stringify(details?.geometry?.location?.lat),
+                          ),
+                          longitude: parseFloat(
+                            JSON.stringify(details?.geometry?.location?.lng),
+                          ),
                         },
                       }));
-                    }}
-                    query={{
-                      key: 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE',
-                      language: 'fr',
-                      components: 'country:tn',
-                      location: '36.8,10.1',
-                    }}
-                    styles={{
-                      textInputContainer: {
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        borderWidth: 1,
-                        borderColor: '#ccc',
-                        borderRadius: 8,
-                        paddingHorizontal: 10,
-                        backgroundColor: '#fff',
-                        marginBottom: 5,
-                      },
-                      textInput: {
-                        flex: 1,
-                        fontSize: 16,
-                        height: 40,
-                      },
-                    }}
-                    renderLeftButton={() => (
-                      <View style={{paddingLeft: 10, justifyContent: 'center'}}>
-                        <Image
-                          source={{uri: GOOGLE_LOGO}}
-                          style={{width: 18, height: 18, resizeMode: 'contain'}}
-                        />
-                      </View>
-                    )}
-                  />
-                )}
+                    }
+                  }}
+                  query={{
+                    key: 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE',
+                    language: 'fr',
+                    components: 'country:tn',
+                    location: '36.8,10.1',
+                  }}
+                  styles={{
+                    textInputContainer: {
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: '#ccc',
+                      borderRadius: 8,
+                      paddingHorizontal: 10,
+                      backgroundColor: '#fff',
+                      marginBottom: 5,
+                    },
+                    textInput: {
+                      flex: 1,
+                      fontSize: 16,
+                      height: 40,
+                    },
+                  }}
+                  renderLeftButton={() => (
+                    <View style={{paddingLeft: 10, justifyContent: 'center'}}>
+                      <Image
+                        source={{uri: GOOGLE_LOGO}}
+                        style={{width: 18, height: 18, resizeMode: 'contain'}}
+                      />
+                    </View>
+                  )}
+                />
                 {formData.useCurrentLocation && (
                   <TextInput
                     style={styles.input}
@@ -613,7 +450,14 @@ const MainScreen = () => {
                   borderTopWidth: 2,
                   borderLeftWidth: 2,
                 }}
-                onPress={() => setStep(3)}>
+                onPress={() => {
+                  if (formData.drop.latitude) {
+                    setStep(3);
+                    fetchRoute();
+                  } else {
+                    Alert.alert('pick location');
+                  }
+                }}>
                 <Text
                   style={{
                     color: 'black',
@@ -626,7 +470,6 @@ const MainScreen = () => {
             </View>
           </View>
         );
-
       case 3:
         return (
           <View style={styles.stepContainer}>
@@ -850,7 +693,6 @@ const MainScreen = () => {
                   </Pressable>
                 </View>
               </View>
-              
             </View>
           </View>
         );
@@ -871,7 +713,7 @@ const MainScreen = () => {
                   alignItems: 'baseline',
                   padding: 5,
                 }}>
-                <Pressable onPress={() => setStep(5)}>
+                <Pressable onPress={() => setStep(4)}>
                   <Image
                     source={PREVIOUS}
                     style={{
@@ -923,7 +765,7 @@ const MainScreen = () => {
                           fontSize: hp(1.5),
                           fontWeight: '400',
                         }}>
-                        Monday, May 27, from 8 AM to 10 AM
+                        {formatDate(date)}
                       </Text>
                     </View>
                   </View>
@@ -962,7 +804,7 @@ const MainScreen = () => {
                           fontSize: hp(1.5),
                           fontWeight: '400',
                         }}>
-                        17th Arrondissement, Paris, France
+                        {formData.pickup.address}
                       </Text>
                     </View>
                   </View>
@@ -1001,7 +843,7 @@ const MainScreen = () => {
                           fontSize: hp(1.5),
                           fontWeight: '400',
                         }}>
-                        3e Arrondissement, Paris, France
+                        {formData.drop.address}
                       </Text>
                     </View>
                   </View>
@@ -1077,7 +919,7 @@ const MainScreen = () => {
       case 6:
         return (
           <View
-            style={{backgroundColor: '#19191C', height: 'auto', width: '90%'}}>
+            style={{backgroundColor: '#19191C', height: 'auto', width: '100%'}}>
             <View
               style={{
                 display: 'flex',
@@ -1085,7 +927,7 @@ const MainScreen = () => {
                 alignItems: 'baseline',
                 padding: 5,
               }}>
-              <Pressable onPress={() => setStep(4)}>
+              <Pressable onPress={() => setStep(5)}>
                 <Image
                   source={PREVIOUS}
                   style={{
@@ -1098,9 +940,14 @@ const MainScreen = () => {
                   }}
                 />
               </Pressable>
-              <Text style={[styles.title, {marginLeft:80}]}>
-                Price 25€
-              </Text>
+              <View
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1,
+                }}>
+                <Text style={styles.title}>Price 25€</Text>
+              </View>
             </View>
 
             <Payemant
@@ -1118,92 +965,140 @@ const MainScreen = () => {
         );
     }
   };
+  console.log(formData, 'formData====');
+  const [routeCoords, setRouteCoords] = useState([]);
 
+  const fetchRoute = async () => {
+    const origin = `${formData.pickup.latitude},${formData.pickup.longitude}`;
+    const destination = `${formData.drop.latitude},${formData.drop.longitude}`;
+    const API_KEY = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE'; // Replace this
+
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${API_KEY}`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.routes.length) {
+      const points = polyline.decode(data.routes[0].overview_polyline.points);
+      const coords = points.map(([lat, lng]) => ({
+        latitude: lat,
+        longitude: lng,
+      }));
+      setRouteCoords(coords);
+    }
+  };
+  const [region, setRegion] = useState({
+    sourceLatitude: 37.18, // Default latitude
+    sourceLongitude: 10.11, // Default longitude
+    destinationLatitude: null, // Default latitude
+    destinationLongitude: null, // Default longitude
+    latitudeDelta: 1.7,
+    longitudeDelta: 0.45,
+  });
+  useEffect(() => {
+    setRegion({
+      sourceLatitude: formData.pickup.latitude,
+      sourceLongitude: formData.pickup.longitude,
+      destinationLatitude: formData.drop.latitude,
+      destinationLongitude: formData.drop.longitude,
+    });
+  }, [formData]);
+  useEffect(() => {
+    if (isSwitchOn) {
+      setFormData(prev => ({
+        ...prev,
+        selectedDate: new Date(),
+      }));
+    }
+  }, [isSwitchOn]);
+  //////////////////////36.80557596268572, 10.180696783260366
+
+  
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={{flex: 1}}>
       <MapView
         provider={PROVIDER_GOOGLE}
-        style={StyleSheet.absoluteFillObject}
-        customMapStyle={mapStyle} // Apply custom styling
+        style={StyleSheet.absoluteFillObject} // Map takes up the full screen
+        customMapStyle={mapStyle}
+        zoomEnabled
+        focusable
         region={{
-          latitude: 37.18,
-          longitude: 10.11,
-          latitudeDelta: 1.7,
-          longitudeDelta: 0.45,
+          latitude: region.sourceLatitude || 36.80557596268572,
+          longitude: region.sourceLongitude || 10.180696783260366,
+          latitudeDelta:
+            region.destinationLatitude === null && region.sourceLatitude
+              ? 0.05
+              : 1,
+          longitudeDelta:
+            region.destinationLatitude === null && region.sourceLatitude
+              ? 0.05
+              : 1,
         }}>
-        {/* {GeoJSONBounds?.features?.map((feature, index) =>
-          feature?.geometry?.type === 'MultiPolygon'
-            ? feature.geometry.coordinates.map((polygon, polygonIndex) => (
-                <Polygon
-                  key={`${index}-${polygonIndex}`}
-                  coordinates={polygon[0].map(coord => ({
-                    latitude: coord[1],
-                    longitude: coord[0],
-                  }))}
-                  strokeColor="orange"
-                  strokeWidth={3}
-                  fillColor="rgba(255, 0, 0, 0.2)"
-                />
-              ))
-            : feature.geometry.coordinates.map((polygon, polygonIndex) => (
-                <Polygon
-                  key={`${index}-${polygonIndex}`}
-                  coordinates={polygon.map(coord => ({
-                    latitude: coord[1],
-                    longitude: coord[0],
-                  }))}
-                  strokeColor="orange"
-                  strokeWidth={3}
-                  fillColor="#ffbb8630"
-                />
-              )),
-        )} */}
+        {formData.pickup.latitude && (
+          <Marker coordinate={formData.pickup} title="Location" anchor={{ x: 0.5, y: 0.5 }} // Center the marker
+          >
+            {formData.drop.latitude ? (
+              <View
+                style={{
+                  width: 120,
+                  height: 120,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <WaveCircle />
+              </View>
+            ) : (
+              <Image
+                source={require('../assets/A_Tawsilet.png')}
+                style={{width: 40, height: 40}}
+                resizeMode="contain"
+              />
+            )}
+          </Marker>
+        )}
+        {routeCoords.length > 0 && (
+          <>
+            {/* Start Marker */}
+
+            {/* End Marker */}
+            <Marker coordinate={formData.drop} title="Destination">
+              <Image
+                source={require('../assets/B_Tawsilet.png')} // your custom icon
+                style={{width: 40, height: 40}}
+                resizeMode="contain"
+              />
+            </Marker>
+
+            {/* Straight-line Route */}
+            <Polyline
+              coordinates={routeCoords}
+              strokeWidth={4}
+              strokeColor="black"
+            />
+          </>
+        )}
       </MapView>
+
+      {/* Content Below Map */}
       <View
         style={{
-          height: 'auto',
-          top: 20,
+          position: 'absolute', // Position content on top of the map
+          top: '2%', // Push content to the bottom
+          left: 0,
+          right: 0,
           backgroundColor: '#19191C',
           padding: 5,
-          borderRadius: 10,
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderWidth: 2,
-          borderColor: '#19191C',
-          // Add borders using negative margin trick
-          borderRightWidth: 5,
-          borderBottomWidth: 5,
-          borderTopWidth: 0,
-          borderLeftWidth: 0,
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          borderBottomRightRadius: 10,
+          borderBottomLeftRadius: 10,
         }}>
         {renderStep()}
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
-const mapStyle = [
-  {
-    featureType: 'all',
-    stylers: [{saturation: 0}, {hue: '#e7ecf0'}],
-  },
-  {
-    featureType: 'road',
-    stylers: [{saturation: -70}],
-  },
-  {
-    featureType: 'transit',
-    stylers: [{visibility: 'off'}],
-  },
-  {
-    featureType: 'poi',
-    stylers: [{visibility: 'off'}],
-  },
-  {
-    featureType: 'water',
-    stylers: [{visibility: 'simplified'}, {saturation: -60}],
-  },
-];
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -1213,41 +1108,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#19191C',
     width: '100%',
+    marginBottom: 5,
   },
-  estimationContainer: {
-    backgroundColor: '#fff',
-    width: '90%',
-    flex: 0.73,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-  },
-  // estimationContainerEs: {
-  //   backgroundColor: '#fff',
-  //   height: 370,
-  //   width: '90%',
-  //   flexGrow: 1,
-  //   borderTopLeftRadius: 13,
-  //   borderTopRightRadius: 13,
-  //   alignSelf: 'center',
-  //   marginBottom: 15,
-  //   marginTop: 15,
-  // },
-
   header: {
     height: 50,
     backgroundColor: colors.secondary,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    flexDirection: 'row',
-    width: '100%',
-  },
-  headerInactive: {
-    height: 50,
-    backgroundColor: 'gray',
     borderTopLeftRadius: 13,
     borderTopRightRadius: 13,
     paddingHorizontal: 20,
@@ -1399,8 +1264,41 @@ const styles = StyleSheet.create({
     alignItems: 'end',
     alignSelf: 'flex-end',
   },
+  markerContainer: {
+    width: 100,
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  waveCircle: {
+    position: 'absolute',
+    width: 50,
+    height: 50,
+    borderRadius: 50,
+  },
 });
-
+const mapStyle = [
+  {
+    featureType: 'all',
+    stylers: [{saturation: 0}, {hue: '#e7ecf0'}],
+  },
+  {
+    featureType: 'road',
+    stylers: [{saturation: -70}],
+  },
+  {
+    featureType: 'transit',
+    stylers: [{visibility: 'off'}],
+  },
+  {
+    featureType: 'poi',
+    stylers: [{visibility: 'off'}],
+  },
+  {
+    featureType: 'water',
+    stylers: [{visibility: 'simplified'}, {saturation: -60}],
+  },
+];
 const placesStyles = {
   textInputContainer: {
     width: '100%',
@@ -1429,16 +1327,6 @@ const placesStyles = {
     fontSize: 12,
     color: '#666',
     fontStyle: 'italic',
-  },
-  header: {
-    height: 50,
-    backgroundColor: colors.secondary,
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    flexDirection: 'row',
-    width: '100%',
   },
   headerInactive: {
     height: 50,
