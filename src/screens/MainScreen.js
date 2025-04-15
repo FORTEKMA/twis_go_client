@@ -15,6 +15,7 @@ import {
   Alert,
   Animated,
   Easing,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {
@@ -31,6 +32,7 @@ import Payemant from '../components/Payemant';
 import polyline from '@mapbox/polyline';
 import {getAddressFromCoordinates} from '../utils/helpers/mapUtils';
 import WaveCircle from '../components/WaveCircle';
+import SendingRequests from '../components/SendingRequests';
 
 const requestLocationPermission = async () => {
   try {
@@ -122,7 +124,8 @@ const MainScreen = () => {
   const objet = useSelector(state => state.objects?.objects?.data);
   const initialState = useSelector(state => state?.commandes?.newCommande);
   const [hasElevator, setHasElevator] = useState(false);
-
+  const [currentStep, setCurrentStep] = useState('pickup'); // 'pickup' or 'drop'
+  const [canSelectLocation, setCanSelectLocation] = useState(true);
   // Handle Google Places Autocomplete selection
   const handleAddressSelect = (data, details) => {
     setAddress(details?.formatted_address || '');
@@ -321,6 +324,7 @@ const MainScreen = () => {
               onPress={() => {
                 if (formData.pickup.latitude) {
                   setStep(2);
+                  setCurrentStep('drop'); // After pickup, switch to drop
                 } else {
                   Alert.alert('pick location');
                 }
@@ -453,6 +457,7 @@ const MainScreen = () => {
                 onPress={() => {
                   if (formData.drop.latitude) {
                     setStep(3);
+                    setCanSelectLocation(false);
                     fetchRoute();
                   } else {
                     Alert.alert('pick location');
@@ -973,7 +978,7 @@ const MainScreen = () => {
     const destination = `${formData.drop.latitude},${formData.drop.longitude}`;
     const API_KEY = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE'; // Replace this
 
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&key=${API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&departure_time=now&mode=driving&key=${API_KEY}`;
 
     const response = await fetch(url);
     const data = await response.json();
@@ -997,11 +1002,6 @@ const MainScreen = () => {
     }
   }, [isSwitchOn]);
   //////////////////////36.80557596268572, 10.180696783260366
-  // setMapRegion(prevRegion => ({
-  //   ...prevRegion, // keep old latitude and longitude
-  //   latitudeDelta: newLatitudeDelta,
-  //   longitudeDelta: newLongitudeDelta,
-  // }));
 
   const mapRef = useRef(null);
   const hasAnimatedRef = useRef(false); // 🚫 Prevent multiple animations
@@ -1078,6 +1078,24 @@ const MainScreen = () => {
     routeCoords,
   ]);
 
+  const getAddressFromCoords = async ({latitude, longitude}) => {
+    try {
+      const apiKey = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE'; // replace with yours
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.status === 'OK' && data.results.length > 0) {
+        return data.results[0].formatted_address;
+      }
+      return '';
+    } catch (error) {
+      console.error('Geocoding failed:', error);
+      return '';
+    }
+  };
+
   return (
     <View style={{flex: 1}}>
       <MapView
@@ -1087,9 +1105,49 @@ const MainScreen = () => {
         customMapStyle={mapStyle}
         zoomEnabled
         focusable
-        region={mapRegion}>
+        region={mapRegion}
+        onPress={async e => {
+          if (!currentStep) return;
+
+          const coord = e.nativeEvent.coordinate;
+          const address = await getAddressFromCoords(coord);
+          if (currentStep === 'pickup') {
+            setFormData(prev => ({
+              ...prev,
+              pickup: {
+                latitude: coord.latitude,
+                longitude: coord.longitude,
+                address: address,
+              },
+            }));
+          } else if (currentStep === 'drop') {
+            setFormData(prev => ({
+              ...prev,
+              drop: {
+                latitude: coord.latitude,
+                longitude: coord.longitude,
+                address,
+              },
+            }));
+          }
+        }}
+        // 👈 Capture tap
+      >
         {formData.pickup.latitude && (
           <Marker
+            draggable
+            onDragEnd={async e => {
+              const newCoord = e.nativeEvent.coordinate;
+              const address = await getAddressFromCoords(newCoord);
+              setFormData(prev => ({
+                ...prev,
+                pickup: {
+                  latitude: newCoord.latitude,
+                  longitude: newCoord.longitude,
+                  address: address,
+                },
+              }));
+            }}
             coordinate={formData.pickup}
             title="Location"
             anchor={{x: 0.5, y: 0.5}} // Center the marker
@@ -1105,11 +1163,13 @@ const MainScreen = () => {
                 <WaveCircle />
               </View>
             ) : (
-              <Image
-                source={require('../assets/A_Tawsilet.png')}
-                style={{width: 40, height: 40}}
-                resizeMode="contain"
-              />
+              <TouchableWithoutFeedback>
+                <Image
+                  source={require('../assets/A_Tawsilet.png')}
+                  style={{width: 80, height: 80}}
+                  resizeMode="contain"
+                />
+              </TouchableWithoutFeedback>
             )}
           </Marker>
         )}
@@ -1118,12 +1178,29 @@ const MainScreen = () => {
             {/* Start Marker */}
 
             {/* End Marker */}
-            <Marker coordinate={formData.drop} title="Destination">
-              <Image
-                source={require('../assets/B_Tawsilet.png')} // your custom icon
-                style={{width: 40, height: 40}}
-                resizeMode="contain"
-              />
+            <Marker
+              coordinate={formData.drop}
+              title="Destination"
+              draggable
+              onDragEnd={async e => {
+                const newCoord = e.nativeEvent.coordinate;
+                const address = await getAddressFromCoords(newCoord);
+                setFormData(prev => ({
+                  ...prev,
+                  drop: {
+                    latitude: newCoord.latitude,
+                    longitude: newCoord.longitude,
+                    address: address,
+                  },
+                }));
+              }}>
+              <TouchableWithoutFeedback>
+                <Image
+                  source={require('../assets/B_Tawsilet.png')}
+                  style={{width: 80, height: 80}}
+                  resizeMode="contain"
+                />
+              </TouchableWithoutFeedback>
             </Marker>
 
             {/* Straight-line Route */}
@@ -1135,7 +1212,7 @@ const MainScreen = () => {
           </>
         )}
       </MapView>
-
+      <SendingRequests formData={formData} price={100} />
       {/* Content Below Map */}
       <View
         style={{
