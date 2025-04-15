@@ -987,22 +987,7 @@ const MainScreen = () => {
       setRouteCoords(coords);
     }
   };
-  const [region, setRegion] = useState({
-    sourceLatitude: 37.18, // Default latitude
-    sourceLongitude: 10.11, // Default longitude
-    destinationLatitude: null, // Default latitude
-    destinationLongitude: null, // Default longitude
-    latitudeDelta: 1.7,
-    longitudeDelta: 0.45,
-  });
-  useEffect(() => {
-    setRegion({
-      sourceLatitude: formData.pickup.latitude,
-      sourceLongitude: formData.pickup.longitude,
-      destinationLatitude: formData.drop.latitude,
-      destinationLongitude: formData.drop.longitude,
-    });
-  }, [formData]);
+
   useEffect(() => {
     if (isSwitchOn) {
       setFormData(prev => ({
@@ -1012,32 +997,104 @@ const MainScreen = () => {
     }
   }, [isSwitchOn]);
   //////////////////////36.80557596268572, 10.180696783260366
+  // setMapRegion(prevRegion => ({
+  //   ...prevRegion, // keep old latitude and longitude
+  //   latitudeDelta: newLatitudeDelta,
+  //   longitudeDelta: newLongitudeDelta,
+  // }));
 
-  
+  const mapRef = useRef(null);
+  const hasAnimatedRef = useRef(false); // 🚫 Prevent multiple animations
+
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 36.80557596268572,
+    longitude: 10.180696783260366,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+
+  useEffect(() => {
+    if (
+      !formData?.pickup?.latitude ||
+      !formData?.pickup?.longitude ||
+      !mapRef.current
+    ) {
+      return;
+    }
+
+    const initialRegion = {
+      latitude: formData.pickup.latitude,
+      longitude: formData.pickup.longitude,
+      latitudeDelta: 0.005,
+      longitudeDelta: 0.005,
+    };
+
+    // Update state with tight zoom
+    setMapRegion(initialRegion);
+
+    // Animate map view to that region
+    mapRef.current.animateToRegion(initialRegion, 500);
+
+    const maxDelta = 0.01;
+    const step = 0.0001;
+    let currentDelta = 0.005;
+    let animationFrame;
+
+    const animate = () => {
+      if (currentDelta >= maxDelta || !mapRef.current) return;
+
+      currentDelta += step;
+
+      const newRegion = {
+        latitude: formData.pickup.latitude,
+        longitude: formData.pickup.longitude,
+        latitudeDelta: currentDelta,
+        longitudeDelta: currentDelta,
+      };
+
+      setMapRegion(newRegion);
+      mapRef.current.animateToRegion(newRegion, 150);
+
+      animationFrame = setTimeout(animate, 800); // not too frequent
+    };
+
+    if (
+      formData?.drop?.latitude &&
+      formData?.drop?.longitude &&
+      routeCoords.length === 0
+    ) {
+      animationFrame = setTimeout(animate, 600); // small delay before zooming out
+      hasAnimatedRef.current = true;
+    }
+
+    return () => {
+      if (animationFrame) clearTimeout(animationFrame);
+    };
+  }, [
+    formData?.pickup?.latitude,
+    formData?.pickup?.longitude,
+    formData?.drop?.latitude,
+    formData?.drop?.longitude,
+    routeCoords,
+  ]);
+
   return (
     <View style={{flex: 1}}>
       <MapView
+        ref={mapRef}
         provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFillObject} // Map takes up the full screen
         customMapStyle={mapStyle}
         zoomEnabled
         focusable
-        region={{
-          latitude: region.sourceLatitude || 36.80557596268572,
-          longitude: region.sourceLongitude || 10.180696783260366,
-          latitudeDelta:
-            region.destinationLatitude === null && region.sourceLatitude
-              ? 0.05
-              : 1,
-          longitudeDelta:
-            region.destinationLatitude === null && region.sourceLatitude
-              ? 0.05
-              : 1,
-        }}>
+        region={mapRegion}>
         {formData.pickup.latitude && (
-          <Marker coordinate={formData.pickup} title="Location" anchor={{ x: 0.5, y: 0.5 }} // Center the marker
+          <Marker
+            coordinate={formData.pickup}
+            title="Location"
+            anchor={{x: 0.5, y: 0.5}} // Center the marker
           >
-            {formData.drop.latitude ? (
+            {formData.drop.latitude && routeCoords.length === 0 ? (
               <View
                 style={{
                   width: 120,

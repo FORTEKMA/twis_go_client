@@ -30,7 +30,6 @@ import DrawerNavigation from './navigators/DrawerNavigation';
 let persistor = persistStore(store);
 export default function App() {
   useEffect(() => {
-
     OneSignal.initialize('42fd5097-a56d-47c5-abaa-6f4a836a143f');
     OneSignal.Notifications.requestPermission(true);
 
@@ -38,6 +37,7 @@ export default function App() {
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
+  
 
   useEffect(() => {
     OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
@@ -57,7 +57,6 @@ export default function App() {
       OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
     };
   }, []);
-
   return (
     <SafeAreaProvider>
       <StripeProvider

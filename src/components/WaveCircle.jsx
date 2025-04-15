@@ -67,15 +67,15 @@ const WaveCircle = () => {
 
 const styles = StyleSheet.create({
   markerContainer: {
-    width: 120,
-    height: 120,
+    width: 200,
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
   },
   waveCircle: {
     position: 'absolute',
-    width: 30,
-    height: 30,
+    width: 50,
+    height: 50,
     borderRadius: 20,
     backgroundColor: 'rgba(212, 175, 55, 1)',
   },

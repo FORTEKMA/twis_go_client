@@ -36,12 +36,11 @@ export const getCurrentUser = createAsyncThunk(
       const jwt = state.user.token; // Access the token from the 'user' slice
       console.log(jwt);
       if (jwt) {
-        const response = await axios.get(`${API_URL}/api/users/me?populate=*`, {
+        const response = await axios.get(`${API_URL}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
         });
-        console.log(response);
         return response.data;
       }
     } catch (error) {
