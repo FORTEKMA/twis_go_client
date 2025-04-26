@@ -15,6 +15,7 @@
     "@mapbox/polyline": "^1.2.1",
     "@react-native-community/checkbox": "^0.5.17",
     "@react-native-community/datetimepicker": "^7.6.1",
+    "@react-native-community/geolocation": "^3.4.0",
     "@react-native-picker/picker": "^2.10.2",
     "@react-navigation/drawer": "^6.6.4",
     "@stripe/stripe-react-native": "^0.35.0",

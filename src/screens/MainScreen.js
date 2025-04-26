@@ -13,8 +13,6 @@ import {
   KeyboardAvoidingView,
   Image,
   Alert,
-  Animated,
-  Easing,
   TouchableWithoutFeedback,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -27,12 +25,15 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Geolocation from 'react-native-geolocation-service';
 import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
 import {colors} from '../utils/colors';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import Payemant from '../components/Payemant';
 import polyline from '@mapbox/polyline';
 import {getAddressFromCoordinates} from '../utils/helpers/mapUtils';
 import WaveCircle from '../components/WaveCircle';
 import SendingRequests from '../components/SendingRequests';
+import {findDriver} from '../store/driverSlice/driverSlice';
+import {OneSignal} from 'react-native-onesignal';
+// import Geolocation from '@react-native-community/geolocation';
 
 const requestLocationPermission = async () => {
   try {
@@ -52,13 +53,41 @@ const requestLocationPermission = async () => {
     return false;
   }
 };
+const mapStyle = [
+  {
+    featureType: 'all',
+    stylers: [{saturation: 0}, {hue: '#e7ecf0'}],
+  },
+  {
+    featureType: 'road',
+    stylers: [{saturation: -70}],
+  },
+  {
+    featureType: 'transit',
+    stylers: [{visibility: 'off'}],
+  },
+  {
+    featureType: 'poi',
+    stylers: [{visibility: 'off'}],
+  },
+  {
+    featureType: 'water',
+    stylers: [{visibility: 'simplified'}, {saturation: -60}],
+  },
+];
+
 const MainScreen = () => {
+  console.log(
+    OneSignal.User.pushSubscription.getPushSubscriptionId(),
+    '============================================',
+  );
   const PREVIOUS = require('../assets/prev.png');
   const poi = require('../assets/poi.png');
   const Car = require('../assets/car.png');
   const from = require('../assets/from.png');
   const To = require('../assets/to.png');
   const miniCar = require('../assets/miniCar.png');
+  const dispatch = useDispatch();
 
   const [step, setStep] = useState(1);
 
@@ -112,6 +141,7 @@ const MainScreen = () => {
   const GOOGLE_LOGO =
     'https://i.pinimg.com/564x/7a/62/ec/7a62ecaa696f10c3b1c9b88eede32e79.jpg';
   const [address, setAddress] = useState('');
+  const [drivers, setDrivers] = useState([]);
   const [date, setDate] = useState(new Date());
   const [selectedCard, setSelectedCard] = useState(1);
   const [minPrice, setMinPrice] = useState(null);
@@ -121,7 +151,6 @@ const MainScreen = () => {
   const [switchChecked, setSwitchChecked] = useState(false);
   const [newreservation, setNewreservation] = useState(initialState);
   const current = useSelector(state => state?.user?.currentUser);
-  const objet = useSelector(state => state.objects?.objects?.data);
   const initialState = useSelector(state => state?.commandes?.newCommande);
   const [hasElevator, setHasElevator] = useState(false);
   const [currentStep, setCurrentStep] = useState('pickup'); // 'pickup' or 'drop'
@@ -458,7 +487,7 @@ const MainScreen = () => {
                   if (formData.drop.latitude) {
                     setStep(3);
                     setCanSelectLocation(false);
-                    fetchRoute();
+                    // fetchRoute();
                   } else {
                     Alert.alert('pick location');
                   }
@@ -587,7 +616,14 @@ const MainScreen = () => {
                   borderTopWidth: 2,
                   borderLeftWidth: 2,
                 }}
-                onPress={() => setStep(4)}>
+                onPress={() => {
+                  if (formData.selectedDate !== null) {
+                    setStep(4);
+                  } else {
+                    // Optional: show an alert or some feedback
+                    Alert.alert('Please select a date first!');
+                  }
+                }}>
                 <Text
                   style={{
                     color: 'black',
@@ -637,7 +673,9 @@ const MainScreen = () => {
                 }}>
                 <View>
                   <Pressable
-                    onPress={() => setStep(5)}
+                    onPress={() => {
+                      setStep(5), fetchRoute();
+                    }}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center', // Align items vertically in the center
@@ -997,7 +1035,7 @@ const MainScreen = () => {
     if (isSwitchOn) {
       setFormData(prev => ({
         ...prev,
-        selectedDate: new Date(),
+        selectedDate: "now",
       }));
     }
   }, [isSwitchOn]);
@@ -1085,7 +1123,7 @@ const MainScreen = () => {
 
       const response = await fetch(url);
       const data = await response.json();
-      
+
       if (data.status === 'OK' && data.results.length > 0) {
         return data.results[0].formatted_address;
       }
@@ -1095,7 +1133,110 @@ const MainScreen = () => {
       return '';
     }
   };
+  const [isUserDragging, setIsUserDragging] = useState(false); // Track user-initiated drags
+  const [isDragging, setIsDragging] = useState(false); // Track dragging state
+  const handleMapDrag = region => {
+    if (!isUserDragging) {
+      setIsUserDragging(true); // User started dragging
+      console.log('User started dragging the map');
+    }
 
+    setIsDragging(true);
+    const {latitude, longitude} = region;
+    // setCenterCoords({latitude, longitude}); // Update center coordinates
+    if (mapRef.current) {
+      mapRef.current.animateToRegion({latitude, longitude}, 100); // 1000ms = 1 second
+    }
+  };
+  const handleMapDragEnd = async region => {
+    if (!isUserDragging) return;
+
+    const {latitude, longitude, latitudeDelta, longitudeDelta} = region;
+
+    const adjustedLatitude = latitude - latitudeDelta * 0.125;
+    const adjustedLongitude = longitude - longitudeDelta * 0;
+
+    const address = await getAddressFromCoordinates(
+      adjustedLatitude,
+      adjustedLongitude,
+    );
+
+    setMapRegion({
+      latitude: adjustedLatitude,
+      longitude: adjustedLongitude,
+      latitudeDelta,
+      longitudeDelta,
+    });
+    if (step === 1) {
+      setFormData(prev => ({
+        ...prev,
+        pickup: {
+          address: address,
+          latitude: adjustedLatitude,
+          longitude: adjustedLongitude,
+        },
+      }));
+    }
+
+    setIsDragging(false);
+    setIsUserDragging(false);
+
+    console.log('New Region Updated:', {
+      latitude: adjustedLatitude,
+      longitude: adjustedLongitude,
+      address,
+    });
+  };
+  const handleMarkerDragEnd = async e => {
+    const newCoord = e.nativeEvent.coordinate;
+    const address = await getAddressFromCoords(newCoord);
+    setFormData(prev => ({
+      ...prev,
+      pickup: {
+        latitude: newCoord.latitude,
+        longitude: newCoord.longitude,
+        address: address,
+      },
+    }));
+  };
+  const handleDropMarkerDragEnd = async e => {
+    const newCoord = e.nativeEvent.coordinate;
+    const address = await getAddressFromCoords(newCoord);
+    setFormData(prev => ({
+      ...prev,
+      drop: {
+        latitude: newCoord.latitude,
+        longitude: newCoord.longitude,
+        address: address,
+      },
+    }));
+  };
+  const [radius, setRadius] = useState(3);
+  const [latitude, setLatitude] = useState(36.8481);
+  const [longitude, setLongitude] = useState(10.1793);
+  // drivers
+  const getDrivers = async () => {
+    try {
+      const result = await dispatch(
+        findDriver({
+          radius: radius,
+          latitude: formData.pickup.latitude,
+          longitude: formData.pickup.longitude,
+        }),
+      );
+      setDrivers(result.payload);
+      if (findDriver.rejected.match(result)) {
+        Alert.alert('Échec', 'Impossible de trouver les chauffeurs.');
+      }
+    } catch (err) {
+      Alert.alert("Une erreur s'est produite. Veuillez réessayer.");
+    }
+  };
+  useEffect(() => {
+    if (step === 4) {
+      getDrivers();
+    }
+  }, [step]);
   return (
     <View style={{flex: 1}}>
       <MapView
@@ -1105,6 +1246,10 @@ const MainScreen = () => {
         customMapStyle={mapStyle}
         zoomEnabled
         focusable
+        onPanDrag={step === 1 || step === 2 ? handleMapDrag : undefined}
+        onRegionChangeComplete={
+          step === 1 || step === 2 ? handleMapDragEnd : undefined
+        }
         region={mapRegion}
         onPress={async e => {
           if (!currentStep) return;
@@ -1133,34 +1278,26 @@ const MainScreen = () => {
         }}
         // 👈 Capture tap
       >
+        {/* <Marker coordinate={mapRegion} /> */}
         {formData.pickup.latitude && (
           <Marker
             draggable
-            onDragEnd={async e => {
-              const newCoord = e.nativeEvent.coordinate;
-              const address = await getAddressFromCoords(newCoord);
-              setFormData(prev => ({
-                ...prev,
-                pickup: {
-                  latitude: newCoord.latitude,
-                  longitude: newCoord.longitude,
-                  address: address,
-                },
-              }));
-            }}
+            onDragEnd={handleMarkerDragEnd}
             coordinate={formData.pickup}
             title="Location"
             anchor={{x: 0.5, y: 0.5}} // Center the marker
           >
-            {formData.drop.latitude && routeCoords.length === 0 ? (
+            {formData.drop.latitude &&
+            routeCoords.length === 0 &&
+            step === 4 ? (
               <View
                 style={{
                   width: 120,
-                  height: 120,
+                  height: 100,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <WaveCircle />
+                <WaveCircle formData={formData} price={100} />
               </View>
             ) : (
               <TouchableWithoutFeedback>
@@ -1173,51 +1310,38 @@ const MainScreen = () => {
             )}
           </Marker>
         )}
+        {formData.drop.latitude && (
+          <Marker
+            coordinate={formData.drop}
+            title="Destination"
+            draggable
+            onDragEnd={handleDropMarkerDragEnd}>
+            <TouchableWithoutFeedback>
+              <Image
+                source={require('../assets/B_Tawsilet.png')}
+                style={{width: 80, height: 80}}
+                resizeMode="contain"
+              />
+            </TouchableWithoutFeedback>
+          </Marker>
+        )}
         {routeCoords.length > 0 && (
           <>
-            {/* Start Marker */}
-
-            {/* End Marker */}
-            <Marker
-              coordinate={formData.drop}
-              title="Destination"
-              draggable
-              onDragEnd={async e => {
-                const newCoord = e.nativeEvent.coordinate;
-                const address = await getAddressFromCoords(newCoord);
-                setFormData(prev => ({
-                  ...prev,
-                  drop: {
-                    latitude: newCoord.latitude,
-                    longitude: newCoord.longitude,
-                    address: address,
-                  },
-                }));
-              }}>
-              <TouchableWithoutFeedback>
-                <Image
-                  source={require('../assets/B_Tawsilet.png')}
-                  style={{width: 80, height: 80}}
-                  resizeMode="contain"
-                />
-              </TouchableWithoutFeedback>
-            </Marker>
-
             {/* Straight-line Route */}
             <Polyline
               coordinates={routeCoords}
               strokeWidth={4}
-              strokeColor="black"
+              strokeColor="blue"
             />
           </>
         )}
       </MapView>
-      <SendingRequests formData={formData} price={100} />
+      {/* <SendingRequests formData={formData} price={100} /> */}
       {/* Content Below Map */}
       <View
         style={{
           position: 'absolute', // Position content on top of the map
-          top: '2%', // Push content to the bottom
+          top: '0.5%', // Push content to the bottom
           left: 0,
           right: 0,
           backgroundColor: '#19191C',
@@ -1411,121 +1535,5 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
-const mapStyle = [
-  {
-    featureType: 'all',
-    stylers: [{saturation: 0}, {hue: '#e7ecf0'}],
-  },
-  {
-    featureType: 'road',
-    stylers: [{saturation: -70}],
-  },
-  {
-    featureType: 'transit',
-    stylers: [{visibility: 'off'}],
-  },
-  {
-    featureType: 'poi',
-    stylers: [{visibility: 'off'}],
-  },
-  {
-    featureType: 'water',
-    stylers: [{visibility: 'simplified'}, {saturation: -60}],
-  },
-];
-const placesStyles = {
-  textInputContainer: {
-    width: '100%',
-  },
-  textInput: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    paddingHorizontal: 10,
-  },
-  predefinedPlacesDescription: {
-    color: '#1faadb',
-  },
-  checkboxLabel: {
-    marginLeft: 8,
-  },
-  detailsContainer: {
-    marginLeft: 24, // Indent under the checkbox
-    marginVertical: 10,
-  },
-  dateText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  noteText: {
-    fontSize: 12,
-    color: '#666',
-    fontStyle: 'italic',
-  },
-  headerInactive: {
-    height: 50,
-    backgroundColor: 'gray',
-    borderTopLeftRadius: 13,
-    borderTopRightRadius: 13,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    flexDirection: 'row',
-    width: '100%',
-  },
-  nextButton: {
-    backgroundColor: colors.secondary,
-    padding: 10,
-    borderRadius: 5,
-
-    width: wp('80%'),
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  containerBtn: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-  },
-  option: {
-    flexDirection: 'row',
-    backgroundColor: colors.general_2,
-    width: '45%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 5,
-  },
-  texte: {
-    fontWeight: '700',
-    color: colors.primary,
-    fontSize: hp(2),
-  },
-
-  text: {
-    fontWeight: '400',
-    color: colors.secondary_1,
-    fontSize: hp(1.8),
-  },
-  yellowButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 25,
-    backgroundColor: colors.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: hp(2),
-    fontWeight: '700',
-    color: 'black',
-  },
-  countValue: {
-    fontSize: hp(2),
-    marginHorizontal: 10,
-    color: colors.primary,
-  },
-};
 
 export default MainScreen;

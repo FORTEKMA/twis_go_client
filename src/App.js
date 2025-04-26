@@ -32,17 +32,18 @@ export default function App() {
   useEffect(() => {
     OneSignal.initialize('42fd5097-a56d-47c5-abaa-6f4a836a143f');
     OneSignal.Notifications.requestPermission(true);
-
-     
+    console.log(
+      OneSignal.User.pushSubscription.getPushSubscriptionId(),
+      '============================================',
+    );
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
-  
 
   useEffect(() => {
     OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
       // Extract notification body and set it in the state
-      const body = event.notification.body || 'Default Notification Body';
+      const body = event.notification.body || 'Default Notification Body ';
       setNotificationBody(body);
 
       // Open the modal when the notification event is triggered
@@ -84,7 +85,7 @@ export default function App() {
                           fontSize: 20,
                           color: 'black',
                         }}>
-                        Notification
+                        New Ride
                       </Text>
                       <Text
                         style={{

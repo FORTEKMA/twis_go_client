@@ -74,6 +74,7 @@ const Login = ({navigation}) => {
     setIsLoading(true);
     try {
       const result = await dispatch(userLogin(data)); // Dispatch the login action
+      console.log(result,'====?')
       if (result.error) {
         // Handle login failure
         Alert.alert('Email ou mot de passe incorrect');

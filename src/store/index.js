@@ -18,10 +18,12 @@ import commandeSlice from './commandeSlice/commandeSlice';
 import notificationSlice from './notificationSlice/notificationSlice';
 import reviewSlice from './reviewSlice/reviewSlice';
 import newCommandSlice from './newCommandSlice/newCommandSlice';
+import driverSlice  from './driverSlice/driverSlice';
 
 // Combine all reducers
 const reducers = combineReducers({
   user: userSlice,
+  driver: driverSlice,
   objects: objectSlice,
   commandes: commandeSlice,
   notifications: notificationSlice,

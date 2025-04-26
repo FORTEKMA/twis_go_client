@@ -1,6 +1,7 @@
 import {View, Text} from 'react-native';
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
+import axios from 'axios';
 
 export default function SendingRequests({formData, price}) {
   const [distanceBetweenPickupAndDropoff, setDistanceBetweenPickupAndDropoff] =
@@ -10,7 +11,8 @@ export default function SendingRequests({formData, price}) {
       durationInTraffic: null,
     });
   const currentUser = useSelector(state => state.user.currentUser);
-//   console.log('<====>', currentUser, 'current', formData, price);
+  const email = 'dd@d.d';
+  // console.log('<====>', currentUser, '===============', formData, price);
   const fetchRoute = async formData => {
     const origin = `${formData.pickup.latitude},${formData.pickup.longitude}`;
     const destination = `${formData.drop.latitude},${formData.drop.longitude}`;
@@ -70,7 +72,42 @@ export default function SendingRequests({formData, price}) {
   //     console.error('Push error:', error);
   //   }
   // };
+  const ONESIGNAL_APP_ID = '42fd5097-a56d-47c5-abaa-6f4a836a143f';
+  const REST_API_KEY =
+    'os_v2_app_il6vbf5fnvd4lk5kn5fig2quh7tcjfdltfzuajfae3zukc4k5mg365rpcmrql6fkjxdttj33revv7by2ytyyvin3lmemlqdsfnpybdy'; // Replace with your real REST API Key
 
+  const sendNotification = async () => {
+    try {
+      const response = await axios.post(
+        'https://onesignal.com/api/v1/notifications',
+        {
+          app_id: ONESIGNAL_APP_ID,
+          // included_segments: ['a6a05c54-2dc8-4f9a-87f2-2d4d19d0e2be'], // You can also use ['Subscribed Users'] or target specific player_ids
+          include_player_ids: ['a6a05c54-2dc8-4f9a-87f2-2d4d19d0e2be'],
+          headings: {en: 'New Ride'},
+          contents: {
+            en: `${currentUser.firstName} ${currentUser.lastName} need new ride from ${formData.pickup.address} to ${formData.drop.address} 
+            money ${price}`,
+          },
+          priority: 10,
+        },
+        {
+          headers: {
+            Authorization: `Basic ${REST_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      console.log('Notification sent ✅:', response.data);
+    } catch (error) {
+      console.error(
+        'Error sending notification ❌:',
+        error.response?.data || error.message,
+      );
+    }
+  };
+  // sendNotification() ;
   return (
     <View>
       <Text>SendingRequests</Text>
