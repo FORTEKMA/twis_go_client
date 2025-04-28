@@ -27,6 +27,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 import DrawerNavigation from './navigators/DrawerNavigation';
+import PopOver from './components/PopOver';
 let persistor = persistStore(store);
 export default function App() {
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function App() {
     OneSignal.Notifications.requestPermission(true);
     console.log(
       OneSignal.User.pushSubscription.getPushSubscriptionId(),
-      '============================================',
+      '========================getPushSubscriptionIdgetPushSubscriptionId====================',
     );
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -43,7 +44,8 @@ export default function App() {
   useEffect(() => {
     OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
       // Extract notification body and set it in the state
-      const body = event.notification.body || 'Default Notification Body ';
+      const body =
+        event.notification.additionalData || 'Default Notification Body ';
       setNotificationBody(body);
 
       // Open the modal when the notification event is triggered
@@ -68,43 +70,20 @@ export default function App() {
           <PersistGate loading={null} persistor={persistor}>
             <NativeBaseProvider>
               {/* <DrawerNavigation /> */}
-              <MainNavigator />
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={isModalVisible}
-                onRequestClose={() => {
-                  setModalVisible(!isModalVisible);
-                }}>
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <View style={styles.modalHead}>
-                      <Text
-                        style={{
-                          fontWeight: '600',
-                          fontSize: 20,
-                          color: 'black',
-                        }}>
-                        New Ride
-                      </Text>
-                      <Text
-                        style={{
-                          fontWeight: '500',
-                          fontSize: 16,
-                          color: 'gray',
-                          textAlign: 'center',
-                        }}>
-                        {notificationBody}
-                      </Text>
-                    </View>
-                    <Pressable
-                      style={styles.modalBottom}
-                      onPress={() => setModalVisible(!isModalVisible)}>
-                      <Text style={{color: colors.secondary}}>Continuer</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </Modal>
+              <View style={styles.container}>
+                <Provider store={store}>
+                  <PersistGate loading={null} persistor={persistor}>
+                    <MainNavigator />
+                    {isModalVisible && (
+                      <PopOver
+                        notificationBody={notificationBody}
+                        isModalVisible={isModalVisible}
+                        setModalVisible={setModalVisible}
+                      />
+                    )}
+                  </PersistGate>
+                </Provider>
+              </View>
             </NativeBaseProvider>
           </PersistGate>
         </Provider>
@@ -116,57 +95,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-    zIndex: 9999,
-  },
-  modalView: {
-    width: wp('80%'),
-    flex: 0.27,
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  modalHead: {
-    flex: 0.7,
-    alignItems: 'center',
-
-    justifyContent: 'space-evenly',
-    paddingHorizontal: 15,
-  },
-  modalBottom: {
-    width: '100%',
-    flex: 0.3,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-
-    justifyContent: 'center',
-    borderBottomEndRadius: 20,
-    borderBottomStartRadius: 20,
   },
 });

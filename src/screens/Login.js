@@ -10,17 +10,18 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {colors} from '../utils/colors';
 import {HStack, Input} from 'native-base';
 import CountryPicker from 'react-native-country-picker-modal';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PhoneInput from 'react-native-phone-input';
 import Divider from '../components/Divider';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   forgetPassword,
   getCurrentUser,
+  updateUser,
   userLogin,
 } from '../store/userSlice/userSlice';
 import {
@@ -30,6 +31,7 @@ import {
 import {Controller, useForm} from 'react-hook-form';
 import {yupResolver} from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
+import { OneSignal } from 'react-native-onesignal';
 
 const loginSchema = Yup.object().shape({
   identifier: Yup.string()
@@ -56,6 +58,7 @@ const Login = ({navigation}) => {
     identifier: '',
     password: '',
   });
+  const user = useSelector(state => state?.user?.currentUser);
 
   // Initialize the form using useForm hook
   const {
@@ -89,6 +92,30 @@ const Login = ({navigation}) => {
       setIsLoading(false); // Ensure loading state is reset
     }
   };
+    useEffect(() => {
+      const updateNotificationId = async () => {
+        try {
+          const notificationId =
+            await OneSignal.User.pushSubscription.getPushSubscriptionId();
+          console.log('OneSignal Notification ID:', notificationId);
+
+          if (user && notificationId) {
+            await dispatch(
+              updateUser({
+                id: user.documentId,
+                ...user,
+                notificationId,
+              }),
+            );
+            dispatch(getCurrentUser());
+          }
+        } catch (error) {
+          console.error('Error updating notification ID:', error);
+        }
+      };
+
+      updateNotificationId();
+    }, [user]);
   const validEmail = () => {
     const newErrors = {};
 

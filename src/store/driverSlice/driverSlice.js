@@ -23,10 +23,45 @@ export const findDriver = createAsyncThunk(
     }
   },
 );
+export const calculatePriceAndDistance = createAsyncThunk(
+  'driver/calculatePriceAndDistance',
+  async ({driverLocation, pickupLocation, dropoffLocation}, thunkAPI) => {
+    try {
+      console.log(`${API_URL}/api/calcul`);
+      const response = await axios.post(`${API_URL}/api/calcul`, {
+        driverLocation: {
+          lat: driverLocation.latitude,
+          lng: driverLocation.longitude,
+        },
+        accessDepart: {
+          lat: pickupLocation.latitude,
+          lng: pickupLocation.longitude,
+        },
+        accessArrivee: {
+          lat: dropoffLocation.latitude,
+          lng: dropoffLocation.longitude,
+        },
+      });
+
+      const {price, distance} = response.data;
+      console.log('💵 Calculated Price:', price);
+      console.log('📏 Calculated Distance:', distance);
+      return {price, distance};
+    } catch (error) {
+      console.error(
+        '❌ Error calculating price:',
+        error.response?.data || error.message,
+      );
+      return thunkAPI.rejectWithValue(error.response?.data || error.message);
+    }
+  },
+);
 
 const initialState = {
   drivers: [],
   status: null,
+  price: null,
+  distance: null,
   isLoading: false,
 };
 
@@ -42,6 +77,20 @@ export const driverSlice = createSlice({
       state.status = 'success';
       state.isLoading = false;
       state.drivers = action.payload;
+    },
+    [calculatePriceAndDistance.rejected]: state => {
+      state.status = 'fail';
+      state.isLoading = false;
+    },
+    [calculatePriceAndDistance.pending]: state => {
+      state.status = 'pending';
+      state.isLoading = true;
+    },
+    [calculatePriceAndDistance.fulfilled]: (state, action) => {
+      state.status = 'success';
+      state.isLoading = false;
+     state.price = action.payload.price;
+     state.distance = action.payload.distance;
     },
     [findDriver.rejected]: state => {
       state.status = 'fail';

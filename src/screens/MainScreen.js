@@ -14,6 +14,7 @@ import {
   Image,
   Alert,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {
@@ -31,8 +32,12 @@ import polyline from '@mapbox/polyline';
 import {getAddressFromCoordinates} from '../utils/helpers/mapUtils';
 import WaveCircle from '../components/WaveCircle';
 import SendingRequests from '../components/SendingRequests';
-import {findDriver} from '../store/driverSlice/driverSlice';
+import {
+  calculatePriceAndDistance,
+  findDriver,
+} from '../store/driverSlice/driverSlice';
 import {OneSignal} from 'react-native-onesignal';
+import {sendNotificationToDriver} from '../utils/CalculateDistanceAndTime';
 // import Geolocation from '@react-native-community/geolocation';
 
 const requestLocationPermission = async () => {
@@ -150,7 +155,7 @@ const MainScreen = () => {
   const [isSwitchOn, setIsSwitchOn] = useState(false);
   const [switchChecked, setSwitchChecked] = useState(false);
   const [newreservation, setNewreservation] = useState(initialState);
-  const current = useSelector(state => state?.user?.currentUser);
+  const currentUser = useSelector(state => state?.user?.currentUser);
   const initialState = useSelector(state => state?.commandes?.newCommande);
   const [hasElevator, setHasElevator] = useState(false);
   const [currentStep, setCurrentStep] = useState('pickup'); // 'pickup' or 'drop'
@@ -666,79 +671,92 @@ const MainScreen = () => {
                 </Pressable>
                 <Text style={styles.title}>Choose vehicle</Text>
               </View>
-              <View
-                style={{
-                  flex: 0.5,
-                  paddingTop: 10,
-                }}>
-                <View>
-                  <Pressable
-                    onPress={() => {
-                      setStep(5), fetchRoute();
-                    }}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center', // Align items vertically in the center
-                      gap: 15, // Space between the switch and the text
-                      marginBottom: 30,
-                      justifyContent: 'space-between', // Align items vertically in the center
-                    }}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 15, // Space between the switch and the text
-                      }}>
-                      <Image source={Car} />
-                      <View
+
+              {drivers ? (
+                <View style={{flex: 0.5, paddingTop: 10}}>
+                  {drivers.map(driver => (
+                    <View key={driver.id}>
+                      <Pressable
+                        onPress={() => {
+                          setStep(5);
+                          sendNotificationToDriver(
+                            driver,
+                            formData,
+                            currentUser,
+                          );
+                          fetchRoute();
+                        }}
                         style={{
-                          alignItems: 'start', // Align items vertically in the center
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 15,
+                          marginBottom: 30,
+                          justifyContent: 'space-between',
                         }}>
-                        <Text
+                        <View
                           style={{
-                            color: 'white',
-                            fontSize: hp(1.5),
-                            fontWeight: '700',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 15,
                           }}>
-                          Just go
-                        </Text>
-                        <Text
+                          <Image source={Car} />
+                          <View
+                            style={{
+                              alignItems: 'start',
+                            }}>
+                            <Text
+                              style={{
+                                color: 'white',
+                                fontSize: hp(1.5),
+                                fontWeight: '700',
+                              }}>
+                              {driver.firstName + ' ' + driver.lastName}
+                            </Text>
+                            <Text
+                              style={{
+                                color: '#9B9B9B',
+                                fontSize: hp(1.5),
+                                fontWeight: '400',
+                              }}>
+                              Near by you
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View
                           style={{
-                            color: '#9B9B9B',
-                            fontSize: hp(1.5),
-                            fontWeight: '400',
+                            alignItems: 'flex-end',
                           }}>
-                          Near by you
-                        </Text>
-                      </View>
+                          {/* Show the dynamically calculated price */}
+                          <Text
+                            style={{
+                              color: 'white',
+                              fontSize: hp(2),
+                              fontWeight: '700',
+                            }}>
+                            {driver.price ?? `${driver.price} `}DT
+                          </Text>
+                          {/* Show the dynamically calculated distance */}
+                          <Text
+                            style={{
+                              color: 'white',
+                              fontSize: hp(1.5),
+                              fontWeight: '400',
+                            }}>
+                            {driver.distance ?? `${driver.distance} `}km
+                          </Text>
+                        </View>
+                      </Pressable>
                     </View>
-                    <View
-                      style={{
-                        alignItems: 'flex-end', // Align items vertically in the center
-                      }}>
-                      <Text
-                        style={{
-                          color: 'white',
-                          fontSize: hp(2),
-                          fontWeight: '700',
-                        }}>
-                        $25.00
-                      </Text>
-                      <Text
-                        style={{
-                          color: 'white',
-                          fontSize: hp(1.5),
-                          fontWeight: '400',
-                        }}>
-                        2 min
-                      </Text>
-                    </View>
-                  </Pressable>
+                  ))}
                 </View>
-              </View>
+              ) : (
+                <ActivityIndicator size="large" color="white" />
+              )}
             </View>
           </View>
         );
+
       case 5:
         return (
           <View style={styles.stepContainer}>
@@ -1035,7 +1053,7 @@ const MainScreen = () => {
     if (isSwitchOn) {
       setFormData(prev => ({
         ...prev,
-        selectedDate: "now",
+        selectedDate: 'now',
       }));
     }
   }, [isSwitchOn]);
@@ -1051,70 +1069,70 @@ const MainScreen = () => {
     longitudeDelta: 0.05,
   });
 
-  useEffect(() => {
-    if (
-      !formData?.pickup?.latitude ||
-      !formData?.pickup?.longitude ||
-      !mapRef.current
-    ) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (
+  //     !formData?.pickup?.latitude ||
+  //     !formData?.pickup?.longitude ||
+  //     !mapRef.current
+  //   ) {
+  //     return;
+  //   }
 
-    const initialRegion = {
-      latitude: formData.pickup.latitude,
-      longitude: formData.pickup.longitude,
-      latitudeDelta: 0.005,
-      longitudeDelta: 0.005,
-    };
+  //   const initialRegion = {
+  //     latitude: formData.pickup.latitude,
+  //     longitude: formData.pickup.longitude,
+  //     latitudeDelta: 0.005,
+  //     longitudeDelta: 0.005,
+  //   };
 
-    // Update state with tight zoom
-    setMapRegion(initialRegion);
+  //   // Update state with tight zoom
+  //   setMapRegion(initialRegion);
 
-    // Animate map view to that region
-    mapRef.current.animateToRegion(initialRegion, 500);
+  //   // Animate map view to that region
+  //   mapRef.current.animateToRegion(initialRegion, 500);
 
-    const maxDelta = 0.01;
-    const step = 0.0001;
-    let currentDelta = 0.005;
-    let animationFrame;
+  //   const maxDelta = 0.01;
+  //   const step = 0.0001;
+  //   let currentDelta = 0.005;
+  //   let animationFrame;
 
-    const animate = () => {
-      if (currentDelta >= maxDelta || !mapRef.current) return;
+  //   const animate = () => {
+  //     if (currentDelta >= maxDelta || !mapRef.current) return;
 
-      currentDelta += step;
+  //     currentDelta += step;
 
-      const newRegion = {
-        latitude: formData.pickup.latitude,
-        longitude: formData.pickup.longitude,
-        latitudeDelta: currentDelta,
-        longitudeDelta: currentDelta,
-      };
+  //     const newRegion = {
+  //       latitude: formData.pickup.latitude,
+  //       longitude: formData.pickup.longitude,
+  //       latitudeDelta: currentDelta,
+  //       longitudeDelta: currentDelta,
+  //     };
 
-      setMapRegion(newRegion);
-      mapRef.current.animateToRegion(newRegion, 150);
+  //     setMapRegion(newRegion);
+  //     mapRef.current.animateToRegion(newRegion, 150);
 
-      animationFrame = setTimeout(animate, 800); // not too frequent
-    };
+  //     animationFrame = setTimeout(animate, 800); // not too frequent
+  //   };
 
-    if (
-      formData?.drop?.latitude &&
-      formData?.drop?.longitude &&
-      routeCoords.length === 0
-    ) {
-      animationFrame = setTimeout(animate, 600); // small delay before zooming out
-      hasAnimatedRef.current = true;
-    }
+  //   if (
+  //     formData?.drop?.latitude &&
+  //     formData?.drop?.longitude &&
+  //     routeCoords.length === 0
+  //   ) {
+  //     animationFrame = setTimeout(animate, 600); // small delay before zooming out
+  //     hasAnimatedRef.current = true;
+  //   }
 
-    return () => {
-      if (animationFrame) clearTimeout(animationFrame);
-    };
-  }, [
-    formData?.pickup?.latitude,
-    formData?.pickup?.longitude,
-    formData?.drop?.latitude,
-    formData?.drop?.longitude,
-    routeCoords,
-  ]);
+  //   return () => {
+  //     if (animationFrame) clearTimeout(animationFrame);
+  //   };
+  // }, [
+  //   formData?.pickup?.latitude,
+  //   formData?.pickup?.longitude,
+  //   formData?.drop?.latitude,
+  //   formData?.drop?.longitude,
+  //   routeCoords,
+  // ]);
 
   const getAddressFromCoords = async ({latitude, longitude}) => {
     try {
@@ -1212,8 +1230,6 @@ const MainScreen = () => {
     }));
   };
   const [radius, setRadius] = useState(3);
-  const [latitude, setLatitude] = useState(36.8481);
-  const [longitude, setLongitude] = useState(10.1793);
   // drivers
   const getDrivers = async () => {
     try {
@@ -1224,7 +1240,23 @@ const MainScreen = () => {
           longitude: formData.pickup.longitude,
         }),
       );
-      setDrivers(result.payload);
+      // Calculate price and distance for each driver
+      const driversWithPrice = await Promise.all(
+        result.payload.map(async driver => {
+          const {price, distance} = await handlePriceAndDistanceCalculation(
+            driver,
+          );
+
+          return {
+            ...driver,
+            price, // Add the calculated price for each driver
+            distance, // Add the calculated distance for each driver
+          };
+        }),
+      );
+      // Update drivers state with prices and distances
+      setDrivers(driversWithPrice);
+
       if (findDriver.rejected.match(result)) {
         Alert.alert('Échec', 'Impossible de trouver les chauffeurs.');
       }
@@ -1232,6 +1264,44 @@ const MainScreen = () => {
       Alert.alert("Une erreur s'est produite. Veuillez réessayer.");
     }
   };
+
+  const handlePriceAndDistanceCalculation = async driver => {
+    try {
+      const resultAction = await dispatch(
+        calculatePriceAndDistance({
+          driverLocation: {
+            latitude: driver.latitude,
+            longitude: driver.longitude,
+          },
+          pickupLocation: {
+            latitude: formData.pickup.latitude,
+            longitude: formData.pickup.longitude,
+          },
+          dropoffLocation: {
+            latitude: formData.drop.latitude,
+            longitude: formData.drop.longitude,
+          },
+        }),
+      );
+
+      if (calculatePriceAndDistance.fulfilled.match(resultAction)) {
+        // Return calculated price and distance directly from this function
+        return {
+          price: resultAction.payload.price,
+          distance: resultAction.payload.distance,
+        };
+      } else {
+        console.error(
+          `❌ Price calculation failed for driver ${driver.username}`,
+        );
+        return {price: 0, distance: 0}; // Default in case of failure
+      }
+    } catch (error) {
+      console.error(`❌ Dispatch error for driver ${driver.username}`, error);
+      return {price: 0, distance: 0}; // Default in case of error
+    }
+  };
+
   useEffect(() => {
     if (step === 4) {
       getDrivers();
@@ -1297,7 +1367,7 @@ const MainScreen = () => {
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}>
-                <WaveCircle formData={formData} price={100} />
+                <WaveCircle formData={formData} drivers={drivers} />
               </View>
             ) : (
               <TouchableWithoutFeedback>
