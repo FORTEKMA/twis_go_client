@@ -30,10 +30,10 @@ const PopOver = ({setModalVisible, isModalVisible, notificationBody}) => {
               style={{
                 fontWeight: '500',
                 fontSize: 16,
-                color: 'gold',
+                color: notificationBody.accept ? 'gold' : 'red',
                 textAlign: 'center',
               }}>
-              {notificationBody}
+              {notificationBody.msg}
             </Text>
           </View>
         </View>

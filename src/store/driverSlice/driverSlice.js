@@ -41,6 +41,7 @@ export const calculatePriceAndDistance = createAsyncThunk(
           lat: dropoffLocation.latitude,
           lng: dropoffLocation.longitude,
         },
+        id:1
       });
 
       const {price, distance} = response.data;

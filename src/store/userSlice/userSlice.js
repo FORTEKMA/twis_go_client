@@ -18,6 +18,7 @@ export const userRegister = createAsyncThunk('user/register', async user => {
 
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
+    console.log("url=====" ,API_URL);
     let response = await axios.post(`${API_URL}/api/auth/local`, login);
 
     return response.data;

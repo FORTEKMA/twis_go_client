@@ -37,7 +37,7 @@ import {
   findDriver,
 } from '../store/driverSlice/driverSlice';
 import {OneSignal} from 'react-native-onesignal';
-import {sendNotificationToDriver} from '../utils/CalculateDistanceAndTime';
+import {sendNotificationToDrivers} from '../utils/CalculateDistanceAndTime';
 // import Geolocation from '@react-native-community/geolocation';
 
 const requestLocationPermission = async () => {
@@ -225,6 +225,11 @@ const MainScreen = () => {
 
     // Return formatted string
     return `${dateString} ${hours}:${minutes}`;
+  };
+  const handlePress = async () => {
+    setStep(6);
+    fetchRoute();
+    await sendNotificationToDrivers(drivers, formData, currentUser);
   };
 
   const renderStep = () => {
@@ -671,92 +676,80 @@ const MainScreen = () => {
                 </Pressable>
                 <Text style={styles.title}>Choose vehicle</Text>
               </View>
-
-              {drivers ? (
-                <View style={{flex: 0.5, paddingTop: 10}}>
-                  {drivers.map(driver => (
-                    <View key={driver.id}>
-                      <Pressable
-                        onPress={() => {
-                          setStep(5);
-                          sendNotificationToDriver(
-                            driver,
-                            formData,
-                            currentUser,
-                          );
-                          fetchRoute();
-                        }}
+              <View style={{flex: 0.5, paddingTop: 10}}>
+                <View>
+                  <Pressable
+                    onPress={() => {
+                      setStep(5);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 15,
+                      marginBottom: 30,
+                      justifyContent: 'space-between',
+                    }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 15,
+                      }}>
+                      <Image source={Car} />
+                      <View
                         style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 15,
-                          marginBottom: 30,
-                          justifyContent: 'space-between',
+                          alignItems: 'start',
                         }}>
-                        <View
+                        <Text
                           style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 15,
+                            color: 'white',
+                            fontSize: hp(1.5),
+                            fontWeight: '700',
                           }}>
-                          <Image source={Car} />
-                          <View
-                            style={{
-                              alignItems: 'start',
-                            }}>
-                            <Text
-                              style={{
-                                color: 'white',
-                                fontSize: hp(1.5),
-                                fontWeight: '700',
-                              }}>
-                              {driver.firstName + ' ' + driver.lastName}
-                            </Text>
-                            <Text
-                              style={{
-                                color: '#9B9B9B',
-                                fontSize: hp(1.5),
-                                fontWeight: '400',
-                              }}>
-                              Near by you
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View
+                          Juest go
+                        </Text>
+                        <Text
                           style={{
-                            alignItems: 'flex-end',
+                            color: '#9B9B9B',
+                            fontSize: hp(1.5),
+                            fontWeight: '400',
                           }}>
-                          {/* Show the dynamically calculated price */}
-                          <Text
-                            style={{
-                              color: 'white',
-                              fontSize: hp(2),
-                              fontWeight: '700',
-                            }}>
-                            {driver.price ?? `${driver.price} `}DT
-                          </Text>
-                          {/* Show the dynamically calculated distance */}
-                          <Text
-                            style={{
-                              color: 'white',
-                              fontSize: hp(1.5),
-                              fontWeight: '400',
-                            }}>
-                            {driver.distance ?? `${driver.distance} `}km
-                          </Text>
-                        </View>
-                      </Pressable>
+                          Near by you
+                        </Text>
+                      </View>
                     </View>
-                  ))}
+
+                    <View
+                      style={{
+                        alignItems: 'flex-end',
+                      }}>
+                      {/* Show the dynamically calculated price */}
+                      <Text
+                        style={{
+                          color: 'white',
+                          fontSize: hp(2),
+                          fontWeight: '700',
+                        }}>
+                        100 DT
+                      </Text>
+                      {/* Show the dynamically calculated distance */}
+                      <Text
+                        style={{
+                          color: 'white',
+                          fontSize: hp(1.5),
+                          fontWeight: '400',
+                        }}>
+                        2 km
+                      </Text>
+                    </View>
+                  </Pressable>
                 </View>
-              ) : (
-                <ActivityIndicator size="large" color="white" />
-              )}
+              </View>
+              {/* : (
+              <ActivityIndicator size="large" color="white" />) */}
             </View>
           </View>
         );
-
       case 5:
         return (
           <View style={styles.stepContainer}>
@@ -964,7 +957,7 @@ const MainScreen = () => {
                   borderTopWidth: 2,
                   borderLeftWidth: 2,
                 }}
-                onPress={() => setStep(6)}>
+                onPress={handlePress}>
                 <Text
                   style={{
                     color: 'black',
