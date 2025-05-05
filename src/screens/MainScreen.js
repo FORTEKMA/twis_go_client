@@ -173,6 +173,20 @@ const MainScreen = () => {
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
+  // const acceptRide = useSelector(state => state?.utilsSlice?.acceptRide);
+  // const declinedRide = useSelector(state => state?.utilsSlice?.declinedRide);
+  // console.log(
+  //   '===============declinedRide===========acceptRide==============',
+  //   declinedRide,
+  //   acceptRide,
+  // );
+  // useEffect(() => {
+  //   console.log(
+  //     '===============declinedRide===========acceptRide==============',
+  //     declinedRide,
+  //     acceptRide,
+  //   );
+  // }, [acceptRide, declinedRide]);
 
   // Handle date selection
   const handleDateConfirm = selectedDate => {

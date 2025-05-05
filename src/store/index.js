@@ -19,6 +19,7 @@ import notificationSlice from './notificationSlice/notificationSlice';
 import reviewSlice from './reviewSlice/reviewSlice';
 import newCommandSlice from './newCommandSlice/newCommandSlice';
 import driverSlice  from './driverSlice/driverSlice';
+import utilsSlice from './utilsSlice/utilsSlice';
 
 // Combine all reducers
 const reducers = combineReducers({
@@ -29,6 +30,7 @@ const reducers = combineReducers({
   notifications: notificationSlice,
   review: reviewSlice,
   newCommand: newCommandSlice,
+  utilsSlice: utilsSlice,
 });
 
 // Redux Persist configuration

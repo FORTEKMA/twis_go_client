@@ -1,4 +1,5 @@
 import axios from 'axios';
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function calculateDistanceAndTime(startCoords, endCoords) {
   const apiKey = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE';
@@ -36,7 +37,6 @@ export const sendNotificationToDrivers = async (
   for (const driver of drivers) {
     const notificationId = driver.notificationId;
     if (!notificationId) continue;
-    console.log(notificationId, '==== notificationId ====');
 
     // Prepare ride info
     const rideInfo = {
@@ -56,7 +56,6 @@ export const sendNotificationToDrivers = async (
       distanceBetweenPickupAndDropoff: driver.distance,
       driverPosition: '',
     };
-
     try {
       const response = await axios.post(
         'https://onesignal.com/api/v1/notifications',

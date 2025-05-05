@@ -2,17 +2,30 @@ import {Modal, StyleSheet, Text, View} from 'react-native';
 import React, {useEffect} from 'react';
 import {colors} from '../utils/colors';
 import {widthPercentageToDP as wp} from 'react-native-responsive-screen';
+import { useDispatch } from 'react-redux';
+import { setAcceptRide, setDeclinedRide } from '../store/utilsSlice/utilsSlice';
 const PopOver = ({setModalVisible, isModalVisible, notificationBody}) => {
-    useEffect(() => {
-      if (isModalVisible) {
-        // Close modal after 10s
-        const timer = setTimeout(() => {
-          setModalVisible(false);
-        }, 5000);
+  useEffect(() => {
+    if (isModalVisible) {
+      // Close modal after 10s
+      const timer = setTimeout(() => {
+        setModalVisible(false);
+      }, 5000);
 
-        return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
+  }, [isModalVisible]);
+    const dispatch = useDispatch();
+    useEffect(() => {
+      if (notificationBody?.accept) {
+        dispatch(setAcceptRide(notificationBody?.accept));
       }
-    }, [isModalVisible]);
+      if (!notificationBody?.accept) {
+        dispatch(setDeclinedRide(notificationBody?.raduis));
+      }
+    }, [dispatch]);
+    
+
   return (
     <Modal animationType="slide" transparent={true} visible={isModalVisible}>
       <View style={styles.centeredView}>
@@ -30,10 +43,10 @@ const PopOver = ({setModalVisible, isModalVisible, notificationBody}) => {
               style={{
                 fontWeight: '500',
                 fontSize: 16,
-                color: notificationBody.accept ? 'gold' : 'red',
+                color: notificationBody?.accept ? 'gold' : 'red',
                 textAlign: 'center',
               }}>
-              {notificationBody.msg}
+              {notificationBody?.msg}
             </Text>
           </View>
         </View>

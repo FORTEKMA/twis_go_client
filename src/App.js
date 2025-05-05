@@ -35,26 +35,22 @@ export default function App() {
     OneSignal.Notifications.requestPermission(true);
     console.log(
       OneSignal.User.pushSubscription.getPushSubscriptionId(),
-      '========================getPushSubscriptionIdgetPushSubscriptionId====================',
+      '========================notificationID====================',
     );
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
-
   useEffect(() => {
     OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
       // Extract notification body and set it in the state
-      const body =
-        event.notification.additionalData || 'Default Notification Body ';
+      const body = event.notification.additionalData;
+      console.log(body, '============body=================');
       setNotificationBody(body);
-
       // Open the modal when the notification event is triggered
       setModalVisible(true);
-
       // Use display() to display the notification after some async work
       event.getNotification().display();
     });
-
     // Cleanup the event listener when the component unmounts
     return () => {
       OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
