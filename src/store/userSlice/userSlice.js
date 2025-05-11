@@ -8,11 +8,11 @@ console.log(API_URL_IOS, API_URL_ANDROID, API_URL);
 
 export const userRegister = createAsyncThunk('user/register', async user => {
   try {
-    let response = await axios.post(`${API_URL}/api/register/client`, user);
-
-    return response;
+    return user
+ 
   } catch (error) {
-    console.log(error);
+    throw error;
+     
   }
 });
 
@@ -20,11 +20,12 @@ export const userLogin = createAsyncThunk('user/login', async login => {
   try {
     console.log("url=====" ,API_URL);
     let response = await axios.post(`${API_URL}/api/auth/local`, login);
-
-    return response.data;
+    console.log(response.data, 'response');
+    
+    return response.data
+    
   } catch (error) {
-    console.log(error, 'login');
-    throw error;
+    return {error:true};
   }
 });
 
@@ -60,9 +61,9 @@ export const logOut = createAsyncThunk('user/logout', async thunkApi => {
 export const sendVerify = createAsyncThunk(
   'user/sendverify',
   async (phoneNumber, code) => {
-    console.log(phoneNumber,code)
+  
     try {
-      let response = await axios.post(`${API_URL}/api/send-sms`, {
+      let response = await axios.post(`${API_URL}/api/send-OTP`, {
         phoneNumber: phoneNumber,
       });
       console.log(response, 'verif');
@@ -227,6 +228,7 @@ export const userSlice = createSlice({
       state.isLoading = true;
     },
     [changePassword.fulfilled]: (state, action) => {
+    
       state.status = 'success';
       if (action.payload.user.user_role === 'client') {
         // state.currentUser = action.payload.user;
@@ -273,7 +275,7 @@ export const userSlice = createSlice({
     [userRegister.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
-      state.token = action.payload.data.jwt;
+      state.token = action.payload.jwt;
     },
     [userRegister.rejected]: state => {
       state.status = 'fail';
@@ -298,7 +300,7 @@ export const userSlice = createSlice({
     [userLogin.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
-      if (action.payload.user.user_role === 'client') {
+      if (action?.payload?.user?.user_role === 'client') {
         state.token = action.payload.jwt;
       }
     },
@@ -316,7 +318,7 @@ export const userSlice = createSlice({
 
       state.user = action.payload.user;
 
-      if (action.payload.authToken && action.payload.user_role === 'client') {
+      if (action.payload.authToken && action?.payload?.user_role === 'client') {
         state.token = action.payload.authToken;
         state.user = action.payload;
       }

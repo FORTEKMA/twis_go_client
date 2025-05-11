@@ -7,8 +7,7 @@ const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
 export const createOrder = createAsyncThunk(
   'commande/create',
   async (data, thunkAPI) => {
-    console.log(data, 'data');
-    try {
+     try {
       const state = thunkAPI.getState();
       const token = state.user.token;
 
@@ -17,8 +16,7 @@ export const createOrder = createAsyncThunk(
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(token);
-      console.log(response, 'create');
+     
       return response;
     } catch (error) {
       console.log(error);
@@ -28,7 +26,7 @@ export const createOrder = createAsyncThunk(
 export const updateReservation = createAsyncThunk(
   'order/update',
   async ({id, body}, thunkAPI) => {
-    console.log(body, 'fdfdfdfdfd');
+  
     try {
       const state = thunkAPI.getState();
       const token = state.user.token;
@@ -47,111 +45,44 @@ export const updateReservation = createAsyncThunk(
 );
 
 export const getUserOrdersById = createAsyncThunk(
-  'order/get',
+  "order/get",
   async (
-    {id, currentPage = 1, pageSize = 10, filter = '', status = null},
-    thunkAPI,
+    {
+      id,
+      currentPage = 1,
+      pageSize = 10,
+      filter = "",
+      status = [  ],
+    },
+    thunkAPI
   ) => {
+
+    const commandStatuses = status.length
+      ? "&" +
+        status.filter(x=>x!=null)
+          .map((el, i) => `filters[commandStatus][$in][${i}]=${el}`)
+          .join("&") +
+        "&"
+      : "";
+
     try {
       const state = thunkAPI.getState();
       const token = state.user.token;
-
-      let response;
-
-      if (status === null) {
-        const ongoingStatuses = [
-          'Driver_on_route_to_pickup',
-          'Arrived_at_pickup',
-          'Picked_up',
-          'On_route_to_delivery',
-          'Arrived_at_delivery',
-          'Delivered',
-        ];
-        // Case 1: Use ongoing logic (prioritize ongoing commands)
-        // Fetch ongoing commands
-        const ongoingResponse = await axios.get(
-          `${API_URL}/api/commands?filters[client_id]=${id}&${ongoingStatuses
-            .map((el, i) => `filters[commandStatus][$in][${i}]=${el}`)
-            .join(
-              '&',
-            )}&filters[refNumber][$containsi]=${filter}&populate[0]=driver_id&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client_id&populate[9]=items.item&populate[10]=driver_id.location&populate[11]=driver_id.profilePicture&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+     console.log(`${API_URL}/api/commands?filters[user][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`, 'commandStatuses');
+      const response = await axios.get(
+        `${API_URL}/api/commands?filters[client][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
-
-        // Calculate the number of ongoing commands fetched
-        // const ongoingCount = ongoingResponse.data.data.length;
-
-        // Calculate the remaining page size for other commands
-        const remainingPageSize = pageSize;
-        // - ongoingCount;
-        let otherResponse = {data: {data: [], meta: {pagination: {total: 0}}}};
-
-        // Fetch other commands only if there's space left in the page
-        if (remainingPageSize > 0) {
-          const otherStatuses = [
-            'Pending',
-            'Dispatched_to_partner',
-            'Assigned_to_driver',
-            'Canceled_by_client',
-            'Failed_pickup',
-            'Failed_delivery',
-            'Completed',
-          ];
-          // Fetch commands with statuses that are not ongoing
-          otherResponse = await axios.get(
-            `${API_URL}/api/commands?filters[client_id]=${id}&${otherStatuses
-              .map((el, i) => `filters[commandStatus][$in][${i}]=${el}`)
-              .join(
-                '&',
-              )}&filters[refNumber][$containsi]=${filter}&populate[0]=driver_id&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client_id&populate[9]=items.item&populate[10]=driver_id.location&populate[11]=driver_id.profilePicture&sort=createdAt:desc&pagination[pageSize]=${remainingPageSize}&pagination[page]=${currentPage}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
         }
-
-        // Combine the results
-        const combinedData = [
-          ...ongoingResponse.data.data,
-          ...otherResponse.data.data,
-        ];
-        const combinedMeta = {
-          ...ongoingResponse.data.meta,
-          pagination: {
-            ...otherResponse.data.meta.pagination,
-            total: otherResponse.data.meta.pagination.total,
-          },
-        };
-
-        response = {data: {data: combinedData, meta: combinedMeta}};
-      } else {
-        // Case 2: Use the provided status as-is (no ongoing logic)
-        response = await axios.get(
-          `${API_URL}/api/commands?filters[client_id]=${id}&${status
-            .map((el, i) => `filters[commandStatus][$in][${i}]=${el}`)
-            .join(
-              '&',
-            )}&filters[refNumber][$containsi]=${filter}&populate[0]=driver_id&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client_id&populate[9]=items.item&populate[10]=driver_id.location&populate[11]=driver_id.profilePicture&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-      }
-
-      return {data: response.data.data, meta: response.data.meta};
+      );
+       
+      return { data: response.data.data, meta: response.data.meta };
     } catch (error) {
-      console.log(error);
       throw error;
     }
-  },
+  }
 );
 
 export const getOrderById = createAsyncThunk(
@@ -160,17 +91,17 @@ export const getOrderById = createAsyncThunk(
     try {
       const state = thunkAPI.getState();
       const token = state.user.token;
-      console.log(id, '===============================');
-
+    
+      console.log(`${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture`); 
       const response = await axios.get(
-        `${API_URL}/api/commands/${id}?populate[0]=driver_id&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client_id&populate[9]=items.item&populate[10]=driver_id.location&populate[11]=driver_id.profilePicture`,
+        `${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-      console.log('🚀🚀🚀🚀🚀 ~ getcurrent commande !!!!!!:', response);
+      ;
       return response.data;
     } catch (error) {
       console.error(error);
@@ -186,7 +117,7 @@ export const getOrdersById = createAsyncThunk(
       const state = thunkAPI.getState();
       const token = state.user.token;
       const response = await axios.get(
-        `${API_URL}api/commands?filters[client_id]=${id}&populate=*&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}${
+        `${API_URL}api/commands?filters[client]=${id}&populate=*&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}${
           text !== ''
             ? `&filters[$or][0][pickUpAddress][Address][$contains]=${text}&filters[$or][1][dropOfAddress][Address][$contains]=${text}&filters[$or][2][id][$eq]=${text}&filters[$or][3][refNumber][$contains]=${text}&filters[$or][4][commandStatus][$contains]=${text}&filters[$or][5][departDate][$contains]=${text}`
             : ''
@@ -197,7 +128,7 @@ export const getOrdersById = createAsyncThunk(
           },
         },
       );
-      console.log('🚀 ~ response***$:', response);
+ 
       return response.data;
     } catch (error) {
       throw error;
@@ -212,7 +143,7 @@ export const getCurrentCommande = createAsyncThunk(
 
     try {
       const response = await axios.get(
-        `${API_URL}/api/commands?filters[driver_id][documentId]=${id}&populate[0]=driver_id&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client_id&populate[9]=items.item`,
+        `${API_URL}/api/commands?filters[driver][documentId]=${id}&populate[0]=driver&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client&populate[9]=items.item`,
 
         {
           headers: {
@@ -221,7 +152,7 @@ export const getCurrentCommande = createAsyncThunk(
         },
       );
 
-      console.log('🚀 ~ response:', response);
+  
       return response.data;
     } catch (error) {
       console.log(error);
@@ -230,32 +161,7 @@ export const getCurrentCommande = createAsyncThunk(
     }
   },
 );
-// export const getCurrentCommande = createAsyncThunk(
-//   'order/currentCommande',
-//   async (id, thunkAPI) => {
-//     const state = thunkAPI.getState();
-//     const token = state.user.token;
-
-//     try {
-//       const response = await axios.get(
-//         `${API_URL}/api/commands?filters[driver_id][documentId]=${id}&populate[0]=driver_id&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client_id&populate[9]=items.item`,
-
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         },
-//       );
-
-//       console.log('🚀 ~ response:', response);
-//       return response.data;
-//     } catch (error) {
-//       console.log(error);
-
-//       throw error;
-//     }
-//   },
-// );
+ 
 export const init = {
   data: {
     departDate: '',
@@ -280,7 +186,7 @@ export const init = {
       },
     },
     items: [],
-    client_id: null,
+    client: null,
     TansportType: {
       Type: '',
       Quantity: 1,
@@ -326,7 +232,7 @@ const initialState = {
         },
       },
       items: [],
-      client_id: null,
+      client: null,
       TansportType: {
         Type: '',
         Quantity: 1,

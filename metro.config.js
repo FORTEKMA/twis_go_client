@@ -1,21 +1,22 @@
-const exclusionList = require('metro-config/src/defaults/exclusionList');
-const path = require('path');
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
-module.exports = {
-  resolver: {
-    extraNodeModules: {
-      // Add any additional modules needed here
-    },
-  },
+const defaultConfig = getDefaultConfig(__dirname);
+const {assetExts, sourceExts} = defaultConfig.resolver;
+
+/**
+ * Metro configuration
+ * https://facebook.github.io/metro/docs/configuration
+ *
+ * @type {import('metro-config').MetroConfig}
+ */
+const config = {
   transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: false,
-        inlineRequires: false,
-      },
-    }),
+    babelTransformerPath: require.resolve('react-native-svg-transformer'),
   },
-  watchFolders: [
-    // Add any additional watch folders needed here
-  ],
+  resolver: {
+    assetExts: assetExts.filter(ext => ext !== 'svg'),
+    sourceExts: [...sourceExts, 'svg'],
+  },
 };
+
+module.exports = mergeConfig(defaultConfig, config);

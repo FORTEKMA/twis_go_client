@@ -1,12 +1,13 @@
 import axios from 'axios';
+import api from './api';
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function calculateDistanceAndTime(startCoords, endCoords) {
   const apiKey = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE';
 
-  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${startCoords}&destination=${endCoords}&key=${apiKey}&language=fr`;
 
-  try {
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${startCoords.latitude},${startCoords.longitude}&destination=${endCoords.latitude},${endCoords.longitude}&key=${apiKey}&language=fr`;
+   try {
     const response = await axios.get(url);
 
     const distance = response.data.routes[0].legs[0].distance.value;
@@ -26,38 +27,33 @@ const REST_API_KEY =
   'os_v2_app_il6vbf5fnvd4lk5kn5fig2quh7tcjfdltfzuajfae3zukc4k5mg365rpcmrql6fkjxdttj33revv7by2ytyyvin3lmemlqdsfnpybdy'; // Replace with your real REST API Key
 
 export const sendNotificationToDrivers = async (
-  drivers,
+ { driver,
   formData,
-  currentUser,
+  currentUser,}
+ 
 ) => {
-  console.log('====================================================');
-  console.log('===============================drivers=====================');
-  console.log(drivers);
-
-  for (const driver of drivers) {
-    const notificationId = driver.notificationId;
-    if (!notificationId) continue;
-
+     const notificationId = driver.notificationId;
+ 
     // Prepare ride info
     const rideInfo = {
-      from: formData.pickup.address,
+      from: formData.pickupAddress.address,
       coordonneFrom: {
-        longitude: formData.pickup.longitude,
-        latitude: formData.pickup.latitude,
+        longitude: formData.pickupAddress.longitude,
+        latitude: formData.pickupAddress.latitude,
       },
       coordonneTo: {
-        longitude: formData.drop.longitude,
-        latitude: formData.drop.latitude,
+        longitude: formData.dropAddress.longitude,
+        latitude: formData.dropAddress.latitude,
       },
-      to: formData.drop.address,
-      time: formData.selectedDate,
-      price: driver.price,
+      to: formData.dropAddress.address,
+      time: formData.time,
+      price: formData.price,
       currentUser: currentUser,
-      distanceBetweenPickupAndDropoff: driver.distance,
+      distanceBetweenPickupAndDropoff: formData.distance,
       driverPosition: '',
     };
-    try {
-      const response = await axios.post(
+ 
+   return axios.post(
         'https://onesignal.com/api/v1/notifications',
         {
           app_id: ONESIGNAL_APP_ID,
@@ -78,18 +74,28 @@ export const sendNotificationToDrivers = async (
         },
       );
 
-      console.log(
-        `✅ Notification sent to ${driver.username || notificationId}`,
-      );
-    } catch (error) {
-      console.error(
-        `❌ Error sending notification to ${
-          driver.username || notificationId
-        }:`,
-        error.response?.data || error.message,
-      );
-    }
+       
 
-    await wait(2200); // Optional pause to prevent request flood
-  }
+  
 };
+
+export const calculatePrice = async (formData,driver) => {
+  const data={
+    "driverLocation": {
+      "lat": driver.latitude,
+      "lng": driver.longitude
+    },
+    "accessDepart": {
+      "lat": formData.pickupAddress.latitude,
+      "lng": formData.pickupAddress.longitude
+    },
+    "accessArrivee": {
+      "lat": formData.dropAddress.latitude,
+      "lng": formData.dropAddress.longitude
+    },
+    "id":formData?.vehicleType?.id
+  }
+ 
+  const response = await api.post('/calcul',data);
+   return response.data;
+}

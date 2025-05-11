@@ -37,8 +37,7 @@ import EstimationCard from './estimation/EstimationCard';
 import {calculateDistanceAndTime} from '../utils/CalculateDistanceAndTime';
 import Payemant from './Payemant';
 import axios from 'axios';
-import {StripeProvider} from '@stripe/stripe-react-native';
-import {setNewCommande} from '../store/commandeSlice/commandeSlice';
+ import {setNewCommande} from '../store/commandeSlice/commandeSlice';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
