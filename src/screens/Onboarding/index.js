@@ -66,9 +66,13 @@ const OnboardingScreen = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      
+
+      
       <View style={styles.stepIndicatorWrapper}>
         <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', {current: `0${currentIndex + 1}`, total: `0${slides.length}`})}</Text>
       </View>
+      
       <Animated.View
         style={[styles.contentWrapper, {opacity: fadeAnim, transform: [{translateY: slideAnim}]}]}
       >
@@ -84,6 +88,7 @@ const OnboardingScreen = ({navigation}) => {
           <Text style={styles.nextText}>{t('onboarding.next')}</Text>
         </TouchableOpacity>
       </View>
+ 
     </SafeAreaView>
   );
 };

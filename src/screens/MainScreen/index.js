@@ -7,8 +7,10 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
- 
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
+import DriverMarker from '../../components/DriverMarker';
 import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
 import {useDispatch, useSelector} from 'react-redux';
 import polyline from '@mapbox/polyline';
@@ -24,11 +26,16 @@ import MapStyle from '../../utils/googleMapStyle.js';
 import api from '../../utils/api';
 import { useToast } from 'native-base';
 import { useTranslation } from 'react-i18next';
+import ProgressTimer from '../../components/ProgressTimer';
+import CustomAlert from '../../components/CustomAlert';
+import Geolocation from '@react-native-community/geolocation';
+import { getDatabase, ref as dbRef, onValue, off  } from '@react-native-firebase/database';
+import { getApp } from '@react-native-firebase/app';
+import {OneSignal} from 'react-native-onesignal';
+import {sendNotificationToDrivers,calculatePrice,sendActionToDrivers} from '../../utils/CalculateDistanceAndTime';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
-import {OneSignal} from 'react-native-onesignal';
-import {sendNotificationToDrivers,calculatePrice} from '../../utils/CalculateDistanceAndTime';
-
 
 const MainScreen = () => {
   const dispatch = useDispatch();
@@ -38,7 +45,7 @@ const MainScreen = () => {
   const [driversIdsNotAccepted, setDriversIdsNotAccepted] = useState([]);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({});
- 
+  const [drivers, setDrivers] = useState({});
   const [accepted, setAccepted] = useState(null);
   const [mapRegion, setMapRegion] = useState({
     latitude: 36.80557596268572,
@@ -46,17 +53,120 @@ const MainScreen = () => {
     latitudeDelta: 0.05,
     longitudeDelta: 0.05,
   });
-
   const mapRef = useRef(null);
   const position = useRef(new Animated.Value(0)).current;
- 
+  const [showTimeEndAlert, setShowTimeEndAlert] = useState(false);
+  const [showCancelAlert, setShowCancelAlert] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [filteredDrivers, setFilteredDrivers] = useState({});
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in km
+    return distance;
+  };
+
+  const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
+  };
+
+  const requestLocationPermission = async () => {
+    if (Platform.OS === 'ios') {
+      Geolocation.requestAuthorization();
+      getCurrentLocation();
+    } else {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          getCurrentLocation();
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+  };
+
+  const getCurrentLocation = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ latitude, longitude });
+        setMapRegion({
+          latitude,
+          longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        });
+        if (mapRef.current) {
+          mapRef.current.animateToRegion({
+            latitude,
+            longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }, 1000);
+        }
+      },
+      (error) => console.log(error),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+    );
+  };
+
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+
+  useEffect(() => {
+    console.log(getApp())
+    const db = getDatabase(getApp());
+    const driversRef = dbRef(db, 'drivers');
+
+    const unsubscribe = onValue(driversRef, snapshot => {
+      const data = snapshot.val() || {};
+      const activeDrivers = {};
+
+      Object.entries(data).forEach(([uid, driver]) => {
+        if (
+          driver.isFree === true &&
+          driver.latitude &&
+          driver.longitude &&
+          currentLocation
+        ) {
+          const distance = calculateDistance(
+            currentLocation.latitude,
+            currentLocation.longitude,
+            driver.latitude,
+            driver.longitude
+          );
+
+          if (distance <= 50) {
+            activeDrivers[uid] = driver;
+          }
+        }
+      });
+
+      setFilteredDrivers(activeDrivers);
+    });
+
+    return () => {
+      driversRef.off('value', unsubscribe);
+    }
+  }, [currentLocation]);
 
   useEffect(() => {
     if(step === 3){
       searchDrivers()
        OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
         if(event?.notification?.additionalData?.accept==true){
-         setAccepted(event?.notification?.additionalData)
+        setAccepted(event?.notification?.additionalData)
         animateStepTransition(step+1);
         setStep(step+1)
         OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
@@ -66,9 +176,10 @@ const MainScreen = () => {
         });
   
     }
+  
     return () => {
       OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
-    }
+     }
   }, [step])  
 
   const animateStepTransition = (newStep) => {
@@ -83,6 +194,8 @@ const MainScreen = () => {
     }).start();
   };
 
+   
+
    const searchDrivers = async () => {
     let radius = 1;
     let processedDrivers = new Set(); // Track processed drivers to prevent duplicates
@@ -92,17 +205,21 @@ const MainScreen = () => {
       while (accepted == null && radius <= 10) {
         console.log(`\n📡 Searching drivers in radius: ${radius}km`);
         let drivers = [];
-    
+    if(accepted==null){
         try {
-          const response = await api.get(
-            `/drivers-in-radius?radius=${radius}&latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}&vehicleType=${formData?.vehicleType?.id}&excludedIds=${driversIdsNotAccepted}`
-          );
+          let url=`/drivers-in-radius?radius=${radius}&latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}&vehicleType=${formData?.vehicleType?.id}`
+          if(driversIdsNotAccepted.length>0){
+            driversIdsNotAccepted.forEach((id,index)=>{
+              url+=`&excludedIds[${index}]=${id}`
+            })
+          }
+          const response = await api.get(url);
           
           drivers = response.data || [];
           console.log(`📊 Found ${drivers.length} drivers in radius ${radius}km`);
           
         } catch (error) {
-          console.log(`❌ Error fetching drivers in radius ${radius}:`, error);
+          console.log(`❌ Error fetching drivers in radius ${radius}:`, error.response);
           radius += 1;
           continue;
         }
@@ -132,7 +249,7 @@ const MainScreen = () => {
             
             try {
               console.log(`📱 Sending notification to driver ${driver.id}`);
-              await sendNotificationToDrivers({
+            const notificationRed=  await sendNotificationToDrivers({
                 formData: {
                   ...formData,
                   price: rideData.price,
@@ -142,6 +259,7 @@ const MainScreen = () => {
                 driver,
                 currentUser
               });
+              console.log(notificationRed)
               console.log(`✅ Notification sent successfully to driver ${driver.id}`);
             } catch (notificationError) {
               console.log(`❌ Error sending notification to driver ${driver.id}:`, notificationError);
@@ -169,18 +287,23 @@ const MainScreen = () => {
             continue;
           }
         }
+        
+
+
     
         // If no new drivers were processed in this radius, increase it
         if (newDrivers.length === 0) {
            radius += 1;
         }
-
+      }
         console.log(`\n📊 Current status:
           - Processed drivers: ${processedDrivers.size}
           - Not accepted drivers: ${driversIdsNotAccepted.length}
           - Current radius: ${radius}km
           - Accepted: ${accepted ? 'Yes' : 'No'}
         `);
+
+
       }
     
       if (accepted == null) {
@@ -191,6 +314,7 @@ const MainScreen = () => {
           status: "error",
           duration: 3000
         });
+        setDriversIdsNotAccepted([])
         goBack();
       }
     } catch (error) {
@@ -233,8 +357,37 @@ const MainScreen = () => {
   
   }
 
+  const handleTimeEnd = () => {
+    setShowTimeEndAlert(true);
+    sendActionToDrivers(accepted?.notificationId, "Canceled_by_client")
+    handleReset
+  };
 
-  
+  const handleGoBack = () => {
+    if (step === 4 || step === 5) {
+      setShowCancelAlert(true);
+    } else {
+      goBack();
+    }
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelAlert(false);
+    setStep(1)
+    setFormData({})
+    setAccepted(null)
+    setDriversIdsNotAccepted([])
+    setDrivers({})
+    sendActionToDrivers(accepted?.notificationId, "Canceled_by_client")
+  };
+
+  const handleReset = () => {
+    setStep(1)
+    setFormData({})
+    setAccepted(null)
+    setDriversIdsNotAccepted([])
+    setDrivers({})
+  }
 
   const renderRoute = () => {
     if (formData?.dropAddress?.latitude && formData?.dropAddress?.longitude) {
@@ -266,7 +419,6 @@ const MainScreen = () => {
 
     return (
       <Animated.View
-        
         style={[
           localStyles.stepContainer,
           {
@@ -274,46 +426,88 @@ const MainScreen = () => {
           },
         ]}>
         <View style={localStyles.stepContent}>
+          {(step === 4 || step === 5) && <ProgressTimer onTimeEnd={handleTimeEnd} />}
           {step === 1 && (
-            <StepLocation formData={formData} goNext={goNext}   />
+            <StepLocation formData={formData} goNext={goNext} />
           )}
           {step === 2 && (
-            <Step2 formData={formData} goNext={goNext} goBack={goBack} />
+            <Step2 formData={formData} goNext={goNext} goBack={handleGoBack} />
           )}
           {step === 3 && (
-            <Step3 formData={formData}  goNext={goNext} goBack={goBack} />
+            <Step3 formData={formData} goNext={goNext} goBack={handleGoBack} />
           )}
           {step === 4 && (
-            <Step4 formData={formData} rideData={accepted} goNext={goNext} goBack={goBack} />
+            <Step4 formData={formData} rideData={accepted} goNext={goNext} goBack={handleGoBack} />
           )}
           {step === 5 && (
-            <Step5 formData={formData} goNext={goNext} goBack={goBack} />
+            <Step5 handleReset={handleReset} rideData={accepted} formData={formData} goNext={goNext} goBack={handleGoBack} />
           )}
         </View>
       </Animated.View>
     );
   };
 
- 
- 
- 
-
   return (
     <View style={localStyles.container}>
       <MapView
         ref={mapRef}
-        provider={PROVIDER_GOOGLE}
+     provider={PROVIDER_GOOGLE}
         style={StyleSheet.absoluteFillObject}
         customMapStyle={MapStyle}
         zoomEnabled
         focusable
-        
         region={mapRegion}
-         >
-         
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+      >
+        {Object.entries(filteredDrivers).map(([uid, driver]) => (
+          <Marker
+            key={uid}
+            tracksViewChanges={false}
+            coordinate={{
+              latitude: driver.latitude,
+              longitude: driver.longitude,
+            }}
+          >
+            <DriverMarker type={driver.type} angle={driver.angle} />
+          </Marker>
+        ))}
         {renderRoute()}
       </MapView>
-      {renderStep()}
+     {renderStep()}  
+
+      <CustomAlert
+        visible={showTimeEndAlert}
+        title={t('common.time_ended')}
+        message={t('common.please_complete_order')}
+        type="warning"
+        buttons={[
+          {
+            text: t('common.ok'),
+            style: 'confirm',
+            onPress: () => setShowTimeEndAlert(false),
+          },
+        ]}
+      />
+
+      <CustomAlert
+        visible={showCancelAlert}
+        title={t('common.confirm_cancel')}
+        message={t('common.cancel_ride_warning')}
+        type="warning"
+        buttons={[
+          {
+            text: t('common.no'),
+            style: 'cancel',
+            onPress: () => setShowCancelAlert(false),
+          },
+          {
+            text: t('common.yes'),
+            style: 'confirm',
+            onPress: handleConfirmCancel,
+          },
+        ]}
+      />
     </View>
   );
 };
@@ -325,7 +519,8 @@ const localStyles = StyleSheet.create({
   stepContainer: {
     
     backgroundColor: 'transparent',
-    
+    position:'absolute',
+    bottom:0, 
     flex:1,
   },
   stepContent: {

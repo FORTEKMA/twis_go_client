@@ -2,13 +2,11 @@ import {View, Text} from 'react-native';
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 import axios from 'axios';
+import {ONESIGNAL_DRIVER_APP_ID,ONESIGNAL_DRIVER_APP_API_KEY} from '@env';
 
 export default function SendingRequests() {
   const currentUser = useSelector(state => state.user.currentUser);
-  const ONESIGNAL_APP_ID = '42fd5097-a56d-47c5-abaa-6f4a836a143f';
-  const REST_API_KEY =
-    'os_v2_app_il6vbf5fnvd4lk5kn5fig2quh7tcjfdltfzuajfae3zukc4k5mg365rpcmrql6fkjxdttj33revv7by2ytyyvin3lmemlqdsfnpybdy'; // Replace with your real REST API Key
-
+ 
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   const sendNotificationToDriver = async (driver, formData) => {
@@ -42,7 +40,7 @@ export default function SendingRequests() {
       const response = await axios.post(
         'https://onesignal.com/api/v1/notifications',
         {
-          app_id: ONESIGNAL_APP_ID,
+          app_id: ONESIGNAL_DRIVER_APP_ID,
           include_player_ids: [notificationId],
           headings: {en: 'New Ride'},
           contents: {
@@ -54,7 +52,7 @@ export default function SendingRequests() {
         },
         {
           headers: {
-            Authorization: `Basic ${REST_API_KEY}`,
+            Authorization: `Basic ${ONESIGNAL_DRIVER_APP_API_KEY}`,
             'Content-Type': 'application/json',
           },
         },

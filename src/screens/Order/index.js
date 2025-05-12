@@ -33,8 +33,7 @@ const Order = ({ route }) => {
   const isFocused = useIsFocused();
   const navigation = useNavigation();
   const [isUpdating, setIsUpdating] = useState(false);
-
-  useLayoutEffect(() => {
+   useLayoutEffect(() => {
     // Hide tab bar
     navigation.getParent()?.setOptions({
       tabBarStyle: { display: 'none' },
@@ -112,12 +111,12 @@ const Order = ({ route }) => {
   useEffect(() => {
     if (order?.pickUpAddress && order?.dropOfAddress) {
       setPickupCoordinate([
-        parseFloat(order?.pickUpAddress?.coordonne?.latitude || 0),
-        parseFloat(order?.pickUpAddress?.coordonne?.longitude || 0),
+        parseFloat(order?.pickUpAddress?.coordinate?.latitude || 0),
+        parseFloat(order?.pickUpAddress?.coordinate?.longitude || 0),
       ]);
       setDropCoordinateCoordinate([
-        parseFloat(order?.dropOfAddress?.coordonne?.latitude || 0),
-        parseFloat(order?.dropOfAddress?.coordonne?.longitude || 0),
+        parseFloat(order?.dropOfAddress?.coordinate?.latitude || 0),
+        parseFloat(order?.dropOfAddress?.coordinate?.longitude || 0),
       ]);
     }
   }, [order]);
@@ -160,13 +159,7 @@ const Order = ({ route }) => {
 
     setIsUpdating(true);
     try {
-      // await dispatch(
-      //   updateReservation({
-      //     id: order.documentId,
-      //     body: { data: { commandStatus: nextStatus } },
-      //   })
-      // ).unwrap();
-      // Refresh the order data after status update
+    
       dispatch(getOrderById({ id: order.documentId }));
     } catch (error) {
       console.error('Failed to update status:', error);
@@ -189,12 +182,9 @@ const Order = ({ route }) => {
       <View style={styles.container}>
         <OrderMapView
           mapRegion={mapRegion}
-          pickupCoordinate={pickupCoordinate}
-          dropCoordinate={dropCoordinate}
-          driverPosition={driverPosition}
-          position={position}
+          
           order={order}
-          handleOpenInGoogleMaps={handleOpenInGoogleMaps}
+      
         />
         <OrderBottomCard
           order={order}

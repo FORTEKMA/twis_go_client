@@ -58,13 +58,17 @@ const PhoneLoginForm = React.memo(() => {
             initialCountry="tn"
             onPressFlag={() => setIsFlagsVisible(true)}
             onChangePhoneNumber={setNumber}
+          
             style={{
               flex: 1,
               fontSize: 16,
               color: '#222',
               paddingVertical: 5,
               paddingLeft: 18,
+              height: 50,
             }}
+           
+          
             textComponent={TextInput}
             textProps={{
               placeholder: t('login.phoneNumber'),

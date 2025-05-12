@@ -30,6 +30,7 @@ const getStatusColor = (status) => {
  
 
 const OrderBottomCard = ({ order, timeToDestination, onCall, onEndTrip }) => {
+  console.log(order, 'order');
   const { t } = useTranslation();
    const status = order?.status || 'Driver_on_route_to_pickup';
   const statusColor = getStatusColor(status);
@@ -61,9 +62,7 @@ const OrderBottomCard = ({ order, timeToDestination, onCall, onEndTrip }) => {
       <View style={localStyles.addressRow}>
         <MaterialIcons name="location-on" size={18} color="#E74C3C" />
         <Text style={localStyles.addressText} numberOfLines={1}>{order?.dropOfAddress?.Address}</Text>
-        <MaterialIcons name="navigation" size={18} color="#E74C3C" style={{ marginLeft: 8 }} />
-        <Text style={localStyles.note}>{t('history.card.view_note')}</Text>
-      </View>
+        </View>
       <View style={localStyles.separator} />
       <View style={localStyles.driverRow}>
         <Image
@@ -77,9 +76,7 @@ const OrderBottomCard = ({ order, timeToDestination, onCall, onEndTrip }) => {
             <Text style={localStyles.rating}>{order?.driver?.rating || '4.5'}</Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => {}}>
-          <Text style={localStyles.note}>{t('history.card.view_note')}</Text>
-        </TouchableOpacity>
+        
       </View>
       <View style={localStyles.separator} />
      

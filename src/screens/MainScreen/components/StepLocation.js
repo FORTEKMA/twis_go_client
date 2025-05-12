@@ -1,5 +1,5 @@
 import React, { useState , useRef, useEffect} from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView,   PermissionsAndroid  , Alert } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView,   PermissionsAndroid  , Alert ,StyleSheet} from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useTranslation } from 'react-i18next';
@@ -9,27 +9,18 @@ import ConfirmButton from './ConfirmButton';
 import Geolocation from 'react-native-geolocation-service';
 import {getAddressFromCoordinates} from '../../../utils/helpers/mapUtils';
 import { Spinner, Toast } from 'native-base';
-
+import { useNavigation } from '@react-navigation/native';
 
 
 
 const StepLocation = ({ formData, goNext, }) => {
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
-  const [pickupAddress, setPickupAddress] = useState({"address": "Tunis-Carthage International Airport, Tunis, Tunisie", "latitude": 36.8475562, "longitude": 10.2175601});//useState(formData?.pickupAddress||{} );
-  const [dropAddress, setDropAddress] = useState({"address": "Géant Tunis City، Cebalat Ben Ammar, Tunisie", "latitude": 36.8999451, "longitude": 10.1244148});//useState(formData.dropAddress||{});
+  const [pickupAddress, setPickupAddress] =useState(formData?.pickupAddress||{} );
+  const [dropAddress, setDropAddress] = useState(formData.dropAddress||{});
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-   const pickupAddressRef = useRef(null);
-   const dropAddressRef = useRef(null);
-
-  useEffect(() => {
-    if (pickupAddressRef.current&&pickupAddress.address) {
-      pickupAddressRef.current.updateAddressText(pickupAddress.address);
-    }
-    if (dropAddressRef.current&&dropAddress.address) {
-      dropAddressRef.current.updateAddressText(dropAddress.address);
-    }
-  }, []);
+    const navigation = useNavigation();
+ 
 
   const handlePickupSelect = (data, details) => {
     if (details) {  
@@ -101,7 +92,7 @@ const StepLocation = ({ formData, goNext, }) => {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
           });
-          pickupAddressRef.current.updateAddressText(formattedAddress);
+           
           setIsLoadingLocation(false);
         } catch (error) {
           console.log('Error fetching address:', error);
@@ -173,28 +164,19 @@ const StepLocation = ({ formData, goNext, }) => {
           </TouchableOpacity>
         </View>
 
-     <SafeAreaView style={styles.container}>
-     <LocationPicker
-              setIsFocused={setIsFocused}
-              onLocationSelect={handlePickupSelect}
-              placeholder={t('common.search')}
-              value={pickupAddress?.address}
-              ref={pickupAddressRef}
-            />
-        </SafeAreaView>  
+        <TouchableOpacity style={localStyles.container} onPress={()=>navigation.navigate("LocationMap",{setLocation:(location)=>{setPickupAddress(location)}})}>
+       
+
+            <Text style={{color:pickupAddress.address?'#000':"#ddd"}}>{pickupAddress.address?pickupAddress.address:t('location.pickUp')}</Text>
+        </TouchableOpacity>  
         {/* Destination */}
-      {!isFocused&&(<View style={[styles.inputRow,{marginTop:20}]}>
+      <View style={[styles.inputRow,{marginTop:20}]}>
           <Text style={styles.step1Label}>{t('location.pick_off')}</Text>
           <FontAwesome name="car" size={20} color="#BDBDBD" style={styles.carIcon} />
-        </View>)}
-      {!isFocused&&(  <SafeAreaView style={styles.container}>
-             <LocationPicker
-              onLocationSelect={handleDropSelect}
-              placeholder={t('booking.step2.search')}
-              value={dropAddress?.address}
-              ref={dropAddressRef}
-            />
-         </SafeAreaView>)}
+        </View>
+    <TouchableOpacity style={localStyles.container} onPress={()=>navigation.navigate("LocationMap",{setLocation:(location)=>{setDropAddress(location)}})}>
+            <Text style={{color: dropAddress.address?'#000':"#ddd"}}>{dropAddress.address?dropAddress.address:t('location.pick_off')}</Text>
+         </TouchableOpacity> 
          
       </View>
       
@@ -207,5 +189,20 @@ const StepLocation = ({ formData, goNext, }) => {
     </View>
   );
 };
+
+const localStyles = StyleSheet.create({
+  container:{
+
+    height:50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    marginBottom: 5,
+  }
+})
 
 export default StepLocation; 

@@ -4,8 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Notifications from '../screens/Notifications';
 import HisoryStackNavigator from './HisoryStackNavigator';
 import ProfileStack from './ProfileStack';
-import MainScreen from '../screens/MainScreen';
-
+import HomeStackNavigator from './HomeNavigation';
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
@@ -40,7 +39,7 @@ const TabNavigator = () => {
       >
       <Tab.Screen
         name="Home"
-        component={MainScreen}
+        component={HomeStackNavigator}
         options={{
           tabBarLabel: 'Home',
         }}

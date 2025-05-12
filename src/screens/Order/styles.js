@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
-    flex: 1,
+    height:"59%"
   },
   centeredView: {
     flex: 1,

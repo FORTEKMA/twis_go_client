@@ -4,8 +4,9 @@ import { useForm, Controller } from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { styles } from '../styles';
 import { useDispatch } from 'react-redux';
-import { userLogin } from '../../../store/userSlice/userSlice';
+import { userLogin ,updateUser,getCurrentUser} from '../../../store/userSlice/userSlice';
 import { useTranslation } from 'react-i18next';
+import { OneSignal } from "react-native-onesignal";
 
 const EmailLoginForm = () => {
   const [show, setShow] = useState(false);
@@ -13,8 +14,8 @@ const EmailLoginForm = () => {
   const [loginError, setLoginError] = useState('');
   const { control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      identifier: '',
-      password: ''
+      identifier: 'ghoudi000@gmail.com',
+      password: '123456789m'
     },
     mode: 'onChange'
   });
@@ -26,10 +27,19 @@ const EmailLoginForm = () => {
     setLoginError('');
     try {
       const result = await dispatch(userLogin(data));
-
+      console.log(result, 'result');
       if(result?.payload?.error){
         setLoginError(t('login.invalidCredentials'));
-      } 
+      }
+      else {
+        const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
+         
+        await dispatch(updateUser({
+          id: result?.id,
+          notificationId
+        })).unwrap();
+        await dispatch(getCurrentUser());
+      }
         
     } catch (error) {
       console.log(error);

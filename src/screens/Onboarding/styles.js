@@ -10,11 +10,12 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: wp(5),
+  
     paddingTop: hp(4),
     paddingBottom: hp(4),
   },
   stepIndicatorWrapper: {
+    paddingHorizontal: wp(5),  
     width: '100%',
     alignItems: 'flex-start',
     marginBottom: hp(2),
@@ -30,6 +31,7 @@ export const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: wp(5),  
   },
   title: {
     fontSize: hp(3),
@@ -59,6 +61,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: hp(2),
+    paddingHorizontal: wp(5),  
   },
   skipButton: {
     flex: 1,

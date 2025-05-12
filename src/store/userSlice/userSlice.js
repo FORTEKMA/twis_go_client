@@ -5,7 +5,7 @@ import {API_URL_ANDROID, API_URL_IOS} from '@env';
 import {Platform} from 'react-native';
 const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
 console.log(API_URL_IOS, API_URL_ANDROID, API_URL);
-
+ 
 export const userRegister = createAsyncThunk('user/register', async user => {
   try {
     return user

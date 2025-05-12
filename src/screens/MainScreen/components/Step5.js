@@ -4,27 +4,30 @@ import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
  import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
+import { useNavigation } from '@react-navigation/native';
+import { sendActionToDrivers } from '../../../utils/CalculateDistanceAndTime';
 const Step5 = ({
-  setStep,
  goBack,
- goNext
+ rideData,
+ handleReset
 }) => {
   const { t } = useTranslation();
-  const [selectedPayment, setSelectedPayment] = useState('online');
-
+  const [selectedPayment, setSelectedPayment] = useState('cash');
+  const navigation=useNavigation()
   const paymentOptions = [
     {
       key: 'online',
       label: t('payment.online'),
       icon: 'credit-card',
       description: t('payment.online_description'),
+      disabled: true,
     },
     {
       key: 'cash',
       label: t('payment.cash'),
       icon: 'cash',
       description: t('payment.cash_description'),
+      disabled: false,
     },
   ];
 
@@ -43,10 +46,13 @@ const Step5 = ({
       <View style={localStyles.optionsContainer}>
         {paymentOptions.map(option => (
           <TouchableOpacity
+            
+            disabled={option.disabled}
             key={option.key}
             style={[
               localStyles.optionCard,
-              selectedPayment === option.key && localStyles.selectedOption
+              selectedPayment === option.key && localStyles.selectedOption,
+              option.disabled && localStyles.disabledOption
             ]}
             onPress={() => setSelectedPayment(option.key)}
           >
@@ -67,7 +73,14 @@ const Step5 = ({
       <TouchableOpacity
         style={localStyles.confirmButton}
         onPress={() => {
-         
+          sendActionToDrivers(rideData?.notificationId, "can_start_ride")
+          navigation.navigate('Historique',{
+            screen: 'OrderDetails',
+            params: {
+              id: rideData?.commande?.data?.documentId
+            }
+          })
+          handleReset()
         }}
       >
         <Text style={localStyles.confirmButtonText}>{t('booking.step5.confirm_payment')}</Text>
@@ -140,6 +153,10 @@ const localStyles = StyleSheet.create({
     color: '#19191C',
     fontWeight: '700',
     fontSize: hp(2.2),
+  },
+  disabledOption: {
+    opacity: 0.5,
+    pointerEvents: 'none',
   },
 });
 

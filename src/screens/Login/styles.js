@@ -81,6 +81,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#222',
     paddingVertical: 14,
+    paddingHorizontal: 18,
   },
   eyeIcon: {
     padding: 8,

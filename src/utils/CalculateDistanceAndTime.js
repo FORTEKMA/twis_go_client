@@ -22,10 +22,9 @@ export async function calculateDistanceAndTime(startCoords, endCoords) {
     return null;
   }
 }
-const ONESIGNAL_APP_ID = '42fd5097-a56d-47c5-abaa-6f4a836a143f';
-const REST_API_KEY =
-  'os_v2_app_il6vbf5fnvd4lk5kn5fig2quh7tcjfdltfzuajfae3zukc4k5mg365rpcmrql6fkjxdttj33revv7by2ytyyvin3lmemlqdsfnpybdy'; // Replace with your real REST API Key
 
+import {ONESIGNAL_DRIVER_APP_ID,ONESIGNAL_DRIVER_APP_API_KEY} from '@env';
+ 
 export const sendNotificationToDrivers = async (
  { driver,
   formData,
@@ -36,6 +35,7 @@ export const sendNotificationToDrivers = async (
  
     // Prepare ride info
     const rideInfo = {
+      type: "new_command",
       from: formData.pickupAddress.address,
       coordonneFrom: {
         longitude: formData.pickupAddress.longitude,
@@ -52,11 +52,13 @@ export const sendNotificationToDrivers = async (
       distanceBetweenPickupAndDropoff: formData.distance,
       driverPosition: '',
     };
+
+ 
  
    return axios.post(
         'https://onesignal.com/api/v1/notifications',
         {
-          app_id: ONESIGNAL_APP_ID,
+          app_id: ONESIGNAL_DRIVER_APP_ID,
           include_player_ids: [notificationId],
           headings: {en: 'New Ride'},
           contents: {
@@ -68,7 +70,7 @@ export const sendNotificationToDrivers = async (
         },
         {
           headers: {
-            Authorization: `Basic ${REST_API_KEY}`,
+            Authorization: `Basic ${ONESIGNAL_DRIVER_APP_API_KEY}`,
             'Content-Type': 'application/json',
           },
         },
@@ -98,4 +100,35 @@ export const calculatePrice = async (formData,driver) => {
  
   const response = await api.post('/calcul',data);
    return response.data;
+}
+
+export const sendActionToDrivers = async (driverID, replay="") => {
+  
+
+  return axios.post(
+    'https://onesignal.com/api/v1/notifications',
+    {
+      app_id: ONESIGNAL_DRIVER_APP_ID,
+      include_player_ids: [driverID],
+      headings: {en: 'New Ride'},
+      contents: {
+        en: 'You have a new ride request!',
+        ar: 'لديك طلب رحلة جديد!',
+      },
+      priority: 10,
+      data: {
+  
+        type:replay
+      },
+    },
+    {
+      headers: {
+        Authorization: `Basic ${ONESIGNAL_DRIVER_APP_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+
+
 }

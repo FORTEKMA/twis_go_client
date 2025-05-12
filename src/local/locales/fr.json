@@ -15,7 +15,14 @@
   "next": "Suivant",
   "currency": "DT",
   "km": "km",
-  "no_driver_accepted": "Aucun chauffeur n'a accepté la demande"
+  "no_driver_accepted": "Aucun chauffeur n'a accepté la demande",
+  "time_ended": "Temps écoulé",
+  "please_complete_order": "Veuillez compléter votre commande dans les plus brefs délais",
+  "ok": "OK",
+  "confirm_cancel": "Confirmer l'annulation",
+  "cancel_ride_warning": "Êtes-vous sûr de vouloir annuler cette course ? Votre score sera réduit.",
+  "yes": "Oui",
+  "no": "Non"
 },
 "onboarding": {
     "login": "Connexion",
@@ -355,8 +362,8 @@
   },
   "driver_name": "{{name}}",
   "car_model": "{{model}}",
-  "pickup_point": "Point de prise en charge",
-  "pick_off": "Dépose",
+  "pickup_point": "Point de départ",
+  "pick_off": "Point d'arrivée",
   "go_to_payment": "Aller au paiement",
   "proceeding_to_payment": "Passage au paiement...",
   "payment": {
@@ -374,11 +381,15 @@
       "ok": "OK"
     },
     "where_are_you": "Où êtes-vous ?",
-    "pick_off": "Point de d'arrivée",
+    "pickUp": "Point de départ",
+    "pick_off": "Point d'arrivée",
     "error": {
       "permission_denied": "Permission de localisation refusée",
       "fetch_address": "Impossible de récupérer l'adresse",
       "get_location": "Impossible d'obtenir votre position"
     }
-  }
+  },
+  "Choose_location": "Choisir un lieu",
+  "save": "Enregistrer",
+  "search_placeholder": "Rechercher un lieu"
 } 

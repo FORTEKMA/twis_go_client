@@ -2,11 +2,11 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { View, KeyboardAvoidingView, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-  
+import { OneSignal } from "react-native-onesignal";
 import { styles } from './styles';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/colors';
-import {sendVerify, verify} from '../../store/userSlice/userSlice';
+import {sendVerify, verify,updateUser,getCurrentUser} from '../../store/userSlice/userSlice';
 
 const Otp = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -29,13 +29,19 @@ const Otp = ({ route, navigation }) => {
   const handleVerify = async () => {
     setIsLoading(true);
     try {
-       dispatch(verify({phoneNumber: number.replace(/\s/g, ''), code: otp.join('')})).then(res => {
+       dispatch(verify({phoneNumber: number.replace(/\s/g, ''), code: otp.join('')})).then(async res => {
+        const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
+        console.log(" res?.payload?.user?.id,", res?.payload);
+        await dispatch(updateUser({
+          id: res?.payload?.id,
+          notificationId
+        })).unwrap();
+        await dispatch(getCurrentUser());
+        console.log(res, 'res');
        if(res?.payload?.status==false){
         setError(t('otp.invalidCode'));
        }
-       else {
-        navigation.navigate('Register', {number: number});
-       }
+       
         
         setIsLoading(false);
       });

@@ -18,8 +18,7 @@ const WaveCircle = ({formData, drivers}) => {
   const ripples = useRef(
     [...Array(rippleCount)].map(() => new Animated.Value(0)),
   ).current;
-
-  // useEffect(() => {
+ 
   //   ripples.forEach((anim, index) => {
   //     const delay = index * 1000; // delay each ripple by 1s
   //     Animated.loop(

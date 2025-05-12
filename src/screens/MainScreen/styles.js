@@ -273,7 +273,7 @@ height:50,
   },
   step1Label: {
     fontSize: 16,
-    color: '#BDBDBD',
+    color: '#000',
     fontWeight: '500',
     marginBottom: 4,
 

@@ -16,6 +16,7 @@ const MainNavigator = () => {
   return (
     <NavigationContainer>
       {userIsLoggedIn ? <TabNavigator /> : <AuthStack />}
+      
     </NavigationContainer>
   );
 };

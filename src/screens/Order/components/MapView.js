@@ -1,10 +1,19 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState ,useRef} from 'react';
 import { Platform, Linking, Image, View, Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT, Marker, Callout } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { styles } from '../styles';
-import { GOOGLE_MAPS_APIKEY } from '../../../config/constants';
+import { API_GOOGLE } from "@env"
+import { getDatabase, ref as dbRef, onValue, off } from '@react-native-firebase/database';
+import { getApp } from '@react-native-firebase/app';
+import DriverMarker from "../../../components/DriverMarker";
+const region = {
+  latitude: 37.7749,
+  longitude: -122.4194,
+  latitudeDelta: 0.01,
+  longitudeDelta: 0.01,
+}
 // Constants
 const MARKER_IMAGES = {
   pickup: require("../../../assets/Points.png"),
@@ -18,57 +27,118 @@ const MARKER_SIZES = {
   driver: { width: 40, height: 25, marginTop: 20 },
 };
 
-const ORDER_STATUS = {
-  PENDING: "Pending",
-  ASSIGNED: "Assigned_to_driver",
-  ON_ROUTE_TO_PICKUP: "Driver_on_route_to_pickup",
-  ARRIVED_PICKUP: "Arrived_at_pickup",
-  PICKED_UP: "Picked_up",
-  ON_ROUTE_TO_DELIVERY: "On_route_to_delivery",
-  ARRIVED_DELIVERY: "Arrived_at_delivery",
-  DELIVERED: "Delivered",
-  COMPLETED: "Completed",
-  FAILED_PICKUP: "Failed_pickup",
-  FAILED_DELIVERY: "Failed_delivery",
-};
+ 
 
 const OrderMapView = ({
-  mapRegion,
-  pickupCoordinate,
-  dropCoordinate,
-  driverPosition,
-  position,
+ 
   order,
- 
-  handleOpenInGoogleMaps,
 }) => {
-  // Memoize coordinates to prevent unnecessary recalculations
-  const coordinates = useMemo(() => ({
-    driver: {
-      latitude: order?.driver?.latitude || 0,
-      longitude: order?.driver?.longitude || 0,
-    },
-    pickup: {
-      latitude: order?.pickUpAddress?.coordonne?.latitude || 0,
-      longitude: order?.pickUpAddress?.coordonne?.longitude || 0,
-    },
-    drop: {
-      latitude: order?.dropOfAddress?.coordonne?.latitude || 0,
-      longitude: order?.dropOfAddress?.coordonne?.longitude || 0,
-    },
-  }), [order]);
+  const [driverPosition, setDriverPosition] = useState(null);
+  const mapRef = useRef(null);
 
- 
+  useEffect(() => {
+    if(order?.dropOfAddress?.coordonne){
+      mapRef.current.fitToCoordinates([order?.dropOfAddress?.coordonne,order?.pickUpAddress?.coordonne], 100,{
+        edgePadding: {
+          top: 80,
+          right: 80,
+          bottom: 650,
+          left: 80
+        }   
+      });
+    }
+  }, [order?.dropOfAddress?.coordonne]);
 
+  useEffect(() => {
+    
+    
+    if (order?.driver?.documentId&&!["Canceled_by_client","Canceled_by_driver","Completed"].includes(order?.status)) {
+      const db = getDatabase(getApp());
+      const driverRef = dbRef(db, `drivers/${order.driver.documentId}`);
+
+      const unsubscribe = onValue(driverRef, snapshot => {
+        const data = snapshot.val();
+        if (data && data.latitude && data.longitude) {
+          setDriverPosition({
+            latitude: data.latitude,
+            longitude: data.longitude,
+            type: data.type,
+            angle: data.angle
+          });
+        }
+      });
+
+
+      return () => {
+        driverRef.off('value', unsubscribe);
+      };
+    }
+  }, [order?.driver?.documentId]);
+
+
+  
   return (
     <MapView
       style={styles.map}
-      region={mapRegion}
+      ref={mapRef}
+      region={region}
       provider={Platform.OS === "android" ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
     >
-      
-      
-      
+      {/* Pickup Marker */}
+      <Marker
+        coordinate={order?.pickUpAddress?.coordonne}
+        title="Pickup Location"
+      >
+        <Image
+          source={MARKER_IMAGES.pickup}
+          style={MARKER_SIZES.pickup}
+        />
+        <Callout>
+          <View style={enhancedStyles.callout}>
+            <Text style={enhancedStyles.calloutTitle}>Pickup Location</Text>
+            <Text style={enhancedStyles.calloutAddress}>{order?.pickUpAddress?.coordinate?.address}</Text>
+          </View>
+        </Callout>
+      </Marker>
+
+      {/* Dropoff Marker */}
+      <Marker
+        coordinate={order?.dropOfAddress?.coordonne}
+        title="Dropoff Location"
+      >
+        <Image
+          source={MARKER_IMAGES.drop}
+          style={MARKER_SIZES.drop}
+        />
+        <Callout>
+          <View style={enhancedStyles.callout}>
+            <Text style={enhancedStyles.calloutTitle}>Dropoff Location</Text>
+            <Text style={enhancedStyles.calloutAddress}>{order.dropOfAddress.coordinate?.address}</Text>
+          </View>
+        </Callout>
+      </Marker>
+
+      {/* Driver Marker */}
+      {driverPosition && (
+        <Marker
+          coordinate={driverPosition}
+       
+            tracksViewChanges={false}
+        >
+ <DriverMarker type={driverPosition.type} angle={driverPosition.angle} />
+
+          
+        </Marker>
+      )}
+
+      {/* Directions */}
+      <MapViewDirections
+        origin={order?.pickUpAddress?.coordonne}
+        destination={order?.dropOfAddress?.coordonne}
+        apikey={API_GOOGLE}
+        strokeWidth={3}
+        strokeColor="#595FE5"
+      />
     </MapView>
   );
 };
@@ -122,18 +192,7 @@ OrderMapView.propTypes = {
     latitudeDelta: PropTypes.number.isRequired,
     longitudeDelta: PropTypes.number.isRequired,
   }).isRequired,
-  pickupCoordinate: PropTypes.arrayOf(PropTypes.number).isRequired,
-  dropCoordinate: PropTypes.arrayOf(PropTypes.number).isRequired,
-  driverPosition: PropTypes.arrayOf(PropTypes.number),
-  position: PropTypes.shape({
-    coords: PropTypes.shape({
-      latitude: PropTypes.number,
-      longitude: PropTypes.number,
-    }),
-  }),
   order: PropTypes.object,
- 
-  handleOpenInGoogleMaps: PropTypes.func.isRequired,
 };
 
 export default OrderMapView;

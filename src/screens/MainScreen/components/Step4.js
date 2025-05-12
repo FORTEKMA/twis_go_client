@@ -16,14 +16,14 @@ const Step4 = ({ goBack,formData,rideData,goNext  }) => {
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/commands/${rideData?.commande?.documentId}?populate[0]=driver&populate[1]=driver.profilePicture&populate[2]=driver.vehicule`).then(res => {
+    api.get(`/commands/${rideData?.commande?.data?.documentId}?populate[0]=driver&populate[1]=driver.profilePicture&populate[2]=driver.vehicule`).then(res => {
       setCommande(res.data.data);
       setLoading(false);
     }).catch(error => {
       setLoading(false);
     });
   }, [rideData]);
-
+ 
   if (loading) {
     return (
       <View style={[localStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
