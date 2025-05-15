@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, Linking, Alert } from 'react-native';
 import { styles } from '../styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -10,20 +10,7 @@ import { useTranslation } from 'react-i18next';
 const Help = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
-
-  useLayoutEffect(() => {
-    // Hide tab bar
-    navigation.getParent()?.setOptions({
-      tabBarStyle: { display: 'none' },
-    });
-
-    return () => {
-      // Show tab bar again on exit
-      navigation.getParent()?.setOptions({
-        tabBarStyle: undefined,
-      });
-    };
-  }, [navigation]);
+ 
 
   const handleCall = () => {
     const phoneNumber = `tel:${36848020}`;

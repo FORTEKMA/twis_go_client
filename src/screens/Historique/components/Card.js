@@ -6,7 +6,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from 'react-i18next';
 
-export const Card = ({ order }) => {
+export const Card = ({ order ,refresh}) => {
   const { t } = useTranslation();
   const scaleValue = new Animated.Value(1);
   const navigation = useNavigation();
@@ -28,28 +28,111 @@ export const Card = ({ order }) => {
   };
 
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case "pending":
         return colors.warning;
-      case "accepted":
-        return colors.success;
-      case "cancelled":
-        return colors.danger;
+      case "dispatched_to_partner":
+        return "#4A90E2"; // Blue
+      case "assigned_to_driver":
+        return "#9B59B6"; // Purple
+      case "driver_on_route_to_pickup":
+        return "#3498DB"; // Light Blue
+      case "arrived_at_pickup":
+        return "#2ECC71"; // Green
+      case "picked_up":
+        return "#27AE60"; // Dark Green
+      case "on_route_to_delivery":
+        return "#3498DB"; // Light Blue
+      case "arrived_at_delivery":
+        return "#2ECC71"; // Green
+      case "delivered":
+        return "#27AE60"; // Dark Green
+      case "completed":
+        return "#27AE60"; // Dark Green
+      case "canceled_by_client":
+      case "canceled_by_partner":
+        return "#E74C3C"; // Red
+      case "failed_pickup":
+      case "failed_delivery":
+        return "#C0392B"; // Dark Red
+      case "go_to_pickup":
+        return "#F1C40F"; // Yellow
       default:
         return colors.gray;
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
+    switch (status.toLowerCase()) {
       case "pending":
         return "time-outline";
-      case "accepted":
+      case "dispatched_to_partner":
+        return "send-outline";
+      case "assigned_to_driver":
+        return "person-outline";
+      case "driver_on_route_to_pickup":
+        return "car-outline";
+      case "arrived_at_pickup":
+        return "location-outline";
+      case "picked_up":
+        return "cube-outline";
+      case "on_route_to_delivery":
+        return "car-outline";
+      case "arrived_at_delivery":
+        return "location-outline";
+      case "delivered":
+        return "checkmark-done-circle-outline";
+      case "completed":
         return "checkmark-circle-outline";
-      case "cancelled":
+      case "canceled_by_client":
         return "close-circle-outline";
+      case "canceled_by_partner":
+        return "close-circle-outline";
+      case "failed_pickup":
+        return "alert-circle-outline";
+      case "failed_delivery":
+        return "alert-circle-outline";
+      case "go_to_pickup":
+        return "navigate-outline";
       default:
         return "help-circle-outline";
+    }
+  };
+
+  const getStatusTranslation = (status) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return t('history.status.pending');
+      case "dispatched_to_partner":
+        return t('history.status.dispatched_to_partner');
+      case "assigned_to_driver":
+        return t('history.status.assigned_to_driver');
+      case "driver_on_route_to_pickup":
+        return t('history.status.driver_on_route_to_pickup');
+      case "arrived_at_pickup":
+        return t('history.status.arrived_at_pickup');
+      case "picked_up":
+        return t('history.status.picked_up');
+      case "on_route_to_delivery":
+        return t('history.status.on_route_to_delivery');
+      case "arrived_at_delivery":
+        return t('history.status.arrived_at_delivery');
+      case "delivered":
+        return t('history.status.delivered');
+      case "completed":
+        return t('history.status.completed');
+      case "canceled_by_client":
+        return t('history.status.canceled_by_client');
+      case "canceled_by_partner":
+        return t('history.status.canceled_by_partner');
+      case "failed_pickup":
+        return t('history.status.failed_pickup');
+      case "failed_delivery":
+        return t('history.status.failed_delivery');
+      case "go_to_pickup":
+        return t('history.status.go_to_pickup');
+      default:
+        return t('history.status.unknown');
     }
   };
  
@@ -57,7 +140,7 @@ export const Card = ({ order }) => {
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate("OrderDetails", { id: order.documentId })}
+        onPress={() => navigation.navigate("OrderDetails", { id: order.documentId,refresh })}
         activeOpacity={0.9}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -75,7 +158,7 @@ export const Card = ({ order }) => {
               color={"#fff"} 
               style={styles.statusIcon}
             />
-            <Text style={styles.statusText}>{t(`history.status.${order.commandStatus.toLowerCase()}`)}</Text>
+            <Text style={styles.statusText}>{getStatusTranslation(order.commandStatus)}</Text>
           </View>
         </View>
 
@@ -98,7 +181,7 @@ export const Card = ({ order }) => {
           <View style={styles.infoRow}>
             <Ionicons name="card-outline" size={hp(2)} color={colors.primary} />
             <Text style={styles.label}>
-              {order.payType}
+              {t(order.payType)}
             </Text>
           </View>
         </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState,useLayoutEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -80,19 +80,7 @@ const LocationMap = ({ route }) => {
     );
   };
 
-  useLayoutEffect(() => {
-    // Hide tab bar
-    navigation.getParent()?.setOptions({
-      tabBarStyle: { display: 'none' },
-    });
-
-    return () => {
-      // Show tab bar again on exit
-      navigation.getParent()?.setOptions({
-        tabBarStyle: undefined,
-      });
-    };
-  }, [navigation]);
+ 
 
   const handleRegionChangeComplete = (newRegion) => {
     lottieRef.current?.play(4, 1395);

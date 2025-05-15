@@ -1,8 +1,8 @@
 {
   "common": {
-    "loading": "جاري التحميل...",
+    "loading": "جارٍ التحميل...",
     "error": "حدث خطأ",
-    "success": "تم بنجاح",
+    "success": "نجاح",
     "cancel": "إلغاء",
     "confirm": "تأكيد",
     "save": "حفظ",
@@ -19,51 +19,454 @@
     "no_driver_accepted": "لم يقبل أي سائق الطلب",
     "time_ended": "انتهى الوقت",
     "please_complete_order": "يرجى إكمال طلبك في أقرب وقت ممكن",
-    "ok": "موافق",
+    "ok": "حسناً",
     "confirm_cancel": "تأكيد الإلغاء",
-    "cancel_ride_warning": "هل أنت متأكد أنك تريد إلغاء هذه الرحلة؟ سيتم خفض نقاطك.",
+    "cancel_ride_warning": "هل أنت متأكد أنك تريد إلغاء هذه الرحلة؟ سيتم تخفيض رصيدك.",
     "yes": "نعم",
     "no": "لا"
   },
+  "onboarding": {
+    "login": "تسجيل الدخول",
+    "newUser": "مستخدم جديد؟",
+    "next": "التالي",
+    "registerHere": "سجل هنا",
+    "slide1": {
+      "title": "احجز رحلتك",
+      "text": "استخدم تطبيقنا أو موقعنا الإلكتروني لحجز رحلتك بسهولة بنقرات قليلة."
+    },
+    "slide2": {
+      "title": "سافر بثقة",
+      "text": "يضمن سائقونا ذوو الخبرة ومركباتنا الموثوقة رحلة سلسة وآمنة."
+    },
+    "slide3": {
+      "title": "الوصول في الوقت المحدد",
+      "text": "استمتع برحلة سريعة وفعالة وخالية من الإجهاد، ومناسبة لجدولك."
+    },
+    "skip": "تخطي",
+    "stepIndicator": "{{current}}/{{total}}"
+  },
+  "login": {
+    "needToLogin": "يجب عليك تسجيل الدخول للمتابعة",
+    "needToLoginSubtitle": "قم بتسجيل الدخول للوصول إلى حسابك والاستمتاع بجميع الميزات",
+    "enterAsGuest": "الدخول كضيف",
+    "enterRecoveryEmail": "أدخل بريدك الإلكتروني للاستعادة",
+    "recoveryEmail": "بريد الاستعادة الإلكتروني",
+    "emailPlaceholder": "البريد الإلكتروني@example.com",
+    "send": "إرسال",
+    "recoverySent": "تم إرسال بريد الاستعادة الإلكتروني",
+    "enterEmailPassword": "أدخل بريدك الإلكتروني وكلمة المرور",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "كلمة المرور",
+    "login": "تسجيل الدخول",
+    "enterNumber": "أدخل رقمك",
+    "phoneNumber": "رقم الهاتف",
+    "smsInfo": "سنرسل رمز SMS للتحقق من رقمك",
+    "continue": "متابعة",
+    "orLoginWith": "أو سجل الدخول باستخدام",
+    "loginWithEmail": "تسجيل الدخول بالبريد الإلكتروني",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "search": "بحث...",
+    "invalidCredentials": "بريد إلكتروني أو كلمة مرور غير صحيحة",
+    "errorOccurred": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "invalidEmail": "يرجى إدخال عنوان بريد إلكتروني صالح.",
+    "enterPhoneNumber": "يرجى إدخال رقم هاتف.",
+    "invalidPhoneNumber": "رقم هاتف غير صالح.",
+    "welcomeBack": "مرحباً بعودتك! سعداء برؤيتك مرة أخرى!",
+    "noAccount": "ليس لديك حساب؟",
+    "registerNow": "سجل الآن",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "passwordMinLength": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+    "passwordSpecialChar": "يجب أن تحتوي كلمة المرور على حرف خاص واحد على الأقل (!@#$%^&*)",
+    "terms1": "بالاستمرار، فإنك توافق على ",
+    "termsOfService": "شروط الخدمة",
+    "terms2": "."
+  },
+  "register": {
+    "emailTaken": "عنوان البريد الإلكتروني هذا مستخدم بالفعل",
+    "phoneTaken": "رقم الهاتف هذا مستخدم بالفعل",
+    "createAccount": "إنشاء حساب",
+    "name": "الاسم",
+    "namePlaceholder": "اسم المستخدم",
+    "nameRequired": "الاسم مطلوب",
+    "phone": "رقم الهاتف",
+    "phonePlaceholder": "رقم الهاتف",
+    "phoneRequired": "رقم الهاتف مطلوب",
+    "invalidPhone": "رقم هاتف غير صالح",
+    "email": "عنوان البريد الإلكتروني",
+    "emailPlaceholder": "hello@example.com",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "invalidEmail": "عنوان بريد إلكتروني غير صالح",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "••••••••••••••",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "passwordMinLength": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+    "passwordSpecialChar": "يجب أن تحتوي كلمة المرور على حرف خاص واحد على الأقل (!@#$%^&*)",
+    "terms1": "بالاستمرار، فإنك توافق على ",
+    "termsOfService": "شروط الخدمة",
+    "terms2": ".",
+    "signup": "اشتراك",
+    "or": "أو",
+    "continueWithGoogle": "المتابعة مع جوجل",
+    "continueWithFacebook": "المتابعة مع فيسبوك",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "signInHere": "تسجيل الدخول هنا"
+  },
+  "otp": {
+    "enterCode": "أدخل رمز OTP الخاص بك هنا.",
+    "notReceived": "ألم تستلم OTP؟",
+    "resend": "إعادة إرسال",
+    "verify": "تحقق",
+    "invalidCode": "الرمز غير صالح!",
+    "errorOccurred": "حدثت مشكلة",
+    "verify_phone": "التحقق من الهاتف",
+    "code_sent_to": "تم إرسال الرمز إلى",
+    "didnt_get_otp": "ألم تحصل على رمز OTP؟",
+    "resend_code": "إعادة إرسال الرمز",
+    "resend_in": "إعادة الإرسال في",
+    "seconds": "ثواني"
+  },
+  "history": {
+    "card": {
+      "view_note": "عرض الملاحظة",
+      "trip_id": "رقم الرحلة",
+      "status": "الحالة",
+      "time_to_destination": "الوقت للوصول إلى الوجهة",
+      "trip_completed": "اكتملت الرحلة",
+      "next": "التالي",
+      "price": "السعر",
+      "pickup": "نقطة الانطلاق",
+      "delivery": "نقطة الوصول",
+      "items": "العناصر",
+      "cancel_order": "إلغاء الطلب",
+      "cancel_confirmation": "تأكيد الإلغاء",
+      "cancel_message": "هل أنت متأكد أنك تريد إلغاء هذا الطلب؟",
+      "minimize": "تصغير",
+      "expand": "توسيع",
+      "driver_on_the_way": "السائق في الطريق",
+      "arriving_in": "يصل خلال {{time}}",
+      "pickup_at": "الانطلاق في {{time}}",
+      "driver_rating": "تقييم السائق",
+      "distance": "المسافة",
+      "arrivas": "الوصول",
+      "cancellation_reason_title": "لماذا ترغب في إلغاء الطلب؟",
+      "cancellation_other_placeholder": "يرجى تحديد السبب",
+      "cancellation_reasons": {
+        "Driver is taking too long": "يستغرق السائق وقتاً طويلاً",
+        "Driver is not moving / stuck": "السائق لا يتحرك / عالق",
+        "Can't reach the driver": "لا يمكن الوصول إلى السائق",
+        "Driver is going the wrong way": "السائق يسير في الاتجاه الخاطئ",
+        "Driver asked to cancel": "طلب السائق الإلغاء",
+        "Fare is too high / changed": "الأجرة مرتفعة جداً / تغيرت",
+        "I no longer need a ride": "لم أعد بحاجة إلى الرحلة",
+        "Waited too long at pickup": "انتظرت طويلاً عند نقطة الانطلاق",
+        "Wrong pickup location": "موقع انطلاق خاطئ",
+        "Don't feel safe": "لا أشعر بالأمان",
+        "Emergency situation": "حالة طارئة",
+        "Other": "أخرى"
+      },
+      "report_problem": "الإبلاغ عن مشكلة",
+      "report_placeholder": "يرجى وصف المشكلة التي واجهتها...",
+      "submit_report": "إرسال التقرير",
+      "report_success": "تم إرسال التقرير بنجاح",
+      "report_error": "خطأ أثناء إرسال التقرير",
+      "rate_trip": "تقييم الرحلة"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "dispatched_to_partner": "تم الإرسال إلى الشريك",
+      "assigned_to_driver": "تم التعيين إلى السائق",
+      "driver_on_route_to_pickup": "السائق في طريقه إلى نقطة الانطلاق",
+      "arrived_at_pickup": "وصل إلى نقطة الانطلاق",
+      "picked_up": "تم الانطلاق",
+      "on_route_to_delivery": "في طريقه إلى نقطة الوصول",
+      "arrived_at_delivery": "وصل إلى نقطة الوصول",
+      "delivered": "تم التوصيل",
+      "completed": "اكتمل",
+      "canceled_by_client": "تم الإلغاء بواسطة العميل",
+      "canceled_by_partner": "تم الإلغاء بواسطة الشريك",
+      "failed_pickup": "فشل الانطلاق",
+      "failed_delivery": "فشل التوصيل",
+      "go_to_pickup": "الذهاب إلى نقطة الانطلاق",
+      "unknown": "حالة غير معروفة"
+    },
+    "status_filter": {
+      "all": "الكل",
+      "active": "نشط",
+      "completed": "مكتمل",
+      "cancelled": "ملغى"
+    }
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": {
+      "title": "لا توجد إشعارات",
+      "description": "لم تتلق أي إشعارات حتى الآن"
+    },
+    "types": {
+      "new_ride": "رحلة جديدة متاحة",
+      "payment": "تم استلام الدفع",
+      "update": "تحديث التطبيق"
+    },
+    "today": "اليوم",
+    "yesterday": "أمس"
+  },
+  "profile": {
+    "confirmed": "نشط",
+    "pending": "قيد الانتظار",
+    "menu": {
+      "information": "معلومات",
+      "vehicle": "المركبة",
+      "security": "الأمان",
+      "help": "مساعدة"
+    },
+    "logout": {
+      "title": "تسجيل الخروج؟",
+      "message": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+      "button": "تسجيل الخروج",
+      "cancel": "إلغاء"
+    },
+    "delete_account": {
+      "title": "تأكيد",
+      "message": "هل أنت متأكد أنك تريد حذف حسابك؟ هذا الإجراء لا رجعة فيه.",
+      "button": "حذف الحساب",
+      "cancel": "إلغاء"
+    },
+    "image_picker": {
+      "title": "اختر صورة",
+      "subtitle": "حدد مصدراً لصورة ملفك الشخصي",
+      "camera": "الكاميرا",
+      "gallery": "المعرض",
+      "cancel": "إلغاء"
+    },
+    "vehicle": {
+      "title": "معلومات المركبة",
+      "model": "الموديل",
+      "year": "السنة",
+      "color": "اللون",
+      "license_plate": "لوحة الترخيص",
+      "insurance_date": "تاريخ التأمين",
+      "insurance_expiring_soon": "التأمين على وشك الانتهاء!",
+      "update_success": "تم تحديث معلومات المركبة بنجاح!",
+      "update_error": "فشل التحديث",
+      "delete": {
+        "title": "تأكيد الحذف",
+        "confirmation": "هل أنت متأكد أنك تريد حذف هذه المركبة؟"
+      },
+      "attach_sub_driver": "إرفاق سائق فرعي",
+      "attach_sub_driver_success": "تم إرفاق السائق الفرعي بنجاح",
+      "detach_sub_driver_success": "تم فصل السائق الفرعي بنجاح",
+      "delete_success": "تم حذف المركبة بنجاح"
+    },
+    "edit_profile": {
+      "title": "تعديل الملف الشخصي",
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "phone": "الهاتف",
+      "save": "حفظ"
+    },
+    "password": {
+      "title": "كلمة المرور",
+      "current_password": "أدخل كلمة المرور الحالية",
+      "new_password": "كلمة المرور الجديدة",
+      "confirm_password": "تأكيد كلمة المرور",
+      "current_password_required": "كلمة المرور مطلوبة",
+      "new_password_required": "كلمة المرور الجديدة مطلوبة",
+      "confirm_password_required": "تأكيد كلمة المرور مطلوب",
+      "passwords_not_match": "كلمتا المرور غير متطابقتين",
+      "update": "تحديث"
+    },
+    "help_center": {
+      "title": "مركز المساعدة",
+      "available_24_7": "جاهزون لمساعدتك على مدار الساعة طوال أيام الأسبوع",
+      "call_us": "اتصل بنا"
+    },
+    "language": {
+      "title": "اللغة",
+      "french": "الفرنسية",
+      "arabic": "العربية"
+    },
+    "security": {
+      "title": "الأمان",
+      "current_password": "كلمة المرور الحالية",
+      "new_password": "كلمة المرور الجديدة",
+      "confirm_password": "تأكيد كلمة المرور",
+      "update_button": "تحديث كلمة المرور",
+      "update_success": "تم تحديث كلمة المرور بنجاح!",
+      "update_error": "فشل تحديث كلمة المرور.",
+      "validation": {
+        "title": "خطأ في التحقق",
+        "current_required": "كلمة المرور الحالية مطلوبة",
+        "min_length": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل",
+        "uppercase": "يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل",
+        "lowercase": "يجب أن تحتوي كلمة المرور على حرف صغير واحد على الأقل",
+        "number": "يجب أن تحتوي كلمة المرور على رقم واحد على الأقل",
+        "special": "يجب أن تحتوي كلمة المرور على حرف خاص واحد على الأقل (!@#$%^&*)",
+        "passwords_not_match": "كلمتا المرور غير متطابقتين"
+      }
+    },
+    "personal_info": {
+      "title": "المعلومات الشخصية",
+      "first_name": "الاسم الأول",
+      "last_name": "اسم العائلة",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "cin": "رقم البطاقة الوطنية",
+      "update_success": "تم تحديث المعلومات بنجاح!",
+      "update_error": "فشل التحديث"
+    },
+    "first_name": "الاسم الأول",
+    "last_name": "اسم العائلة",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "first_name_placeholder": "الاسم الأول",
+    "last_name_placeholder": "اسم العائلة",
+    "phone_placeholder": "رقم الهاتف",
+    "email_placeholder": "البريد الإلكتروني",
+    "image": {
+      "upload_error": "خطأ أثناء تحميل الصورة"
+    }
+  },
+  "help": {
+    "title": "المساعدة والدعم",
+    "call_support": "الاتصال بالدعم",
+    "send_email": "إرسال بريد إلكتروني",
+    "whatsapp": "واتساب",
+    "errors": {
+      "email": "لا يمكن فتح تطبيق البريد الإلكتروني.",
+      "whatsapp": "لا يمكن فتح واتساب."
+    },
+    "faq": {
+      "title": "الأسئلة الشائعة",
+      "personal_info": {
+        "question": "كيف يمكنني تعديل معلوماتي الشخصية؟",
+        "answer": "انتقل إلى قسم \"المعلومات\" وانقر على زر \"تعديل\"."
+      },
+      "password": {
+        "question": "كيف يمكنني تحديث كلمة المرور الخاصة بي؟",
+        "answer": "انتقل إلى قسم \"الأمان\" واتبع التعليمات لتغيير كلمة المرور الخاصة بك."
+      }
+    }
+  },
+  "booking": {
+    "step1": {
+      "title": "عنوان الانطلاق",
+      "subtitle": "إلى أين أنت ذاهب اليوم؟",
+      "confirm": "تأكيد الطلب",
+      "pick_location": "يرجى تحديد مكان"
+    },
+    "step2": {
+      "title": "عنوان الوجهة",
+      "search": "بحث...",
+      "confirm": "تأكيد الوجهة",
+      "pick_location": "يرجى تحديد مكان"
+    },
+    "step3": {
+      "title": "تفاصيل الانطلاق",
+      "asap": "في أقرب وقت ممكن (خلال ساعة)",
+      "confirm": "تأكيد التفاصيل",
+      "select_date": "يرجى تحديد تاريخ",
+      "select_car": "حدد سيارة",
+      "eco": "اقتصادي",
+      "berline": "سيدان",
+      "van": "فان",
+      "nearby": "قريبة",
+      "distance": "{value}",
+      "time": "{value}",
+      "book_now": "احجز الآن",
+      "searching_ride": "البحث عن رحلة",
+      "it_may_take_some_time": "قد يستغرق ذلك بعض الوقت",
+      "slide_to_cancel": ">> مرر للإلغاء",
+      "swipe_right_to_cancel": "مرر لليمين للإلغاء"
+    },
+    "step4": {
+      "title": "اختر مركبة",
+      "searching_title": "البحث عن سائق",
+      "searching_ride": "البحث عن رحلة",
+      "searching_subtitle": "قد يستغرق ذلك بضع لحظات",
+      "slide_to_cancel": ">> مرر للإلغاء",
+      "swipe_hint": "مرر لليمين للإلغاء",
+      "confirm_ride": "تأكيد الرحلة"
+    },
+    "step5": {
+      "title": "السعر 25€",
+      "confirm": "تأكيد التفاصيل",
+      "select_payment": "اختر طريقة الدفع",
+      "confirm_payment": "تأكيد الدفع"
+    },
+    "step6": {
+      "title": "السعر 25€"
+    }
+  },
+  "driver_name": "{{name}}",
+  "car_model": "{{model}}",
+  "pickup_point": "نقطة الانطلاق",
+  "pick_off": "نقطة الوصول",
+  "go_to_payment": "الذهاب إلى الدفع",
+  "proceeding_to_payment": "المتابعة إلى الدفع...",
+  "payment": {
+    "online": "الدفع عبر الإنترنت",
+    "online_description": "ادفع بأمان باستخدام بطاقتك المصرفية",
+    "cash": "الدفع نقداً",
+    "cash_description": "ادفع مباشرة للسائق في نهاية الرحلة"
+  },
   "location": {
+    "permission": {
+      "title": "إذن الموقع",
+      "message": "يحتاج التطبيق إلى الوصول إلى موقعك.",
+      "ask_later": "اسأل لاحقاً",
+      "cancel": "إلغاء",
+      "ok": "موافق"
+    },
     "where_are_you": "أين أنت؟",
-    "where_to": "إلى أين تريد الذهاب؟",
+    "where_to": "إلى أين أنت ذاهب؟",
     "pickUp": "نقطة الانطلاق",
     "dropOff": "نقطة الوصول",
-    "use_current_location": "استخدام موقعي الحالي",
-    "suggested_locations": "المواقع المقترحة",
+    "use_current_location": "استخدم موقعي الحالي",
+    "suggested_locations": "الأماكن المقترحة",
     "continue": "متابعة",
     "error": {
       "get_location": "تعذر الحصول على موقعك",
       "fetch_address": "تعذر الحصول على العنوان"
     }
   },
-  "history": {
-    "status": {
-      "driver_on_route_to_pickup": "السائق في طريقه للاستلام",
-      "arrived_at_pickup": "وصل إلى نقطة الاستلام",
-      "picked_up": "تم الاستلام",
-      "on_route_to_delivery": "في الطريق للتوصيل",
-      "arrived_at_delivery": "وصل إلى نقطة التوصيل",
-      "delivered": "تم التوصيل",
-      "completed": "مكتمل"
-    },
-    "card": {
-      "time_to_destination": "الوقت المتبقي",
-      "trip_id": "رقم الرحلة",
-      "price": "السعر",
-      "status": "الحالة",
-      "pickup": "نقطة الاستلام",
-      "delivery": "نقطة التوصيل",
-      "items": "المنتجات",
-      "cancel_order": "إلغاء الطلب",
-      "cancel_confirmation": "تأكيد الإلغاء",
-      "cancel_message": "هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟",
-      "minimize": "تصغير",
-      "expand": "تكبير",
-      "driver_on_the_way": "السائق في الطريق",
-      "arriving_in": "سيصل خلال {{time}}",
-      "pickup_at": "الاستلام الساعة {{time}}"
+  "Choose_location": "اختر مكاناً",
+  "save": "حفظ",
+  "search_placeholder": "ابحث عن مكان",
+  "eco_description": "مركبة اقتصادية وصديقة للبيئة",
+  "berline_description": "مركبة مريحة وواسعة",
+  "van_description": "مركبة لنقل الركاب",
+  "cancellation_reason_title": "لماذا تلغي؟",
+  "cancellation_other_placeholder": "يرجى تحديد السبب",
+  "cancellation_reasons": {
+    "Driver is taking too long": "يستغرق السائق وقتاً طويلاً",
+    "Driver is not moving / stuck": "السائق لا يتحرك / عالق",
+    "Can't reach the driver": "لا يمكن الوصول إلى السائق",
+    "Driver is going the wrong way": "السائق يسير في الاتجاه الخاطئ",
+    "Driver asked to cancel": "طلب السائق الإلغاء",
+    "Fare is too high / changed": "الأجرة مرتفعة جداً / تغيرت",
+    "I no longer need a ride": "لم أعد بحاجة إلى الرحلة",
+    "Waited too long at pickup": "انتظرت طويلاً عند نقطة الانطلاق",
+    "Wrong pickup location": "موقع انطلاق خاطئ",
+    "Don't feel safe": "لا أشعر بالأمان",
+    "Emergency situation": "حالة طارئة",
+    "Other": "أخرى"
+  },
+  "Livraison": "نقداً",
+  "rating": {
+    "title": "تقييم السائق",
+    "leave_feedback": "اترك تعليقاً",
+    "type_comment": "اكتب تعليقك هنا",
+    "already_rated": "لقد قمت بالتقييم بالفعل",
+    "rate": "تقييم",
+    "success": "تم إرسال التعليق بنجاح",
+    "characters": "{{current}}/{{max}}",
+    "feedback_tags": {
+      "very_professional": "محترف جداً",
+      "arrive_on_time": "وصل في الوقت المحدد",
+      "package_handed_over_gently": "تم تسليم الطرد بلطف",
+      "other": "أخرى"
     }
   }
-} 
+}

@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
     marginBottom: hp(3),
   },
   illustration: {
-    width: wp(100),
+    width: wp(97),
     height: hp(52),
     alignSelf: 'center',
     marginTop: hp(2),

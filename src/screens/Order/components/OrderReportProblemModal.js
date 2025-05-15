@@ -1,0 +1,139 @@
+import React from 'react';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+import { colors } from '../../../utils/colors';
+import api from '../../../utils/api';
+import { Toast } from 'native-base';
+import { useNavigation } from '@react-navigation/native';
+
+const OrderReportProblemModal = ({ visible, onClose, order }) => {
+  const { t } = useTranslation();
+  const [reportText, setReportText] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const navigation = useNavigation();
+
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true);
+       await api.put(`commands/${order.documentId}`, {
+        data: { SpecificNote: reportText, }
+      });
+      onClose();
+      Toast.show({
+        title: t('history.card.report_success'),
+        status: "success",
+        placement: "bottom",
+      });
+      setReportText('');
+    } catch (error) {
+      console.log(error.response);
+      Toast.show({
+        title: t('history.card.report_error'),
+        status: "error",
+        placement: "bottom",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+ 
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.reportModalContainer}>
+          <View style={styles.reportModalHeader}>
+            <Text style={styles.reportModalTitle}>{t('history.card.report_problem')}</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+          <TextInput
+            style={styles.reportTextArea}
+            multiline
+            numberOfLines={6}
+            placeholder={t('history.card.report_placeholder')}
+            value={reportText}
+            onChangeText={setReportText}
+            textAlignVertical="top"
+          />
+          <TouchableOpacity 
+            style={[styles.submitReportButton, isLoading && styles.submitReportButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitReportButtonText}>{t('history.card.submit_report')}</Text>
+            )}
+          </TouchableOpacity>
+
+         
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  reportModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  reportModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  reportModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  reportTextArea: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    minHeight: 150,
+    marginBottom: 20,
+  },
+  submitReportButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  submitReportButtonDisabled: {
+    opacity: 0.7,
+  },
+  rateButton: {
+    backgroundColor: colors.secondary,
+  },
+  submitReportButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
+
+export default OrderReportProblemModal; 

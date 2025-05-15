@@ -17,12 +17,14 @@ import {ONESIGNAL_APP_ID} from '@env';
 import {Provider} from 'react-redux';
 import {NativeBaseProvider} from 'native-base';
 import MainNavigator from './navigators/Main';
- import {OneSignal} from 'react-native-onesignal';
+import {OneSignal} from 'react-native-onesignal';
 import {colors} from './utils/colors';
 import "./local"
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import SplashScreen from 'react-native-splash-screen';
-  import PopOver from './components/PopOver';
+import PopOver from './components/PopOver';
+import { ModalPortal } from 'react-native-modals';
+
 let persistor = persistStore(store);
 export default function App() {
 
@@ -65,6 +67,7 @@ export default function App() {
                   </PersistGate>
                 </Provider>
               </View>
+              <ModalPortal />
             </NativeBaseProvider>
           </PersistGate>
         </Provider>

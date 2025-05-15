@@ -336,6 +336,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     marginStart: 15,
     top: 15,
+    right:10
   },
   languageButtons: {
     width: '100%',

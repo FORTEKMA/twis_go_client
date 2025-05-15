@@ -37,6 +37,11 @@ import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
+import ReactNativeHapticFeedback from "react-native-haptic-feedback";
+const hapticOptions = {
+  enableVibrateFallback: true,
+  ignoreAndroidSystemSettings: false,
+};
 import mapStyle from '../../utils/googleMapStyle';
 import { useNavigation } from '@react-navigation/native';
 const MainScreen = () => {
@@ -107,6 +112,8 @@ const MainScreen = () => {
   };
 
   const getCurrentLocation = () => {
+    try {
+   
     Geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -117,6 +124,7 @@ const MainScreen = () => {
           latitudeDelta: 0.05,
           longitudeDelta: 0.05,
         });
+        console.log("currnt locatioon",latitude, longitude)
         if (mapRef.current) {
           mapRef.current.animateToRegion({
             latitude,
@@ -129,6 +137,10 @@ const MainScreen = () => {
       (error) => console.log(error),
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
     );
+       
+  } catch (error) {
+        console.log("error",error)
+  }
   };
 
   useEffect(() => {
@@ -533,6 +545,8 @@ handleBackFromStep2 = () => {
               goNext={goNext} 
               onBack={handleBackFromStep2}
               isMapDragging={isMapDragging}
+              animateToRegion={(data)=>mapRef.current.animateToRegion(data)}
+
             />
           )}
           {step === 3 && (
@@ -565,6 +579,8 @@ handleBackFromStep2 = () => {
         provider={PROVIDER_GOOGLE}
         region={mapRegion}
         zoomEnabled
+        rotateEnabled={false}
+        pitchEnabled={false} 
         focusable
         customMapStyle={mapStyle}
         showsUserLocation={true}
@@ -584,9 +600,12 @@ handleBackFromStep2 = () => {
         }}
         onRegionChangeComplete={async (region) => {
           if(step==1||step==2){
+          ReactNativeHapticFeedback.trigger("impactLight", hapticOptions);
+
           setIsMapDragging(false);
           setHasTouchedMap(false);
           lottieRef.current?.play(8, 1395);
+          console.log("selectd location",region)
           fetchLocationDetails(region.latitude, region.longitude);
         }
         }}
@@ -690,15 +709,19 @@ handleBackFromStep2 = () => {
   };
 
   const handleCurrentLocation = () => {
-    if (currentLocation) {
-      mapRef.current?.animateToRegion({
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
+    try {
+      if (currentLocation) {
+        mapRef.current?.animateToRegion({
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
       }, 1000);
     } else {
       getCurrentLocation();
+    }
+    } catch (error) {
+      console.log("error",error)
     }
   };
 
@@ -712,7 +735,7 @@ handleBackFromStep2 = () => {
           width: 140,
           height: 140,
           position: "absolute",
-          top: "39.6%",
+          top:Platform.OS === "ios" ? "39.6%" : "36%",
           alignSelf: "center"
         }}
         loop={false}

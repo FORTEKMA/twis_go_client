@@ -44,6 +44,7 @@ export const styles = StyleSheet.create({
     width: '100%',
     marginTop: 16,
     marginBottom: 0,
+    
   },
   input: {
     width: '100%',

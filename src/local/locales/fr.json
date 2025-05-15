@@ -131,6 +131,7 @@
   },
   "history": {
     "card": {
+       
       "view_note": "View Note",
       "trip_id": "Trip id",
       "status": "Status",
@@ -138,8 +139,8 @@
       "trip_completed": "Trip Completed",
       "next": "Next",
       "price": "Prix",
-      "pickup": "Point de ramassage",
-      "delivery": "Point de livraison",
+      "pickup": "Point de départ",
+      "delivery": "Point d'arrivée",
       "items": "Articles",
       "cancel_order": "Annuler la commande",
       "cancel_confirmation": "Confirmer l'annulation",
@@ -148,20 +149,51 @@
       "expand": "Agrandir",
       "driver_on_the_way": "Chauffeur en route",
       "arriving_in": "Arrive dans {{time}}",
-      "pickup_at": "Ramassage à {{time}}"
+      "pickup_at": "Départ à {{time}}",
+      "driver_rating": "Note du chauffeur",
+      "distance": "Distance",
+      "arrivas": "Arrivée",
+      "cancellation_reason_title": "Pourquoi souhaitez-vous annuler la commande ?",
+      "cancellation_other_placeholder": "Veuillez préciser la raison",
+      "cancellation_reasons": {
+        "Driver is taking too long": "Le chauffeur prend trop de temps",
+        "Driver is not moving / stuck": "Le chauffeur ne bouge pas / est bloqué",
+        "Can't reach the driver": "Impossible de joindre le chauffeur",
+        "Driver is going the wrong way": "Le chauffeur prend la mauvaise direction",
+        "Driver asked to cancel": "Le chauffeur a demandé l'annulation",
+        "Fare is too high / changed": "Le tarif est trop élevé / a changé",
+        "I no longer need a ride": "Je n'ai plus besoin de la course",
+        "Waited too long at pickup": "Attente trop longue au point de prise en charge",
+        "Wrong pickup location": "Mauvais point de prise en charge",
+        "Don't feel safe": "Je ne me sens pas en sécurité",
+        "Emergency situation": "Situation d'urgence",
+        "Other": "Autre"
+      },
+      "report_problem": "Signaler un problème",
+      "report_placeholder": "Veuillez décrire le problème que vous avez rencontré...",
+      "submit_report": "Soumettre le rapport",
+      "report_success": "Rapport envoyé avec succès",
+      "report_error": "Erreur lors de l'envoi du rapport",
+      "rate_trip": "Évaluer le trajet"
     },
     "status": {
-      "pending": "En attente",
-      "accepted": "Accepté",
-      "cancelled": "Annulé",
-      "driver_on_route_to_pickup": "Le chauffeur est en route pour le ramassage",
-      "arrived_at_pickup": "Arrivé au point de ramassage",
-      "picked_up": "Colis récupéré",
-      "on_route_to_delivery": "En route pour la livraison",
-      "arrived_at_delivery": "Arrivé au point de livraison",
+     
+      "pending": "Pending",
+      "dispatched_to_partner": "Dispatched to Partner",
+      "assigned_to_driver": "Assigned to Driver",
+      "driver_on_route_to_pickup": "Driver on Route to Pickup",
+      "arrived_at_pickup": "Arrived at Pickup",
+      "picked_up": "Picked Up",
+      "on_route_to_delivery": "On Route to Delivery",
+      "arrived_at_delivery": "Arrivé au point d'arrivée",
       "delivered": "Livré",
       "completed": "Terminé",
-      "end_trip": "Terminer le trajet"
+      "canceled_by_client": "Annulé par le client",
+      "canceled_by_partner": "Annulé par le partenaire",
+      "failed_pickup": "Échec de la prise en charge",
+      "failed_delivery": "Échec de la livraison",
+      "go_to_pickup": "Aller au point de prise en charge",
+      "unknown": "Statut inconnu"
     },
     "status_filter": {
       "all": "Tous",
@@ -413,5 +445,37 @@
   "search_placeholder": "Rechercher un lieu",
   "eco_description":"Véhicule économique et écologique",
   "berline_description":"Véhicule confortable et spacieux",
-  "van_description":"Véhicule de transport de personnes"
+  "van_description":"Véhicule de transport de personnes",
+  "cancellation_reason_title": "Pourquoi annulez-vous ?",
+  "cancellation_other_placeholder": "Veuillez préciser la raison",
+  "cancellation_reasons": {
+    "Driver is taking too long": "Le chauffeur prend trop de temps",
+    "Driver is not moving / stuck": "Le chauffeur ne bouge pas / est bloqué",
+    "Can't reach the driver": "Impossible de joindre le chauffeur",
+    "Driver is going the wrong way": "Le chauffeur prend la mauvaise direction",
+    "Driver asked to cancel": "Le chauffeur a demandé d'annuler",
+    "Fare is too high / changed": "Le tarif est trop élevé / a changé",
+    "I no longer need a ride": "Je n'ai plus besoin de la course",
+    "Waited too long at pickup": "Attente trop longue au point de départ",
+    "Wrong pickup location": "Mauvais lieu de prise en charge",
+    "Don't feel safe": "Je ne me sens pas en sécurité",
+    "Emergency situation": "Situation d'urgence",
+    "Other": "Autre"
+  },
+  "Livraison":"Cash",
+  "rating": {
+    "title": "Évaluer le chauffeur",
+    "leave_feedback": "Laisser un commentaire",
+    "type_comment": "Tapez votre commentaire ici",
+    "already_rated": "Vous avez déjà noté",
+    "rate": "Évaluer",
+    "success": "Commentaire envoyé avec succès",
+    "characters": "{{current}}/{{max}}",
+    "feedback_tags": {
+      "very_professional": "Très professionnel",
+      "arrive_on_time": "Arrivé à l'heure",
+      "package_handed_over_gently": "Colis remis en douceur",
+      "other": "Autre"
+    }
+  }
 } 

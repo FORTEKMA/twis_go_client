@@ -28,8 +28,14 @@ const Otp = ({ route, navigation }) => {
 
   const handleVerify = async () => {
     setIsLoading(true);
+    setError(false);
     try {
        dispatch(verify({phoneNumber: number.replace(/\s/g, ''), code: otp.join('')})).then(async res => {
+         if(res?.payload?.status==false){
+          setError(t('otp.invalidCode'));
+          setIsLoading(false);
+          return
+         }
         const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
          await dispatch(updateUser({
           id: res?.payload?.id,
@@ -49,7 +55,7 @@ const Otp = ({ route, navigation }) => {
     } catch (error) {
       setError(true);
     } finally {
-    
+      setIsLoading(false);
     }
   };
 

@@ -36,7 +36,7 @@ const Profile = () => {
   // Check if the user is authenticated
   useEffect(() => {
     if (!isAuth) {
-      navigation.navigate("Login");
+  
     }
   }, [isAuth, dispatch]);
 
@@ -44,7 +44,7 @@ const Profile = () => {
   const handleLogout = () => {
     dispatch(logOut()).then(() => {
       OneSignal.logout();
-      navigation.navigate("Login");
+      
     });
   };
 

@@ -8,6 +8,7 @@ import { userRegister } from '../../store/userSlice/userSlice';
 import { styles as loginStyles } from '../Login/styles';
 import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
+import { OneSignal } from "react-native-onesignal";
 
 const PRIMARY_COLOR = '#F9DC76';
 
@@ -94,12 +95,20 @@ const Register = ({ navigation, route }) => {
     phoneNumber: form.phone,
     password: form.password,
     user_role: 'client',
+    firstName: form.name.split(' ')[0],
+    lastName: form.name.split(' ')[1],
+
    })
-   .then(response=>{
+   .then(async response=>{
     setIsLoading(false);
-    dispatch(userRegister(response.data));
+    const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
+    let temp=response.data
+    temp.user.notificationId = notificationId;
+
+    dispatch(userRegister(temp));
    
    })
+
    .catch(error=>{
     setIsLoading(false);
     if (error.response?.data?.error?.message === 'Email already exists') {
@@ -170,7 +179,9 @@ const Register = ({ navigation, route }) => {
                 keyboardType: 'phone-pad',
                 value: form.phone,
                 onChangeText: v => handleChange('phone', v),
-                editable: !route.params?.number
+                editable: !route.params?.number,
+
+                style:{ paddingVertical: 14,}
               }}
               ref={phoneInput}
               value={form.phone}

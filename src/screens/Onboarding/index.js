@@ -54,12 +54,12 @@ const OnboardingScreen = ({navigation}) => {
     if (currentIndex < slides.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      navigation.replace('Login');
+      navigation.replace('Main');
     }
   };
 
   const handleSkip = () => {
-    navigation.replace('Login');
+    navigation.replace('Main');
   };
 
   const slide = slides[currentIndex];

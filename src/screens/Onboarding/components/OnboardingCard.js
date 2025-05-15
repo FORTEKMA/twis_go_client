@@ -21,12 +21,13 @@ const OnboardingCard = memo(({item}) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
-    width: wp(100),
+   // width: wp(),
     alignItems: 'center',
     padding: 20,
+    margin:20
   },
   image: {
-    width: wp(80),
+    width: "80%",
     height: "70%",
   },
   title: {

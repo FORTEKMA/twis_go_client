@@ -8,4 +8,17 @@ export const colors = {
   general_2: 'rgb(246 246 246)',
   general_3: 'rgba(52, 51, 49, 1)',
   general_4: 'rgba(0, 0, 0, 1)',
+  black:"#000",
+  text:"#000",
+  textSecondary:"#666",
+  gray:"#ccc",
+  lightGray:"#f5f5f5",
+  darkGray:"#333",
+  white:"#fff",
+  red:"#ff0000",
+  green:"#00ff00",
+  blue:"#0000ff",
+  yellow:"#ffff00",
+  orange:"#ffa500",
+  purple:"#800080"
 };

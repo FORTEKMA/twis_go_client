@@ -120,7 +120,7 @@ const mangeStatus = (status) => {
           style={{ flex: 1, width: "100%", height: "100%" }}
           data={newOrders}
           keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <Card key={item.id} order={item} />}
+          renderItem={({ item }) => <Card refresh={()=>getData(true)} key={item.id} order={item} />}
           onEndReachedThreshold={0.5}
           ListHeaderComponent={renderHeader}
           onEndReached={handleEndReached}

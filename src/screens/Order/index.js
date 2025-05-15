@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -27,18 +27,8 @@ const Order = ({ route }) => {
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
   const navigation = useNavigation();
-
-  useLayoutEffect(() => {
-    navigation.getParent()?.setOptions({
-      tabBarStyle: { display: 'none' },
-    });
-
-    return () => {
-      navigation.getParent()?.setOptions({
-        tabBarStyle: undefined,
-      });
-    };
-  }, [navigation]);
+  const refresh = route.params?.refresh;
+ 
 
   useEffect(() => {
     if (isFocused) {
@@ -46,27 +36,7 @@ const Order = ({ route }) => {
     }
   }, [isFocused, id]);
 
-  const handleCancelOrder = async () => {
-    try {
-      // TODO: Implement cancel order API call
-      Alert.alert(
-        "Order Cancelled",
-        "Your order has been cancelled successfully.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
-    } catch (error) {
-      Alert.alert(
-        "Error",
-        "Failed to cancel order. Please try again.",
-        [{ text: "OK" }]
-      );
-    }
-  };
+  
 
   const handleCallDriver = () => {
     if (order?.driver?.phone) {
@@ -91,7 +61,7 @@ const Order = ({ route }) => {
         <OrderBottomCard
           order={order}
           timeToDestination={timeToDestination}
-          onCancel={handleCancelOrder}
+          refresh={refresh}
           onCallDriver={handleCallDriver}
         />
       </View>

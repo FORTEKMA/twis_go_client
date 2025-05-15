@@ -4,6 +4,10 @@ import {useDispatch, useSelector} from 'react-redux';
 import {getCurrentUser} from '../store/userSlice/userSlice';
 import AuthStack from './AuthStack';
 import TabNavigator from './TabNavigator';
+import {createStackNavigator} from '@react-navigation/stack';
+import Onboarding from '../screens/Onboarding';
+
+const Stack = createStackNavigator();
 
 const MainNavigator = () => {
   const userIsLoggedIn = useSelector(state => state.user.token);
@@ -15,8 +19,21 @@ const MainNavigator = () => {
 
   return (
     <NavigationContainer>
-      {userIsLoggedIn ? <TabNavigator /> : <AuthStack />}
+        <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        headerBackVisible: false,
+        headerTitle: '',
+        headerTransparent: true,
+      }}>
+
+ 
       
+      <Stack.Screen name="onboarding" component={Onboarding} />
+      
+      <Stack.Screen name="Main" component={userIsLoggedIn ? TabNavigator : AuthStack} />
+ 
+      </Stack.Navigator>
     </NavigationContainer>
   );
 };

@@ -72,10 +72,10 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
       {/* Car Type Card */}
       <View style={localStyles.card}>
         <View style={localStyles.row}>
-           <Image source={vehicleOptions[formData?.vehicleType?.id].icon} style={{ width: 70, height: 70, marginRight: 12 }} />
+           <Image source={vehicleOptions[formData?.vehicleType?.id-1].icon} style={{ width: 70, height: 70, marginRight: 12 }} />
           <View style={{ flex: 1 }}>
-            <Text style={localStyles.carType}>{vehicleOptions[formData?.vehicleType?.id].label}</Text>
-            <Text style={localStyles.carDescription}>{t(vehicleOptions[formData?.vehicleType?.id].description)}</Text>
+            <Text style={localStyles.carType}>{vehicleOptions[formData?.vehicleType?.id-1].label}</Text>
+            <Text style={localStyles.carDescription}>{t(vehicleOptions[formData?.vehicleType?.id-1].description)}</Text>
           </View>
         </View>
       </View>

@@ -6291,7 +6291,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-core@npm:^6.26.0, babel-core@npm:^6.6.4, babel-core@npm:^6.7.2":
+"babel-core@npm:^6.25.0, babel-core@npm:^6.26.0, babel-core@npm:^6.6.4, babel-core@npm:^6.7.2":
   version: 6.26.3
   resolution: "babel-core@npm:6.26.3"
   dependencies:
@@ -6497,6 +6497,18 @@ __metadata:
   dependencies:
     babel-runtime: ^6.22.0
   checksum: 3e0d3f77e146e8d63313fb056e1d5a4b360cc14c88ae9fceeb915de06ae482e76cfca426db2486f7c6f78eff33a33fe7fc83ed6a03f4361c11f67287d2355007
+  languageName: node
+  linkType: hard
+
+"babel-plugin-flow-react-proptypes@npm:^9.1.1":
+  version: 9.2.0
+  resolution: "babel-plugin-flow-react-proptypes@npm:9.2.0"
+  dependencies:
+    babel-core: ^6.25.0
+    babel-template: ^6.25.0
+    babel-traverse: ^6.25.0
+    babel-types: ^6.25.0
+  checksum: 7fc675c9f32118b928aaf31b3ebc532a7b0512039036f5a045a13271b92733b7761c1af34a8459a7c072b5e180804f506434832318e730c192ddc863b89344d7
   languageName: node
   linkType: hard
 
@@ -7146,7 +7158,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-template@npm:^6.24.1, babel-template@npm:^6.26.0":
+"babel-template@npm:^6.24.1, babel-template@npm:^6.25.0, babel-template@npm:^6.26.0":
   version: 6.26.0
   resolution: "babel-template@npm:6.26.0"
   dependencies:
@@ -7159,7 +7171,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-traverse@npm:^6.24.1, babel-traverse@npm:^6.26.0":
+"babel-traverse@npm:^6.24.1, babel-traverse@npm:^6.25.0, babel-traverse@npm:^6.26.0":
   version: 6.26.0
   resolution: "babel-traverse@npm:6.26.0"
   dependencies:
@@ -7176,7 +7188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-types@npm:^6.19.0, babel-types@npm:^6.24.1, babel-types@npm:^6.26.0, babel-types@npm:^6.6.4":
+"babel-types@npm:^6.19.0, babel-types@npm:^6.24.1, babel-types@npm:^6.25.0, babel-types@npm:^6.26.0, babel-types@npm:^6.6.4":
   version: 6.26.0
   resolution: "babel-types@npm:6.26.0"
   dependencies:
@@ -18167,6 +18179,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-haptic-feedback@npm:^2.3.3":
+  version: 2.3.3
+  resolution: "react-native-haptic-feedback@npm:2.3.3"
+  peerDependencies:
+    react-native: ">=0.60.0"
+  checksum: 5ff12aaf44fa1cad8ab3d9c58046a11c631c6622955120294060efc51c625203ee4cd7ccb565663c12b27552ebbb7034a386000d9da738b9eea5ff62d58b14c0
+  languageName: node
+  linkType: hard
+
 "react-native-image-picker@npm:^7.0.3":
   version: 7.0.3
   resolution: "react-native-image-picker@npm:7.0.3"
@@ -18298,6 +18319,18 @@ __metadata:
     react: "*"
     react-native: ">=0.65.0"
   checksum: 15985fd6aaae7a2134ec1003c63abd384f4a17beabd0a80b74033c98eccee29161aa07150f479373fb43106cfb33b5837b7a4f1d2b721ff03b3727490c830a07
+  languageName: node
+  linkType: hard
+
+"react-native-modals@npm:^0.22.3":
+  version: 0.22.3
+  resolution: "react-native-modals@npm:0.22.3"
+  dependencies:
+    babel-plugin-flow-react-proptypes: ^9.1.1
+    prop-types: ^15.6.0
+  peerDependencies:
+    react-native: ">=0.50.0"
+  checksum: f369422e1e6015e104c69da30aaef8cfb10a98d0b252a1938c647e39f4f0852862fcfde92f6cf668f9ee23f41699bc86e2c45cf2ad1d6dfacd8da1218df0e43a
   languageName: node
   linkType: hard
 
@@ -21138,6 +21171,7 @@ __metadata:
     react-native-geolocation-service: ^5.2.0
     react-native-gesture-handler: ^2.13.2
     react-native-google-places-autocomplete: ^2.5.6
+    react-native-haptic-feedback: ^2.3.3
     react-native-image-picker: ^7.0.3
     react-native-keyboard-aware-scroll-view: ^0.9.5
     react-native-keyboard-aware-scrollview: ^2.1.0
@@ -21146,6 +21180,7 @@ __metadata:
     react-native-maps-directions: ^1.9.0
     react-native-modal: ^13.0.1
     react-native-modal-datetime-picker: ^17.1.0
+    react-native-modals: ^0.22.3
     react-native-onesignal: ^5.0.3
     react-native-paper: ^5.11.1
     react-native-phone-input: ^1.3.7

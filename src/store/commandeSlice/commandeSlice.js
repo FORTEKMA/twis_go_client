@@ -92,7 +92,7 @@ export const getOrderById = createAsyncThunk(
       const token = state.user.token;
     
        const response = await axios.get(
-        `${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture`,
+        `${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture&populate[6]=review&populate[7]=driver.vehicule`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -102,7 +102,7 @@ export const getOrderById = createAsyncThunk(
       ;
       return response.data;
     } catch (error) {
-      console.error(error);
+      console.error(error.response.data);
       throw error;
     }
   },

@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { styles } from '../styles';
@@ -24,19 +24,7 @@ const Security = () => {
     passwordConfirmation: '',
   });
 
-  useLayoutEffect(() => {
-    // Hide tab bar
-    navigation.getParent()?.setOptions({
-      tabBarStyle: { display: 'none' },
-    });
-
-    return () => {
-      // Show tab bar again on exit
-      navigation.getParent()?.setOptions({
-        tabBarStyle: undefined,
-      });
-    };
-  }, [navigation]);
+ 
 
   const validatePassword = (password) => {
     const errors = [];
@@ -129,6 +117,8 @@ const Security = () => {
             <TextInput
               style={[styles.input, errors.currentPassword && styles.inputError]}
               value={passwordData.currentPassword}
+              placeholder={t('profile.security.current_password')}
+              placeholderTextColor={"#ccc"}
               onChangeText={(text) => {
                 setPasswordData({ ...passwordData, currentPassword: text });
                 if (errors.currentPassword) {
@@ -157,6 +147,8 @@ const Security = () => {
           <Text style={styles.inputLabel}>{t('profile.security.new_password')}</Text>
           <View style={styles.passwordInputContainer}>
             <TextInput
+             placeholderTextColor={"#ccc"}
+             placeholder={t('profile.security.new_password')}
               style={[styles.input, errors.password && styles.inputError]}
               value={passwordData.password}
               onChangeText={(text) => {
@@ -191,6 +183,8 @@ const Security = () => {
           <Text style={styles.inputLabel}>{t('profile.security.confirm_password')}</Text>
           <View style={styles.passwordInputContainer}>
             <TextInput
+             placeholder={t('profile.security.confirm_password')}
+             placeholderTextColor={"#ccc"}
               style={[styles.input, errors.passwordConfirmation && styles.inputError]}
               value={passwordData.passwordConfirmation}
               onChangeText={(text) => {
