@@ -8,5 +8,7 @@
 	<array>
 		<string>group.com.fortekma.tawsilet.onesignal</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array/>
 </dict>
 </plist>

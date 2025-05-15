@@ -15,7 +15,7 @@ const avatarUrls = [
   'https://randomuser.me/api/portraits/women/12.jpg',
 ];
 
-const Step3 = ({ goNext, goBack, formData }) => {
+const Step4 = ({ goBack }) => {
   const { t } = useTranslation();
   const user = useSelector(state => state.user.currentUser);
   const [drivers, setDrivers] = useState([]);
@@ -292,4 +292,4 @@ const localStyles = StyleSheet.create({
   },
 });
 
-export default Step3; 
+export default Step4; 

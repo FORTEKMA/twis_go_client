@@ -108,8 +108,7 @@ const StepOne = ({
         },
       );
       const resData = await response.json();
-      console.log(resData?.datetime, 'fdfdfdfdfdfdfdfd');
-      setDateNow(resData?.datetime);
+       setDateNow(resData?.datetime);
       const formattedDateTime = formatDate(resData?.datetime);
 
       setDateFromApi(formattedDateTime);
@@ -153,8 +152,7 @@ const StepOne = ({
       } else {
         // Get the current date and time
         const currentDate = new Date(dateNow);
-        console.log(currentDate);
-        console.log(dateNow);
+         
         // Set the departDate to today
         const departDate = currentDate.toISOString().split('T')[0];
 

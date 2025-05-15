@@ -10,12 +10,10 @@ export default function SendingRequests() {
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   const sendNotificationToDriver = async (driver, formData) => {
-    console.log('====================================================');
-
+ 
     const notificationId = driver.notificationId;
     if (!notificationId) return;
-    console.log(notificationId, '==== notificationId ====');
-
+ 
     // 🛑 Step 2: Prepare ride info
     const rideInfo = {
       from: formData.pickup.address,

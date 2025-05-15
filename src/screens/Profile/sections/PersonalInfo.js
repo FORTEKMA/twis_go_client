@@ -64,8 +64,7 @@ const PersonalInfo = () => {
       setIsLoading(false);
     }
   };
-
-  return (
+   return (
     <View style={styles.sectionContainer}>
       <Header title={t('profile.personal_info.title')} />
       <ScrollView style={{padding:20}}>

@@ -27,7 +27,7 @@ const TrackingMap = ({
       style={styles.map}
       region={region}
       ref={mapRef}
-      provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}>
+      provider={PROVIDER_GOOGLE}>
       <MapViewDirections
         origin={{
           latitude: pickupCoordinate[0],

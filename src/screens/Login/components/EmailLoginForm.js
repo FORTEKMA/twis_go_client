@@ -4,18 +4,18 @@ import { useForm, Controller } from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { styles } from '../styles';
 import { useDispatch } from 'react-redux';
-import { userLogin ,updateUser,getCurrentUser} from '../../../store/userSlice/userSlice';
+import { userLogin, updateUser, getCurrentUser } from '../../../store/userSlice/userSlice';
 import { useTranslation } from 'react-i18next';
 import { OneSignal } from "react-native-onesignal";
 
-const EmailLoginForm = () => {
+const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   const { control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      identifier: 'ghoudi000@gmail.com',
-      password: '123456789m'
+      identifier: '',
+      password: ''
     },
     mode: 'onChange'
   });
@@ -32,15 +32,16 @@ const EmailLoginForm = () => {
         setLoginError(t('login.invalidCredentials'));
       }
       else {
-        const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
-         
+        const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
         await dispatch(updateUser({
           id: result?.id,
           notificationId
         })).unwrap();
         await dispatch(getCurrentUser());
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
       }
-        
     } catch (error) {
       console.log(error);
       setLoginError(t('login.invalidCredentials'));
@@ -50,7 +51,6 @@ const EmailLoginForm = () => {
   };
 
   const onForgotPassword = () => {
-    console.log('Forgot password clicked');
   };
 
   return (
@@ -118,9 +118,9 @@ const EmailLoginForm = () => {
       {loginError ? (
         <Text style={[styles.errorText, { marginTop: 10 }]}>{loginError}</Text>
       ) : null}
-      <TouchableOpacity onPress={onForgotPassword}>
+{!hideForgetPassword&&(      <TouchableOpacity onPress={onForgotPassword}>
         <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>)}
       <TouchableOpacity 
         style={[styles.btn, isLoading && styles.btnDisabled]} 
         onPress={handleSubmit(onSubmit)}

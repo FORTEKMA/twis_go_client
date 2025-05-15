@@ -37,6 +37,7 @@ const OrderMapView = ({
   const mapRef = useRef(null);
 
   useEffect(() => {
+  
     if(order?.dropOfAddress?.coordonne){
       mapRef.current.fitToCoordinates([order?.dropOfAddress?.coordonne,order?.pickUpAddress?.coordonne], 100,{
         edgePadding: {
@@ -58,6 +59,7 @@ const OrderMapView = ({
 
       const unsubscribe = onValue(driverRef, snapshot => {
         const data = snapshot.val();
+        console.log("data",data)
         if (data && data.latitude && data.longitude) {
           setDriverPosition({
             latitude: data.latitude,
@@ -82,7 +84,7 @@ const OrderMapView = ({
       style={styles.map}
       ref={mapRef}
       region={region}
-      provider={Platform.OS === "android" ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
+      provider={PROVIDER_GOOGLE}
     >
       {/* Pickup Marker */}
       <Marker
@@ -90,8 +92,8 @@ const OrderMapView = ({
         title="Pickup Location"
       >
         <Image
-          source={MARKER_IMAGES.pickup}
-          style={MARKER_SIZES.pickup}
+           source={require('../../../assets/startPostion.png')}
+           style={{ width: 20, height: 20,resizeMode:"contain" }}
         />
         <Callout>
           <View style={enhancedStyles.callout}>
@@ -107,8 +109,8 @@ const OrderMapView = ({
         title="Dropoff Location"
       >
         <Image
-          source={MARKER_IMAGES.drop}
-          style={MARKER_SIZES.drop}
+          source={require('../../../assets/endPostion.png')}
+          style={{ width: 20, height: 20,resizeMode:"contain" }}
         />
         <Callout>
           <View style={enhancedStyles.callout}>

@@ -1,5 +1,5 @@
-/* eslint-disable react-native/no-inline-styles */
-/* eslint-disable react/react-in-jsx-scope */
+import React,   {useEffect, useState} from 'react';
+
 import {
   StyleSheet,
   Text,
@@ -18,7 +18,6 @@ import {Provider} from 'react-redux';
 import {NativeBaseProvider} from 'native-base';
 import MainNavigator from './navigators/Main';
  import {OneSignal} from 'react-native-onesignal';
-import {useEffect, useState} from 'react';
 import {colors} from './utils/colors';
 import "./local"
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -26,14 +25,21 @@ import SplashScreen from 'react-native-splash-screen';
   import PopOver from './components/PopOver';
 let persistor = persistStore(store);
 export default function App() {
-  useEffect( () => {
- //   initializeFirebase();
 
-    setTimeout(() => {
+
+  useEffect( () => {
+    
+  setTimeout(() => {
       SplashScreen.hide();
+     
+      OneSignal.initialize(ONESIGNAL_APP_ID);
+          OneSignal.Notifications.requestPermission(true).then(res=>{
+      console.log(res)
+    }).catch(err=>console.log(err));
+
+     OneSignal.Debug.setLogLevel(6);
     }, 1000);
-    OneSignal.initialize(ONESIGNAL_APP_ID);
-    OneSignal.Notifications.requestPermission(true);
+   
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');

@@ -153,12 +153,7 @@ const LocationMap = ({ route }) => {
           showsMyLocationButton
           initialRegion={initialRegion}
           style={styles.map}
-          onRegionChange={() => {
-            if (hasTouchedMap==false) {
-              setHasTouchedMap(true);
-              lottieRef.current?.play(0,7); 
-            }
-          }}
+          
           onRegionChangeComplete={(newRegion) => {
             lottieRef.current?.play(8, 1395); // Drop animation
             setHasTouchedMap(false);

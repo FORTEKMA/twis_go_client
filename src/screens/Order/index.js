@@ -1,13 +1,12 @@
-import React, { useEffect, useState,useLayoutEffect } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
   View,
   ActivityIndicator,
- 
   Linking,
- 
   StyleSheet,
   TouchableOpacity,
   Text,
+  Alert,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useIsFocused } from "@react-navigation/native";
@@ -18,7 +17,7 @@ import { styles } from "./styles";
 import OrderMapView from "./components/MapView";
 import OrderBottomCard from "./components/OrderBottomCard";
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons'
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "./components/Header";
 //import { updateReservation } from '../../store/slices/commandesSlice';
 
@@ -26,72 +25,20 @@ const Order = ({ route }) => {
   const { id } = route.params;
   const order = useSelector((state) => state?.commandes?.OrderById);
   const dispatch = useDispatch();
-  const [pickupCoordinate, setPickupCoordinate] = useState([0, 0]);
-  const [dropCoordinate, setDropCoordinateCoordinate] = useState([0, 0]);
-  const [driverPosition, setDriverPosition] = useState([0, 0]);
-  const [position, setPosition] = useState(null);
   const isFocused = useIsFocused();
   const navigation = useNavigation();
-  const [isUpdating, setIsUpdating] = useState(false);
-   useLayoutEffect(() => {
-    // Hide tab bar
+
+  useLayoutEffect(() => {
     navigation.getParent()?.setOptions({
       tabBarStyle: { display: 'none' },
     });
 
     return () => {
-      // Show tab bar again on exit
       navigation.getParent()?.setOptions({
         tabBarStyle: undefined,
       });
     };
   }, [navigation]);
- 
-  useEffect(() => {
-    const _watchId = Geolocation.watchPosition(
-      (position) => {
-        setPosition(position);
-      },
-      (error) => {},
-      {
-        enableHighAccuracy: true,
-        distanceFilter: 100,
-        interval: 5000,
-        fastestInterval: 2000,
-      }
-    );
-
-    return () => {
-      if (_watchId) {
-        Geolocation.clearWatch(_watchId);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    getCurrentPosition();
-  }, []);
-
-  const getCurrentPosition = async () => {
-    try {
-      Geolocation.getCurrentPosition(
-        (positi) => {
-          setPosition(positi);
-        },
-        (error) => {},
-        {
-          accuracy: {
-            android: "high",
-            ios: "best",
-          },
-          enableHighAccuracy: true,
-          timeout: 1000,
-          maximumAge: 10000,
-          distanceFilter: 30,
-        }
-      );
-    } catch (e) {}
-  };
 
   useEffect(() => {
     if (isFocused) {
@@ -99,73 +46,33 @@ const Order = ({ route }) => {
     }
   }, [isFocused, id]);
 
-  useEffect(() => {
-    if (order?.documentId) {
-      setDriverPosition([
-        parseFloat(order?.driver?.latitude || 0),
-        parseFloat(order?.driver?.longitude || 0),
-      ]);
-    }
-  }, [order]);
-
-  useEffect(() => {
-    if (order?.pickUpAddress && order?.dropOfAddress) {
-      setPickupCoordinate([
-        parseFloat(order?.pickUpAddress?.coordinate?.latitude || 0),
-        parseFloat(order?.pickUpAddress?.coordinate?.longitude || 0),
-      ]);
-      setDropCoordinateCoordinate([
-        parseFloat(order?.dropOfAddress?.coordinate?.latitude || 0),
-        parseFloat(order?.dropOfAddress?.coordinate?.longitude || 0),
-      ]);
-    }
-  }, [order]);
-
-  const centerLatitude =
-    (pickupCoordinate?.[0] + dropCoordinate?.[0] + 2) / 2 || 0;
-  const centerLongitude =
-    (pickupCoordinate?.[1] + dropCoordinate?.[1]) / 2 || 0;
-  const latitudeDelta =
-    Math.abs(pickupCoordinate?.[0] - dropCoordinate?.[0]) * 3.5 || 0;
-  const longitudeDelta =
-    Math.abs(pickupCoordinate?.[1] - dropCoordinate?.[1]) * 5.5 || 0;
-
-  const mapRegion = {
-    latitude: centerLatitude || 0,
-    longitude: centerLongitude || 0,
-    latitudeDelta,
-    longitudeDelta,
-  };
-
-  const handleOpenInGoogleMaps = (e) => {
-    const { latitude, longitude } = e;
-    const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-    Linking.openURL(url).catch((err) =>
-      console.error("Failed to open Google Maps:", err)
-    );
-  };
-
-  const handleCall = () => {
-    if (order?.driver?.phoneNumber) {
-      Linking.openURL(`tel:${order.driver.phoneNumber}`);
-    }
-  };
-
-  const handleEndTrip = async (nextStatus) => {
-    if (!order?.documentId) {
-      console.error('Order or documentId is missing');
-      return;
-    }
-
-    setIsUpdating(true);
+  const handleCancelOrder = async () => {
     try {
-    
-      dispatch(getOrderById({ id: order.documentId }));
+      // TODO: Implement cancel order API call
+      Alert.alert(
+        "Order Cancelled",
+        "Your order has been cancelled successfully.",
+        [
+          {
+            text: "OK",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
     } catch (error) {
-      console.error('Failed to update status:', error);
-      throw error;
-    } finally {
-      setIsUpdating(false);
+      Alert.alert(
+        "Error",
+        "Failed to cancel order. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const handleCallDriver = () => {
+    if (order?.driver?.phone) {
+      Linking.openURL(`tel:${order.driver.phone}`);
+    } else {
+      Alert.alert("Error", "Driver's phone number is not available");
     }
   };
 
@@ -180,23 +87,16 @@ const Order = ({ route }) => {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <Header onBack={() => navigation.goBack()} />
       <View style={styles.container}>
-        <OrderMapView
-          mapRegion={mapRegion}
-          
-          order={order}
-      
-        />
+        <OrderMapView order={order} />
         <OrderBottomCard
           order={order}
           timeToDestination={timeToDestination}
-          onCall={handleCall}
-          onEndTrip={handleEndTrip}
+          onCancel={handleCancelOrder}
+          onCallDriver={handleCallDriver}
         />
       </View>
     </View>
   );
 };
-
- 
 
 export default Order;

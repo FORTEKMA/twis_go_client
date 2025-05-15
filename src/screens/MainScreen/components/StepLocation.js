@@ -1,5 +1,5 @@
-import React, { useState , useRef, useEffect} from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView,   PermissionsAndroid  , Alert ,StyleSheet} from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView, PermissionsAndroid, Alert, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useTranslation } from 'react-i18next';
@@ -7,20 +7,71 @@ import { styles } from '../styles';
 import LocationPicker from './LocationPicker';
 import ConfirmButton from './ConfirmButton';
 import Geolocation from 'react-native-geolocation-service';
-import {getAddressFromCoordinates} from '../../../utils/helpers/mapUtils';
+import { getAddressFromCoordinates } from '../../../utils/helpers/mapUtils';
 import { Spinner, Toast } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
-
-
-const StepLocation = ({ formData, goNext, }) => {
+const StepLocation = ({ formData, goNext, isMapDragging, selectedLocation }) => {
   const { t } = useTranslation();
   const [isFocused, setIsFocused] = useState(false);
-  const [pickupAddress, setPickupAddress] =useState(formData?.pickupAddress||{} );
-  const [dropAddress, setDropAddress] = useState(formData.dropAddress||{});
+  const [pickupAddress, setPickupAddress] = useState(formData?.pickupAddress || {});
+  const [dropAddress, setDropAddress] = useState(formData.dropAddress || {});
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-    const navigation = useNavigation();
- 
+  const [isSelectingPickup, setIsSelectingPickup] = useState(true);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (selectedLocation && !isMapDragging) {
+      const updateLocation = async () => {
+        try {
+          const address = await getAddressFromCoordinates(
+            selectedLocation.latitude,
+            selectedLocation.longitude
+          );
+          const formattedAddress = JSON.stringify(address);
+          
+          if (isSelectingPickup) {
+            setPickupAddress({
+              address: formattedAddress,
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+            });
+            goNext({
+              pickupAddress: {
+                address: formattedAddress,
+                latitude: selectedLocation.latitude,
+                longitude: selectedLocation.longitude,
+              },
+              dropAddress: dropAddress
+            });
+          } else {
+            setDropAddress({
+              address: formattedAddress,
+              latitude: selectedLocation.latitude,
+              longitude: selectedLocation.longitude,
+            });
+            goNext({
+              pickupAddress: pickupAddress,
+              dropAddress: {
+                address: formattedAddress,
+                latitude: selectedLocation.latitude,
+                longitude: selectedLocation.longitude,
+              }
+            });
+          }
+        } catch (error) {
+          console.log('Error fetching address:', error);
+          Toast.show({
+            title: t('location.error.fetch_address'),
+            status: "error",
+            duration: 3000,
+            placement: "top"
+          });
+        }
+      };
+      updateLocation();
+    }
+  }, [selectedLocation, isMapDragging]);
 
   const handlePickupSelect = (data, details) => {
     if (details) {  
@@ -62,8 +113,6 @@ const StepLocation = ({ formData, goNext, }) => {
       return false;
     }
   };
-
-
 
   const getCurrentLocation = async () => {
     setIsLoadingLocation(true);
@@ -118,9 +167,7 @@ const StepLocation = ({ formData, goNext, }) => {
       {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
     );
 
- 
   };
-
 
   const handleConfirm = () => {
     if (pickupAddress.latitude && dropAddress.latitude) {
@@ -133,67 +180,68 @@ const StepLocation = ({ formData, goNext, }) => {
     }
   };
 
-
   return (
-    <View style={styles.step1Wrapper}>  
-  
-    <View style={{flexDirection:'row'}}>
-      {/* Stepper */}
-      <View style={styles.stepperContainer}>
-        <View style={styles.stepperCircle} />
-        <View style={styles.stepperLine} />
-        <View style={styles.stepperIconContainer}>
-          <MaterialIcons name="location-on" size={20} color="#BDBDBD" />
+    <View style={[styles.step1Wrapper]}>
+      <View style={{ flexDirection: 'row' }}>
+        <View style={styles.stepperContainer}>
+          <View style={styles.stepperCircle} />
+          <View style={styles.stepperLine} />
+          <View style={styles.stepperIconContainer}>
+            <MaterialIcons name="location-on" size={20} color="#BDBDBD" />
+          </View>
         </View>
-      </View>
-      {/* Main Content */}
-      <View style={styles.stepContent}>
-        {/* Pickup */}
-        <View style={[styles.inputRow,{marginBottom:4}]}>
-          <Text style={[styles.step1Label]}>{t('location.where_are_you')}</Text>
-          <TouchableOpacity 
-            style={styles.iconContainer} 
-            onPress={getCurrentLocation}
-            disabled={isLoadingLocation}
+        <View style={styles.stepContent}>
+          <View style={[styles.inputRow, { marginBottom: 4 }]}>
+            <Text style={[styles.step1Label]}>{t('location.where_are_you')}</Text>
+            <TouchableOpacity
+              style={styles.iconContainer}
+              onPress={getCurrentLocation}
+              disabled={isLoadingLocation}
+            >
+              {isLoadingLocation ? (
+                <Spinner size="sm" color="#F9DC76" />
+              ) : (
+                <MaterialIcons name="my-location" size={22} color="#F9DC76" />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[localStyles.container, isSelectingPickup && localStyles.selectedContainer]}
+            onPress={() => setIsSelectingPickup(true)}
           >
-            {isLoadingLocation ? (
-              <Spinner size="sm" color="#F9DC76" />
-            ) : (
-              <MaterialIcons name="my-location" size={22} color="#F9DC76" />
-            )}
+            <Text style={{ color: pickupAddress.address ? '#000' : "#ddd" }}>
+              {pickupAddress.address ? pickupAddress.address : t('location.pickUp')}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={[styles.inputRow, { marginTop: 20 }]}>
+            <Text style={styles.step1Label}>{t('location.pick_off')}</Text>
+            <FontAwesome name="car" size={20} color="#BDBDBD" style={styles.carIcon} />
+          </View>
+
+          <TouchableOpacity
+            style={[localStyles.container, !isSelectingPickup && localStyles.selectedContainer]}
+            onPress={() => setIsSelectingPickup(false)}
+          >
+            <Text style={{ color: dropAddress.address ? '#000' : "#ddd" }}>
+              {dropAddress.address ? dropAddress.address : t('location.pick_off')}
+            </Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={localStyles.container} onPress={()=>navigation.navigate("LocationMap",{setLocation:(location)=>{setPickupAddress(location)}})}>
-       
-
-            <Text style={{color:pickupAddress.address?'#000':"#ddd"}}>{pickupAddress.address?pickupAddress.address:t('location.pickUp')}</Text>
-        </TouchableOpacity>  
-        {/* Destination */}
-      <View style={[styles.inputRow,{marginTop:20}]}>
-          <Text style={styles.step1Label}>{t('location.pick_off')}</Text>
-          <FontAwesome name="car" size={20} color="#BDBDBD" style={styles.carIcon} />
-        </View>
-    <TouchableOpacity style={localStyles.container} onPress={()=>navigation.navigate("LocationMap",{setLocation:(location)=>{setDropAddress(location)}})}>
-            <Text style={{color: dropAddress.address?'#000':"#ddd"}}>{dropAddress.address?dropAddress.address:t('location.pick_off')}</Text>
-         </TouchableOpacity> 
-         
       </View>
-      
-    </View>
-    <ConfirmButton
-          onPress={handleConfirm}
-          text={t('booking.step1.confirm')}
-          disabled={!(pickupAddress.latitude && dropAddress.latitude)}
-        />   
+      <ConfirmButton
+        onPress={handleConfirm}
+        text={t('booking.step1.confirm')}
+        disabled={!(pickupAddress.latitude && dropAddress.latitude)}
+      />
     </View>
   );
 };
 
 const localStyles = StyleSheet.create({
-  container:{
-
-    height:50,
+  container: {
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
@@ -202,7 +250,11 @@ const localStyles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: '#fff',
     marginBottom: 5,
+  },
+  selectedContainer: {
+    borderColor: '#F9DC76',
+    borderWidth: 2,
   }
-})
+});
 
 export default StepLocation; 

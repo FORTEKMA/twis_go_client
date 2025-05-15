@@ -31,8 +31,7 @@ const Otp = ({ route, navigation }) => {
     try {
        dispatch(verify({phoneNumber: number.replace(/\s/g, ''), code: otp.join('')})).then(async res => {
         const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
-        console.log(" res?.payload?.user?.id,", res?.payload);
-        await dispatch(updateUser({
+         await dispatch(updateUser({
           id: res?.payload?.id,
           notificationId
         })).unwrap();

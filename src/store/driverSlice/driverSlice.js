@@ -5,8 +5,7 @@ import axios from 'axios';
 import {API_URL_ANDROID, API_URL_IOS} from '@env';
 import {Platform} from 'react-native';
 const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-console.log(API_URL_IOS, API_URL_ANDROID, API_URL);
-
+ 
 export const findDriver = createAsyncThunk(
   'driver/find',
   async ({radius, latitude, longitude}, thunkAPI) => {
@@ -45,8 +44,7 @@ export const calculatePriceAndDistance = createAsyncThunk(
       });
 
       const {price, distance} = response.data;
-      console.log('💵 Calculated Price:', price);
-      console.log('📏 Calculated Distance:', distance);
+  
       return {price, distance};
     } catch (error) {
       console.error(

@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingTop: hp(6),
+   
     backgroundColor: 'white',
   },
   scrollContainer: {
@@ -24,6 +24,7 @@ export const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: hp(2),
+    paddingTop: hp(6),
   },
   headerTitle: {
     marginTop: 0,
@@ -34,7 +35,7 @@ export const styles = StyleSheet.create({
     lineHeight: 32,
   },
   formContainer: {
-    width: '95%',
+    width: '90%',
     alignSelf: 'center',
     marginTop: 0,
     marginBottom: 0,
@@ -197,6 +198,21 @@ export const styles = StyleSheet.create({
   },
   switchTextActive: {
     color: '#222',
+    fontWeight: '700',
+  },
+  guestBtn: {
+    width: '90%',
+    paddingVertical: 16,
+    backgroundColor: '#E8ECF4',
+    borderRadius: 12,
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  guestBtnText: {
+    color: '#222',
+    fontSize: 16,
     fontWeight: '700',
   },
 }); 

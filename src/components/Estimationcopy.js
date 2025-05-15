@@ -83,7 +83,7 @@ const Estimation = ({currentStep, setCurrentStep}) => {
   const initialState = useSelector(state => state?.commandes?.newCommande);
 
   const [newreservation, setNewreservation] = useState(initialState);
-  console.log(newreservation);
+ 
   // useEffect(() => {
   //   dispatch(getCurrentUser());
   // }, []);

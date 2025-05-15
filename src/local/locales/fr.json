@@ -45,7 +45,11 @@
     "skip": "Passer",
     "stepIndicator": "{{current}}/{{total}}"
   },
+
   "login": {
+    "needToLogin": "Vous devez vous connecter pour continuer",
+    "needToLoginSubtitle": "Connectez-vous pour accéder à votre compte et profiter de toutes les fonctionnalités",
+    "enterAsGuest":"Entrer en tant que invité",
     "enterRecoveryEmail": "Entrez votre email de récupération",
     "recoveryEmail": "Email de Récupération",
     "emailPlaceholder": "Email@example.com",
@@ -132,19 +136,31 @@
       "status": "Status",
       "time_to_destination": "Time to reach Destination",
       "trip_completed": "Trip Completed",
-      "next": "Next"
+      "next": "Next",
+      "price": "Prix",
+      "pickup": "Point de ramassage",
+      "delivery": "Point de livraison",
+      "items": "Articles",
+      "cancel_order": "Annuler la commande",
+      "cancel_confirmation": "Confirmer l'annulation",
+      "cancel_message": "Êtes-vous sûr de vouloir annuler cette commande ?",
+      "minimize": "Réduire",
+      "expand": "Agrandir",
+      "driver_on_the_way": "Chauffeur en route",
+      "arriving_in": "Arrive dans {{time}}",
+      "pickup_at": "Ramassage à {{time}}"
     },
     "status": {
       "pending": "En attente",
       "accepted": "Accepté",
       "cancelled": "Annulé",
-      "driver_on_route_to_pickup": "En route vers le client",
-      "arrived_at_pickup": "Arrivée au client",
-      "picked_up": "Début course",
-      "on_route_to_delivery": "En route",
-      "arrived_at_delivery": "Arrivée",
-      "delivered": "Terminée",
-      "completed": "Terminée",
+      "driver_on_route_to_pickup": "Le chauffeur est en route pour le ramassage",
+      "arrived_at_pickup": "Arrivé au point de ramassage",
+      "picked_up": "Colis récupéré",
+      "on_route_to_delivery": "En route pour la livraison",
+      "arrived_at_delivery": "Arrivé au point de livraison",
+      "delivered": "Livré",
+      "completed": "Terminé",
       "end_trip": "Terminer le trajet"
     },
     "status_filter": {
@@ -381,15 +397,21 @@
       "ok": "OK"
     },
     "where_are_you": "Où êtes-vous ?",
+    "where_to": "Où allez-vous ?",
     "pickUp": "Point de départ",
-    "pick_off": "Point d'arrivée",
+    "dropOff": "Point d'arrivée",
+    "use_current_location": "Utiliser ma position actuelle",
+    "suggested_locations": "Lieux suggérés",
+    "continue": "Continuer",
     "error": {
-      "permission_denied": "Permission de localisation refusée",
-      "fetch_address": "Impossible de récupérer l'adresse",
-      "get_location": "Impossible d'obtenir votre position"
+      "get_location": "Impossible d'obtenir votre position",
+      "fetch_address": "Impossible d'obtenir l'adresse"
     }
   },
   "Choose_location": "Choisir un lieu",
   "save": "Enregistrer",
-  "search_placeholder": "Rechercher un lieu"
+  "search_placeholder": "Rechercher un lieu",
+  "eco_description":"Véhicule économique et écologique",
+  "berline_description":"Véhicule confortable et spacieux",
+  "van_description":"Véhicule de transport de personnes"
 } 

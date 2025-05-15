@@ -81,12 +81,9 @@ export const sendNotificationToDrivers = async (
   
 };
 
-export const calculatePrice = async (formData,driver) => {
+export const calculatePrice = async (formData,driver=null) => {
   const data={
-    "driverLocation": {
-      "lat": driver.latitude,
-      "lng": driver.longitude
-    },
+    
     "accessDepart": {
       "lat": formData.pickupAddress.latitude,
       "lng": formData.pickupAddress.longitude
@@ -96,6 +93,13 @@ export const calculatePrice = async (formData,driver) => {
       "lng": formData.dropAddress.longitude
     },
     "id":formData?.vehicleType?.id
+  }
+
+  if(driver){
+    data.driverLocation={
+      "lat": driver.latitude,
+      "lng": driver.longitude
+    }
   }
  
   const response = await api.post('/calcul',data);

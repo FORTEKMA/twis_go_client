@@ -9,38 +9,42 @@ import {
   Dimensions,
   PermissionsAndroid,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import DriverMarker from '../../components/DriverMarker';
-import MapView, {Marker, PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
 import {useDispatch, useSelector} from 'react-redux';
-import polyline from '@mapbox/polyline';
-import {styles} from './styles';
-import {getAddressFromCoordinates} from '../../utils/helpers/mapUtils';
-import WaveCircle from '../../components/WaveCircle';
-import StepLocation from './components/StepLocation';
-import Step2 from './components/Step2';
-import Step3 from './components/Step3';
-import Step4 from './components/Step4';
-import Step5 from './components/Step5';
-import MapStyle from '../../utils/googleMapStyle.js';
+ import {styles} from './styles';
+import ChooseVehicle from './components/ChooseVehicle';
+import ConfirmRide from './components/ConfirmRide';
+import SearchDrivers from './components/SearchDrivers';
+import LoginStep from './components/LoginStep';
 import api from '../../utils/api';
 import { useToast } from 'native-base';
 import { useTranslation } from 'react-i18next';
-import ProgressTimer from '../../components/ProgressTimer';
 import CustomAlert from '../../components/CustomAlert';
 import Geolocation from '@react-native-community/geolocation';
 import { getDatabase, ref as dbRef, onValue, off  } from '@react-native-firebase/database';
 import { getApp } from '@react-native-firebase/app';
 import {OneSignal} from 'react-native-onesignal';
 import {sendNotificationToDrivers,calculatePrice,sendActionToDrivers} from '../../utils/CalculateDistanceAndTime';
-
+import PickupLocation from './components/PickupLocation';
+import DropoffLocation from './components/DropoffLocation';
+import LottieView from 'lottie-react-native';
+import {API_GOOGLE} from "@env"
+import axios from 'axios';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
-
+import mapStyle from '../../utils/googleMapStyle';
+import { useNavigation } from '@react-navigation/native';
 const MainScreen = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const currentUser = useSelector(state => state?.user?.currentUser);
-  const toast = useToast();
+  const token = useSelector(state => state?.user?.token);
+   const toast = useToast();
   const { t } = useTranslation();
   const [driversIdsNotAccepted, setDriversIdsNotAccepted] = useState([]);
   const [step, setStep] = useState(1);
@@ -55,12 +59,19 @@ const MainScreen = () => {
   });
   const mapRef = useRef(null);
   const position = useRef(new Animated.Value(0)).current;
-  const [showTimeEndAlert, setShowTimeEndAlert] = useState(false);
+  const slidePosition = useRef(new Animated.Value(0)).current;
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [filteredDrivers, setFilteredDrivers] = useState({});
-
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const [isMapDragging, setIsMapDragging] = useState(false);
+  const [routeCoords, setRouteCoords] = useState([]);
+  const [animatedCoords, setAnimatedCoords] = useState([]);
+  const animationIndex = useRef(0);
+  const backInterval=useRef(null)
+  const startInterval=useRef(null)
+  const lottieRef = useRef(null);
+  const [hasTouchedMap, setHasTouchedMap] = useState(false);
+   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Radius of the earth in km
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
@@ -112,7 +123,7 @@ const MainScreen = () => {
             longitude,
             latitudeDelta: 0.05,
             longitudeDelta: 0.05,
-          }, 1000);
+          }, 0);
         }
       },
       (error) => console.log(error),
@@ -162,13 +173,17 @@ const MainScreen = () => {
   }, [currentLocation]);
 
   useEffect(() => {
-    if(step === 3){
+    if(step === 5){
       searchDrivers()
        OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
         if(event?.notification?.additionalData?.accept==true){
-        setAccepted(event?.notification?.additionalData)
-        animateStepTransition(step+1);
-        setStep(step+1)
+           navigation.navigate('Historique',{
+            screen: 'OrderDetails',
+            params: {
+              id: event?.notification?.additionalData?.commande?.data?.documentId
+            }
+          })
+          handleReset()
         OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
         }
         
@@ -180,10 +195,19 @@ const MainScreen = () => {
     return () => {
       OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
      }
-  }, [step])  
+  }, [step]) 
+  
+  
+  handleReset = () => {
+    setStep(1)
+    setFormData({})
+    setAccepted(null)
+    setDriversIdsNotAccepted([])
+    setDrivers({})
+  }
 
   const animateStepTransition = (newStep) => {
-    const direction = newStep > step ? -1 : 1;
+    const direction = newStep > step ? 1 : -1;
     position.setValue(direction * SCREEN_WIDTH);
     
     Animated.spring(position, {
@@ -194,16 +218,27 @@ const MainScreen = () => {
     }).start();
   };
 
-   
+  const animateSlideTransition = (isDragging) => {
+    Animated.spring(slidePosition, {
+      toValue: isDragging ? 1 : 0,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  };
+
+  useEffect(() => {
+    animateSlideTransition(isMapDragging);
+  }, [isMapDragging]);
 
    const searchDrivers = async () => {
     let radius = 1;
     let processedDrivers = new Set(); // Track processed drivers to prevent duplicates
-    console.log('🚀 Starting driver search process');
+    
    
     try {
       while (accepted == null && radius <= 10) {
-        console.log(`\n📡 Searching drivers in radius: ${radius}km`);
+        console.log(`\n📡 Searching drivers in radius: ${radius}km`,`latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}`);
         let drivers = [];
     if(accepted==null){
         try {
@@ -237,25 +272,11 @@ const MainScreen = () => {
 
           console.log(`\n👤 Processing driver ${driver.id}`);
           try {
-            const rideData = await calculatePrice(formData, driver);
-            console.log(`💰 Calculated price: ${rideData.price}, distance: ${rideData.distance}km, time: ${rideData.time}min`);
-            
-            setFormData(prev => ({
-              ...prev,
-              price: rideData.price,
-              distance: rideData.distance,
-              time: rideData.time
-            }));
-            
+             
             try {
               console.log(`📱 Sending notification to driver ${driver.id}`);
             const notificationRed=  await sendNotificationToDrivers({
-                formData: {
-                  ...formData,
-                  price: rideData.price,
-                  distance: rideData.distance,
-                  time: rideData.time
-                },
+                formData,
                 driver,
                 currentUser
               });
@@ -332,43 +353,45 @@ const MainScreen = () => {
      try {
       setFormData({...formData,...data})
       if(handlerNext){
-        animateStepTransition(step+1);
-        setStep(step+1)
-   
-     
-    
-    }
-  
+        // Check if we need to show login step
+        if (step === 4 && token === -1) {
+          animateStepTransition(4.5);
+          setStep(4.5);
+        } else {
+          animateStepTransition(step+1);
+          setStep(step+1);
+        }
+      }
      } catch (error) {
       console.log(error)
      }
-  
-    
   };
 
   const goBack = () => {
-   
-    if(step==3){
+    if(step==4){
       OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
       console.log("cancel the job");
     }
-    animateStepTransition(step-1);
-    setStep(step-1)
-  
+    if(step==2){
+      setFormData(prev=>({
+        ...prev,
+        dropAddress:{}
+      }))
+    }
+    if(step === 4.5) {
+      // If going back from login step, go back to step 4
+      animateStepTransition(4);
+      setStep(4);
+    } else {
+      animateStepTransition(step-1);
+      setStep(step-1);
+    }
   }
 
-  const handleTimeEnd = () => {
-    setShowTimeEndAlert(true);
-    sendActionToDrivers(accepted?.notificationId, "Canceled_by_client")
-    handleReset
-  };
-
-  const handleGoBack = () => {
-    if (step === 4 || step === 5) {
-      setShowCancelAlert(true);
-    } else {
-      goBack();
-    }
+  const handleLoginSuccess = () => {
+    // After successful login, proceed to step 5
+    animateStepTransition(5);
+    setStep(5);
   };
 
   const handleConfirmCancel = () => {
@@ -381,35 +404,96 @@ const MainScreen = () => {
     sendActionToDrivers(accepted?.notificationId, "Canceled_by_client")
   };
 
-  const handleReset = () => {
-    setStep(1)
-    setFormData({})
-    setAccepted(null)
-    setDriversIdsNotAccepted([])
-    setDrivers({})
+  
+
+  const fetchLocationDetails = async (lat, lng) => {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_GOOGLE}`;
+
+    try {
+      const response = await axios.get(url);
+      if (response.data.status === 'OK') {
+        const address = response.data.results[0].formatted_address;
+        const location = {
+          address: address,
+          latitude: lat,
+          longitude: lng
+        };
+
+        if (step === 1) {
+          setFormData(prev => ({
+            ...prev,
+            pickupAddress: location
+          }));
+        } else if (step === 2) {
+          setFormData(prev => ({
+            ...prev,
+            dropAddress: location
+          })); lottieRef.current?.play(1396,1404);
+        }
+
+        lottieRef.current?.play(1396,1404);
+
+      }
+    } catch (error) {
+      console.error('Error fetching location details:', error);
+    }
+  };
+  
+
+  const animatePolylineToStart = (coords) => {
+    animationIndex.current = 0;
+    setAnimatedCoords([]);
+    const totalAnimationDuration =  10
+
+    // Calculate delay between points
+    const intervalDelay = totalAnimationDuration /  coords.length||1;
+    if(startInterval.current)
+      clearInterval(startInterval.current)
+     startInterval.current = setInterval(() => {
+      animationIndex.current += 1;
+      setAnimatedCoords(coords.slice(0, animationIndex.current));
+  
+      if (animationIndex.current >= coords.length) {
+        clearInterval(startInterval.current);
+      }
+    }, intervalDelay); // speed of drawing
+  };
+
+  const animatePolylineToEnd = (coords) => {
+
+    const totalAnimationDuration = 5; 
+
+    // Calculate delay between points
+    const intervalDelay = totalAnimationDuration /  coords.length||1;
+    animationIndex.current = coords.length;
+    setAnimatedCoords([]);
+  
+    backInterval.current = setInterval(() => {
+      animationIndex.current -= 1;
+      setAnimatedCoords(coords.slice(0, animationIndex.current));
+      
+      if (animationIndex.current <= 0) {
+        clearInterval(backInterval.current);
+        setAnimatedCoords([])
+        setRouteCoords([])
+        
+      }
+    }, intervalDelay); // speed of drawing
+  
   }
 
-  const renderRoute = () => {
-    if (formData?.dropAddress?.latitude && formData?.dropAddress?.longitude) {
-      return (
-        <Polyline
-          coordinates={[
-            {
-              latitude: formData?.pickupAddress?.latitude,
-              longitude: formData?.pickupAddress?.longitude,
-            },
-            {
-              latitude: formData?.dropAddress?.latitude,
-              longitude: formData?.dropAddress?.longitude,
-            },
-          ]}
-          strokeWidth={4}
-          strokeColor="blue"
-        />
-      );
-    }
-    return null;
-  };
+ 
+handleBackFromStep2 = () => {
+  
+  setFormData(prev=>({
+    ...prev,
+    dropAddress:{}
+  }))
+  animateStepTransition(step-1);
+  setStep(step-1)
+  animatePolylineToEnd(routeCoords)
+}
+
 
   const renderStep = () => {
     const translateX = position.interpolate({
@@ -417,78 +501,235 @@ const MainScreen = () => {
       outputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
     });
 
+    const translateY = slidePosition.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 300],
+    });
+
     return (
       <Animated.View
         style={[
           localStyles.stepContainer,
           {
-            transform: [{ translateX }],
+            transform: [
+              { translateX },
+              { translateY }
+            ],
           },
         ]}>
         <View style={localStyles.stepContent}>
-          {(step === 4 || step === 5) && <ProgressTimer onTimeEnd={handleTimeEnd} />}
+        
           {step === 1 && (
-            <StepLocation formData={formData} goNext={goNext} />
+            <PickupLocation 
+              formData={formData} 
+              goNext={goNext} 
+              isMapDragging={isMapDragging}
+              animateToRegion={(data)=>mapRef.current.animateToRegion(data)}
+            />
           )}
           {step === 2 && (
-            <Step2 formData={formData} goNext={goNext} goBack={handleGoBack} />
+            <DropoffLocation 
+              formData={formData} 
+              goNext={goNext} 
+              onBack={handleBackFromStep2}
+              isMapDragging={isMapDragging}
+            />
           )}
           {step === 3 && (
-            <Step3 formData={formData} goNext={goNext} goBack={handleGoBack} />
+            <ChooseVehicle formData={formData} goNext={goNext} goBack={goBack} />
           )}
           {step === 4 && (
-            <Step4 formData={formData} rideData={accepted} goNext={goNext} goBack={handleGoBack} />
+            <ConfirmRide formData={formData} goNext={goNext} goBack={goBack} />
+          )}
+          {step === 4.5 && (
+            <LoginStep onLoginSuccess={handleLoginSuccess} onBack={goBack} />
           )}
           {step === 5 && (
-            <Step5 handleReset={handleReset} rideData={accepted} formData={formData} goNext={goNext} goBack={handleGoBack} />
+            <SearchDrivers goBack={goBack} />
           )}
         </View>
       </Animated.View>
     );
   };
 
-  return (
-    <View style={localStyles.container}>
+
+
+
+  
+
+  const renderMap = () => {
+    return (
       <MapView
         ref={mapRef}
-     provider={PROVIDER_GOOGLE}
-        style={StyleSheet.absoluteFillObject}
-        customMapStyle={MapStyle}
+        style={styles.mapContainer}
+        provider={PROVIDER_GOOGLE}
+        region={mapRegion}
         zoomEnabled
         focusable
-        region={mapRegion}
+        customMapStyle={mapStyle}
         showsUserLocation={true}
-        showsMyLocationButton={true}
+        showsMyLocationButton={false}
+        onPanDrag={() => {
+          if(step==1||step==2){   
+          setIsMapDragging(true);
+          if (!hasTouchedMap) {
+            setHasTouchedMap(true);
+            lottieRef.current?.play(0, 7);
+            if(step==2&&routeCoords.length>0){
+              animatePolylineToEnd(routeCoords)
+            }
+
+          }
+        }
+        }}
+        onRegionChangeComplete={async (region) => {
+          if(step==1||step==2){
+          setIsMapDragging(false);
+          setHasTouchedMap(false);
+          lottieRef.current?.play(8, 1395);
+          fetchLocationDetails(region.latitude, region.longitude);
+        }
+        }}
       >
+        {/* Current Location Marker */}
+        
+
+        {/* Pickup Location Marker */}
+        {formData?.pickupAddress?.latitude && step>1 && (
+          <Marker
+            coordinate={{
+              latitude: formData.pickupAddress.latitude,
+              longitude: formData.pickupAddress.longitude
+            }}
+            tracksViewChanges={false}
+            title="Pickup Location"
+          >
+            <Image
+              source={require('../../assets/startPostion.png')}
+              style={{ width: 20, height: 20,resizeMode:"contain" }}
+            />
+          </Marker>
+        )}
+
+        {/* Dropoff Location Marker */}
+        {formData?.dropAddress?.latitude && step>1 &&!isMapDragging&& (
+          <Marker
+            coordinate={{
+              latitude: formData.dropAddress.latitude,
+              longitude: formData.dropAddress.longitude
+            }}
+            tracksViewChanges={false}
+            title="Dropoff Location"
+          >
+            <Image
+              source={require('../../assets/endPostion.png')}
+              style={{ width: 20, height: 20,resizeMode:"contain" }}
+            />
+          </Marker>
+        )}
+
+        {/* Driver Markers */}
         {Object.entries(filteredDrivers).map(([uid, driver]) => (
           <Marker
             key={uid}
-            tracksViewChanges={false}
             coordinate={{
               latitude: driver.latitude,
-              longitude: driver.longitude,
+              longitude: driver.longitude
             }}
+            title={`Driver ${uid}`}
+            tracksViewChanges={false}
           >
             <DriverMarker type={driver.type} angle={driver.angle} />
           </Marker>
         ))}
-        {renderRoute()}
-      </MapView>
-     {renderStep()}  
 
-      <CustomAlert
-        visible={showTimeEndAlert}
-        title={t('common.time_ended')}
-        message={t('common.please_complete_order')}
-        type="warning"
-        buttons={[
-          {
-            text: t('common.ok'),
-            style: 'confirm',
-            onPress: () => setShowTimeEndAlert(false),
-          },
-        ]}
-      />
+        {/* Directions */}
+        {formData?.pickupAddress?.latitude && formData?.dropAddress?.latitude && !isMapDragging && (
+          <MapViewDirections
+            origin={{
+              latitude: formData.pickupAddress.latitude,
+              longitude: formData.pickupAddress.longitude
+            }}
+            destination={{
+              latitude: formData.dropAddress.latitude,
+              longitude: formData.dropAddress.longitude
+            }}
+            apikey={API_GOOGLE}
+            strokeWidth={7}
+            strokeColor="#ccc"
+  onReady={result => {
+
+    
+    if(backInterval.current)
+      {
+         
+        setAnimatedCoords([])
+        setRouteCoords([])
+        clearInterval(backInterval.current);
+
+
+      }
+
+    setRouteCoords(result.coordinates);
+    animatePolylineToStart(result.coordinates);
+    
+   
+  }}
+          />
+        )}
+
+{animatedCoords.length>0&&(<Polyline
+  coordinates={animatedCoords}
+  strokeWidth={4}
+  style={{zIndex:1000 }}
+  strokeColor="#444" //#444
+/>)}
+
+      </MapView>
+    );
+  };
+
+  const handleCurrentLocation = () => {
+    if (currentLocation) {
+      mapRef.current?.animateToRegion({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      }, 1000);
+    } else {
+      getCurrentLocation();
+    }
+  };
+
+  return (
+    <View style={localStyles.container}>
+      {renderMap()}
+    {(step==1||(step==2)) && (  <LottieView
+        ref={lottieRef}
+        source={require("../../utils/marker.json")}
+        style={{
+          width: 140,
+          height: 140,
+          position: "absolute",
+          top: "39.6%",
+          alignSelf: "center"
+        }}
+        loop={false}
+        autoPlay={false}
+      />)}
+      {(step === 1 || step === 2) && (
+        <TouchableOpacity
+          style={localStyles.currentLocationButton}
+          onPress={handleCurrentLocation}
+        >
+    <MaterialIcons name="my-location" size={22} color="#595FE5" />
+ 
+        </TouchableOpacity>
+      )}
+      {renderStep()}  
+
+      
 
       <CustomAlert
         visible={showCancelAlert}
@@ -528,6 +769,30 @@ const localStyles = StyleSheet.create({
     backgroundColor: 'transparent',
     flex:1,
    },
+   currentLocationButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 250,
+    backgroundColor: 'white',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  currentLocationIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#595FE5',
+  },
 });
 
 export default MainScreen; 

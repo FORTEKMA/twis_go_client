@@ -95,8 +95,7 @@ const Profile = () => {
   };
 
   const confirmDeleteAccount = () => {
-    console.log("Account deletion confirmed");
-    setDeleteModalVisible(false);
+     setDeleteModalVisible(false);
     // Add your account deletion logic here
   };
 

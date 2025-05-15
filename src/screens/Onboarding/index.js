@@ -6,19 +6,19 @@ import {styles} from './styles';
 const slides = [
   {
     id: 1,
-    image: require('../../assets/step1.png'),
+    image: require('../../assets/step1.jpg'),
     titleKey: 'onboarding.slide1.title',
     textKey: 'onboarding.slide1.text',
   },
   {
     id: 2,
-    image: require('../../assets/step2.png'),
+    image: require('../../assets/step2.jpg'),
     titleKey: 'onboarding.slide2.title',
     textKey: 'onboarding.slide2.text',
   },
   {
     id: 3,
-    image: require('../../assets/step3.png'),
+    image: require('../../assets/step3.jpg'),
     titleKey: 'onboarding.slide3.title',
     textKey: 'onboarding.slide3.text',
   },
@@ -78,7 +78,7 @@ const OnboardingScreen = ({navigation}) => {
       >
         <Text style={styles.title}>{t(slide.titleKey)}</Text>
         <Text style={styles.subtitle}>{t(slide.textKey)}</Text>
-        <Image source={slide.image} style={styles.illustration} resizeMode="cover" />
+        <Image source={slide.image} style={styles.illustration} resizeMode="contain" />
       </Animated.View>
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>

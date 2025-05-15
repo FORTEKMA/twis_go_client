@@ -1,16 +1,19 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Alert, useWindowDimensions ,SafeAreaView,Image,View, TouchableOpacity, Text, TextInput, Animated, Easing} from 'react-native';
+import { Alert, useWindowDimensions ,SafeAreaView,Image,View, TouchableOpacity, Text, TextInput, Animated, Easing, ActivityIndicator,Platform} from 'react-native';
 import { useDispatch } from 'react-redux';
- 
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 import * as Yup from 'yup';
  
 import EmailLoginForm from './components/EmailLoginForm';
 import PhoneLoginForm from './components/PhoneLoginForm';
 import { styles } from './styles';
+import { updateUser,getCurrentUser,userRegister} from '../../store/userSlice/userSlice';
 import { useTranslation } from 'react-i18next';
+import { OneSignal } from "react-native-onesignal";
   
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-//import { googleSignIn, facebookSignIn } from '../../services/socialAuth';
+import { googleSignIn,facebookSignIn } from '../../services/socialAuth';
 
 const Login = ({ navigation }) => {
   const { t } = useTranslation();
@@ -20,7 +23,8 @@ const Login = ({ navigation }) => {
  
   const { width } = useWindowDimensions();
   const [loginMethod, setLoginMethod] = useState('email'); 
-  
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   // Add animation values
   const slideAnim = useRef(new Animated.Value(0)).current;
   const switchWidth = width  - 40; // 90% of screen width minus margins
@@ -49,30 +53,42 @@ const Login = ({ navigation }) => {
     slideAnim.setValue(loginMethod === 'email' ? 0 : 1);
   }, []);
 
+
   const handleGoogleLogin = async () => {
     try {
-    //  const result = await googleSignIn();
-      // Handle successful login
-      console.log('Google login successful:', result);
-      // Navigate to main app or handle the result as needed
+      setIsGoogleLoading(true);
+      const result = await googleSignIn();
+      const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
+      result.user.notificationId = notificationId;
+      dispatch(userRegister(result));
+      
     } catch (error) {
-      Alert.alert('Error', error.message);
+      console.log(error, 'error')
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
   const handleFacebookLogin = async () => {
     try {
-     // const result = await facebookSignIn();
-      // Handle successful login
-      console.log('Facebook login successful:', result);
-      // Navigate to main app or handle the result as needed
+      setIsFacebookLoading(true);
+      const result = await facebookSignIn();
+      const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
+      result.user.notificationId = notificationId;
+      dispatch(userRegister(result));
+    
+   
     } catch (error) {
-      Alert.alert('Error', error.message);
+      console.log(error, 'error')
+    } finally {
+      setIsFacebookLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={[styles.container, { width }]}> 
+    <SafeAreaView  style={[styles.container, { width }]}> 
+ 
+   
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('login.welcomeBack')}</Text>
       </View>
@@ -116,16 +132,40 @@ const Login = ({ navigation }) => {
       </View>
       <View style={styles.socialLoginContainer}>
         <TouchableOpacity style={styles.socialIcon} onPress={handleFacebookLogin}>
-          <FontAwesome name="facebook" size={30} color="#4267B2" />
+          {isFacebookLoading ? (
+            <ActivityIndicator size="small" color="#4267B2" />
+          ) : (
+            <FontAwesome name="facebook" size={30} color="#4267B2" />
+          )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.socialIcon} onPress={handleGoogleLogin}>
-          <FontAwesome name="google" size={30} color="#DB4437" />
+        <TouchableOpacity 
+          style={styles.socialIcon} 
+          onPress={handleGoogleLogin}
+          disabled={isGoogleLoading}
+        >
+          {isGoogleLoading ? (
+            <ActivityIndicator size="small" color="#DB4437" />
+          ) : (
+            <FontAwesome name="google" size={30} color="#DB4437" />
+          )}
         </TouchableOpacity>
     
       </View>
       <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
         <Text style={styles.registerText}>{t('login.noAccount')} <Text style={styles.registerNow}>{t('login.registerNow')}</Text></Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.guestBtn} onPress={() =>  dispatch(userRegister({
+       user:{ username: 'Guest',
+        email: 'guest@example.com',
+        phoneNumber: '',
+        password: '',
+  
+        user_role: 'client',},
+        jwt: -1,
+      }))}>
+        <Text style={styles.guestBtnText}>{t('login.enterAsGuest') || 'Enter as Guest'}</Text>
+      </TouchableOpacity>
+   
     </SafeAreaView>
   );
 };

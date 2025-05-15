@@ -1,42 +1,36 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import auth from '@react-native-firebase/auth';
-import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
-import { API_URL } from '../config';
+ import api from '../utils/api';
+ import { LoginManager,Settings,AccessToken,Profile } from "react-native-fbsdk-next";
 
-// Configure Google Sign In
 GoogleSignin.configure({
-  webClientId: 'YOUR_WEB_CLIENT_ID', // Get this from Google Cloud Console
-});
+  iosClientId: '960462603456-vkbvlpur2nvg8t2uvo1d1dp2ja1vcoio.apps.googleusercontent.com',
+  offlineAccess: false,
+  "client_id":"960462603456-lea706mqdejqra584ckvd6guhi30pqmp.apps.googleusercontent.com"
+  // webClientId: '960462603456-lea706mqdejqra584ckvd6guhi30pqmp.apps.googleusercontent.com',
+ });
+// Settings.initializeSDK();
 
+ Settings.setAppID('245483121678302');
+
+
+ 
 export const googleSignIn = async () => {
   try {
-    // Get the users ID token
-    const { idToken } = await GoogleSignin.signIn();
+  
+    await GoogleSignin.hasPlayServices();
+    const userInfo = await GoogleSignin.signIn();
+    if (userInfo?.data?.user){
+   const userData= await api.post('google-login',userInfo?.data?.user)
+ 
+    return userData?.data
 
-    // Create a Google credential with the token
-    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+   }
+   else{
+    throw new Error('User cancelled the login process');
+   }
+ 
 
-    // Sign-in the user with the credential
-    const userCredential = await auth().signInWithCredential(googleCredential);
-    
-    // Get user data
-    const user = userCredential.user;
-    
-    // Send the token to your backend
-    const response = await fetch(`${API_URL}/api/auth/google`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: idToken,
-        email: user.email,
-        name: user.displayName,
-      }),
-    });
 
-    const data = await response.json();
-    return data;
   } catch (error) {
     console.error('Google Sign-In Error:', error);
     throw error;
@@ -51,40 +45,31 @@ export const facebookSignIn = async () => {
     if (result.isCancelled) {
       throw new Error('User cancelled the login process');
     }
+ 
+    // // Get the access token
+  const token=await AccessToken.getCurrentAccessToken()
 
-    // Get the access token
-    const data = await AccessToken.getCurrentAccessToken();
 
-    if (!data) {
-      throw new Error('Something went wrong obtaining access token');
-    }
-
-    // Create a Firebase credential with the access token
-    const facebookCredential = auth.FacebookAuthProvider.credential(data.accessToken);
-
-    // Sign-in the user with the credential
-    const userCredential = await auth().signInWithCredential(facebookCredential);
-    
-    // Get user data
-    const user = userCredential.user;
-
-    // Send the token to your backend
-    const response = await fetch(`${API_URL}/api/auth/facebook`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        token: data.accessToken,
-        email: user.email,
-        name: user.displayName,
-      }),
-    });
-
-    const responseData = await response.json();
-    return responseData;
+    const response = await fetch(`https://graph.facebook.com/me?fields=id,first_name,last_name,email&access_token=${token.accessToken}`);
+    const currentProfile = await response.json();
+    console.log('currentProfile',currentProfile)
+     if (currentProfile){
+      const payload={
+      email:currentProfile?.email,
+           givenName:currentProfile?.first_name, 
+           familyName:currentProfile?.last_name,
+            id:currentProfile?.id
+      }
+       const userData= await api.post('facebook-login',payload)
+       return userData?.data
+   
+      }
+      else{
+       throw new Error('User cancelled the login process');
+      }
+ 
   } catch (error) {
-    console.error('Facebook Sign-In Error:', error);
+    console.error('Facebook Sign-In Error:', error.response);
     throw error;
   }
 }; 

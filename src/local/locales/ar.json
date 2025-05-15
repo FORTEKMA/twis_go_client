@@ -1,0 +1,69 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "success": "تم بنجاح",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "search": "بحث...",
+    "search_orders": "البحث عن الطلبات...",
+    "unknown": "غير معروف",
+    "accept": "قبول",
+    "decline": "رفض",
+    "next": "التالي",
+    "currency": "د.ت",
+    "km": "كم",
+    "no_driver_accepted": "لم يقبل أي سائق الطلب",
+    "time_ended": "انتهى الوقت",
+    "please_complete_order": "يرجى إكمال طلبك في أقرب وقت ممكن",
+    "ok": "موافق",
+    "confirm_cancel": "تأكيد الإلغاء",
+    "cancel_ride_warning": "هل أنت متأكد أنك تريد إلغاء هذه الرحلة؟ سيتم خفض نقاطك.",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "location": {
+    "where_are_you": "أين أنت؟",
+    "where_to": "إلى أين تريد الذهاب؟",
+    "pickUp": "نقطة الانطلاق",
+    "dropOff": "نقطة الوصول",
+    "use_current_location": "استخدام موقعي الحالي",
+    "suggested_locations": "المواقع المقترحة",
+    "continue": "متابعة",
+    "error": {
+      "get_location": "تعذر الحصول على موقعك",
+      "fetch_address": "تعذر الحصول على العنوان"
+    }
+  },
+  "history": {
+    "status": {
+      "driver_on_route_to_pickup": "السائق في طريقه للاستلام",
+      "arrived_at_pickup": "وصل إلى نقطة الاستلام",
+      "picked_up": "تم الاستلام",
+      "on_route_to_delivery": "في الطريق للتوصيل",
+      "arrived_at_delivery": "وصل إلى نقطة التوصيل",
+      "delivered": "تم التوصيل",
+      "completed": "مكتمل"
+    },
+    "card": {
+      "time_to_destination": "الوقت المتبقي",
+      "trip_id": "رقم الرحلة",
+      "price": "السعر",
+      "status": "الحالة",
+      "pickup": "نقطة الاستلام",
+      "delivery": "نقطة التوصيل",
+      "items": "المنتجات",
+      "cancel_order": "إلغاء الطلب",
+      "cancel_confirmation": "تأكيد الإلغاء",
+      "cancel_message": "هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟",
+      "minimize": "تصغير",
+      "expand": "تكبير",
+      "driver_on_the_way": "السائق في الطريق",
+      "arriving_in": "سيصل خلال {{time}}",
+      "pickup_at": "الاستلام الساعة {{time}}"
+    }
+  }
+} 

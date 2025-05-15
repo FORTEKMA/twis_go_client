@@ -23,8 +23,8 @@ const DriverMarker = ({ angle = 0, type = 1 }) => {
 
 const styles = StyleSheet.create({
   icon: {
-    width: 80,
-    height: 80,
+    width: 50,
+    height: 50,
     resizeMode: 'contain',
   },
 });

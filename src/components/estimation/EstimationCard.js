@@ -51,7 +51,7 @@ const EstimationCard = ({
   const greyBox = require('../../assets/GreyBox.png');
   const arrow = require('../../assets/rightArrow.png');
   const [loading, setLoading] = useState(true);
-  console.log(newreservation, '4');
+ 
   const [distance, setDistance] = useState(false);
   const [aide, setAide] = useState(false);
   const [sansAide, setSansAide] = useState(false);

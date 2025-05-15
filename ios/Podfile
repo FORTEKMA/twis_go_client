@@ -18,6 +18,11 @@ if linkage != nil
 end
 
 target 'Tawsilet' do
+  pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
+
+  rn_maps_path = '../node_modules/react-native-maps'
+  pod 'react-native-google-maps', :path => rn_maps_path
+  
   config = use_native_modules!
 
   # Flags change depending on the env values.
@@ -32,19 +37,34 @@ target 'Tawsilet' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+
   target 'TawsiletTests' do
     inherit! :complete
     # Pods for testing
   end
 
-  post_install do |installer|
+   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+   # $RNMapboxMaps.post_install(installer)
+    bitcode_strip_path = `xcrun --find bitcode_strip`.chop!
+    def strip_bitcode_from_framework(bitcode_strip_path, framework_relative_path)
+      framework_path = File.join(Dir.pwd, framework_relative_path)
+      command = "#{bitcode_strip_path} #{framework_path} -r -o #{framework_path}"
+      puts "Stripping bitcode: #{command}"
+      system(command)
+    end
+ 
+    framework_paths = [
+      "Pods/LogRocket/LogRocket.xcframework/ios-arm64/LogRocket.framework/LogRocket",
+      "Pods/hermes-engine/destroot/Library/Frameworks/macosx/hermes.framework/hermes",
+      "Pods/hermes-engine/destroot/Library/Frameworks/macosx/hermes.framework/Versions/Current/hermes",
+      "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64/hermes.framework/hermes",
+      "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes"
+    ]
+ 
+    framework_paths.each do |framework_relative_path|
+      strip_bitcode_from_framework(bitcode_strip_path, framework_relative_path)
+    end
   end
 end
 

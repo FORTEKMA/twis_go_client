@@ -68,8 +68,7 @@ export const getUserOrdersById = createAsyncThunk(
     try {
       const state = thunkAPI.getState();
       const token = state.user.token;
-     console.log(`${API_URL}/api/commands?filters[user][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`, 'commandStatuses');
-      const response = await axios.get(
+       const response = await axios.get(
         `${API_URL}/api/commands?filters[client][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`,
         {
           headers: {
@@ -92,8 +91,7 @@ export const getOrderById = createAsyncThunk(
       const state = thunkAPI.getState();
       const token = state.user.token;
     
-      console.log(`${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture`); 
-      const response = await axios.get(
+       const response = await axios.get(
         `${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture`,
         {
           headers: {

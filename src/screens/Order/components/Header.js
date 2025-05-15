@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, I18nManager } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, I18nManager ,Platform} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../../utils/colors';
-
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'; 
 const Header = ({ onBack }) => {
   return (
     <View style={styles.header}>
@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    paddingTop:Platform.OS=='ios'?hp(6):hp(2)
   },
   backButton: {
     padding: 8,

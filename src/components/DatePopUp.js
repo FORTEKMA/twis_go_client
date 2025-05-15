@@ -8,7 +8,7 @@ const WIDTH = Dimensions.get('window').width - 70;
 const DatePopUp = ({date, newreservation, setNewreservation, setDate}) => {
   const [isOpen, setIsOpen] = useState(false);
   const currentDate = new Date();
-  console.log(currentDate);
+ 
   return (
     <Box w={`${WIDTH}px`} alignSelf={'center'} alignItems="center">
       <Popover

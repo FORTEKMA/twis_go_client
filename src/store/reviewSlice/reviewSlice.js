@@ -38,7 +38,7 @@ export const createReview = createAsyncThunk(
   async ({id, body}, thunkAPI) => {
     const state = thunkAPI.getState();
     const token = state.user.token;
-    console.log(body);
+ 
     try {
       const response = await axios.post(`${API_URL}/api/reviews/${id}`, body, {
         headers: {

@@ -31,7 +31,7 @@ const vehicleOptions = [
   },
 ];
 
-const Step2 = ({ goNext, goBack, formData }) => {
+const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const { t } = useTranslation();
   const [selected, setSelected] = useState(formData.vehicleType||vehicleOptions[1]);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
@@ -198,4 +198,4 @@ const localStyles = StyleSheet.create({
   
   },
 });
-export default Step2; 
+export default ChooseVehicle; 

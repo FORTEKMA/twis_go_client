@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Modal, Alert, Animated } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTranslation } from 'react-i18next';
+import { colors } from '../../../utils/colors';
 
- 
- 
 const getStatusColor = (status) => {
   switch (status) {
     case 'Driver_on_route_to_pickup':
@@ -27,22 +26,62 @@ const getStatusColor = (status) => {
   }
 };
 
- 
-
-const OrderBottomCard = ({ order, timeToDestination, onCall, onEndTrip }) => {
-  console.log(order, 'order');
+const OrderBottomCard = ({ order, onCancel, onCallDriver }) => {
   const { t } = useTranslation();
-   const status = order?.status || 'Driver_on_route_to_pickup';
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const status = order?.status || 'Driver_on_route_to_pickup';
   const statusColor = getStatusColor(status);
   const statusText = t(`history.status.${status.toLowerCase()}`);
- 
+  const subStatusText = t('history.card.arriving_in', { time: order?.duration || '3 min' });
 
-  return (
-    <View style={localStyles.bottomCard}>
+  const handleCancel = () => {
+    setShowCancelModal(false);
+    onCancel && onCancel();
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
+
+  const toggleMinimize = () => {
+    setIsMinimized(!isMinimized);
+  };
+
+  const renderMinimizedContent = () => (
+    <View style={localStyles.minimizedContent}>
+      <View style={localStyles.minimizedHeader}>
+        <View style={[localStyles.statusDot, { backgroundColor: statusColor }]} />
+        <Text style={[localStyles.statusText, { color: statusColor }]}>{statusText}</Text>
+        <TouchableOpacity onPress={toggleMinimize} style={localStyles.minimizeButton}>
+          <Ionicons name="chevron-up" size={24} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
       <Text style={localStyles.timeToDest}>
-        {t('history.card.time_to_destination')} : <Text style={{ color: '#27ae60', fontWeight: 'bold' }}>{timeToDestination}</Text>
+        {t('history.card.time_to_destination')}: <Text style={{ color: '#27ae60', fontWeight: 'bold' }}>{order?.duration}</Text>
       </Text>
+    </View>
+  );
+
+  const renderFullContent = () => (
+    <>
+      <View style={localStyles.statusBanner}>
+        <View style={[localStyles.statusDot, { backgroundColor: statusColor }]} />
+        <Text style={[localStyles.statusText, { color: statusColor }]}>{statusText}</Text>
+        <TouchableOpacity onPress={toggleMinimize} style={localStyles.minimizeButton}>
+          <Ionicons name="chevron-down" size={24} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      <Text style={localStyles.timeToDest}>
+        {t('history.card.time_to_destination')}: <Text style={{ color: '#27ae60', fontWeight: 'bold' }}>{order?.duration}</Text>
+      </Text>
+
       <View style={localStyles.separator} />
+
       <View style={localStyles.infoRow}>
         <View style={[localStyles.infoItem, { alignItems: 'center' }]}>
           <Text style={localStyles.label}>{t('history.card.trip_id')}</Text>
@@ -50,36 +89,106 @@ const OrderBottomCard = ({ order, timeToDestination, onCall, onEndTrip }) => {
         </View>
         <View style={localStyles.verticalSeparator} />
         <View style={[localStyles.infoItem, { alignItems: 'center' }]}>
-          <Text style={localStyles.label}>{t('history.card.status')}</Text>
-          <Text style={[localStyles.value, { color: statusColor }]}>{statusText}</Text>
+          <Text style={localStyles.label}>{t('history.card.price')}</Text>
+          <Text style={[localStyles.value, { color: colors.secondary }]}>{formatPrice(order?.price || 0)}</Text>
         </View>
       </View>
+
       <View style={localStyles.separator} />
-      <View style={localStyles.addressRow}>
-        <Ionicons name="location-sharp" size={18} color="#27ae60" />
-        <Text style={localStyles.addressText} numberOfLines={1}>{order?.pickUpAddress?.Address}</Text>
-      </View>
-      <View style={localStyles.addressRow}>
-        <MaterialIcons name="location-on" size={18} color="#E74C3C" />
-        <Text style={localStyles.addressText} numberOfLines={1}>{order?.dropOfAddress?.Address}</Text>
-        </View>
-      <View style={localStyles.separator} />
-      <View style={localStyles.driverRow}>
-        <Image
-          source={{ uri: order?.driver?.avatar || 'https://randomuser.me/api/portraits/men/1.jpg' }}
-          style={localStyles.avatar}
-        />
-        <View style={{ flex: 1 }}>
-          <Text style={localStyles.driverName}>{order?.driver?.firstName} {order?.driver?.lastName}</Text>
-          <View style={localStyles.ratingRow}>
-            <Ionicons name="happy" size={16} color="#FFD700" />
-            <Text style={localStyles.rating}>{order?.driver?.rating || '4.5'}</Text>
+
+      <View style={localStyles.addressContainer}>
+        <View style={localStyles.addressRow}>
+          <View style={[localStyles.addressIcon, { backgroundColor: '#27ae60' }]}>
+            <Ionicons name="location-sharp" size={16} color="#fff" />
+          </View>
+          <View style={localStyles.addressTextContainer}>
+            <Text style={localStyles.addressLabel}>{t('history.card.pickup')}</Text>
+            <Text style={localStyles.addressText} numberOfLines={2}>{order?.pickUpAddress?.Address}</Text>
           </View>
         </View>
-        
+
+        <View style={localStyles.addressRow}>
+          <View style={[localStyles.addressIcon, { backgroundColor: '#E74C3C' }]}>
+            <MaterialIcons name="location-on" size={16} color="#fff" />
+          </View>
+          <View style={localStyles.addressTextContainer}>
+            <Text style={localStyles.addressLabel}>{t('history.card.delivery')}</Text>
+            <Text style={localStyles.addressText} numberOfLines={2}>{order?.dropOfAddress?.Address}</Text>
+          </View>
+        </View>
       </View>
+
       <View style={localStyles.separator} />
-     
+
+      <View style={localStyles.driverSection}>
+        <View style={localStyles.driverRow}>
+          <Image
+            source={{ uri: order?.driver?.avatar || 'https://randomuser.me/api/portraits/men/1.jpg' }}
+            style={localStyles.avatar}
+          />
+          <View style={localStyles.driverInfo}>
+            <Text style={localStyles.driverName}>{order?.driver?.firstName} {order?.driver?.lastName}</Text>
+            <View style={localStyles.ratingRow}>
+              <Ionicons name="star" size={16} color="#FFD700" />
+              <Text style={localStyles.rating}>{order?.driver?.rating || '4.5'}</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={localStyles.contactButton}>
+            <Ionicons name="call" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={localStyles.separator} />
+
+      <View style={localStyles.paymentSection}>
+        <View style={localStyles.paymentRow}>
+          <Ionicons name="card-outline" size={20} color={colors.secondary} />
+          <Text style={localStyles.paymentText}>{t(order?.payType) }</Text>
+        </View>
+       
+      </View>
+
+      <TouchableOpacity 
+        style={localStyles.cancelButton}
+        onPress={() => setShowCancelModal(true)}
+      >
+        <Text style={localStyles.cancelButtonText}>{t('history.card.cancel_order')}</Text>
+      </TouchableOpacity>
+    </>
+  );
+
+  return (
+    <View style={[localStyles.bottomCard, isMinimized && localStyles.minimizedCard]}>
+      {isMinimized ? renderMinimizedContent() : renderFullContent()}
+      
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showCancelModal}
+        onRequestClose={() => setShowCancelModal(false)}
+      >
+        <View style={localStyles.modalOverlay}>
+          <View style={localStyles.modalContent}>
+            <Text style={localStyles.modalTitle}>{t('history.card.cancel_confirmation')}</Text>
+            <Text style={localStyles.modalMessage}>{t('history.card.cancel_message')}</Text>
+            <View style={localStyles.modalButtons}>
+              <TouchableOpacity 
+                style={[localStyles.modalButton, localStyles.cancelModalButton]}
+                onPress={() => setShowCancelModal(false)}
+              >
+                <Text style={localStyles.modalButtonText}>{t('common.no')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[localStyles.modalButton, localStyles.confirmModalButton]}
+                onPress={handleCancel}
+              >
+                <Text style={[localStyles.modalButtonText, { color: '#fff' }]}>{t('common.yes')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -100,6 +209,22 @@ const localStyles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
     zIndex: 100,
+  },
+  statusBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   timeToDest: {
     textAlign: 'center',
@@ -123,38 +248,54 @@ const localStyles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 15,
   },
+  addressContainer: {
+    marginVertical: 10,
+  },
   addressRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  addressIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 6,
+    marginRight: 10,
+  },
+  addressTextContainer: {
+    flex: 1,
+  },
+  addressLabel: {
+    color: '#888',
+    fontSize: 12,
+    marginBottom: 2,
   },
   addressText: {
     color: '#222',
     fontSize: 14,
-    marginLeft: 4,
-    flex: 1,
+    lineHeight: 20,
   },
-  note: {
-    color: '#595FE5',
-    fontSize: 13,
-    marginLeft: 4,
-    textDecorationLine: 'underline',
+  driverSection: {
+    marginVertical: 10,
   },
   driverRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 10,
   },
   avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    marginRight: 10,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    marginRight: 12,
+  },
+  driverInfo: {
+    flex: 1,
   },
   driverName: {
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 16,
     color: '#222',
   },
   ratingRow: {
@@ -163,22 +304,57 @@ const localStyles = StyleSheet.create({
     marginTop: 2,
   },
   rating: {
-    marginLeft: 3,
+    marginLeft: 4,
     color: '#FFD700',
     fontWeight: 'bold',
-    fontSize: 13,
+    fontSize: 14,
   },
-  endTripBtn: {
-    backgroundColor: '#E74C3C',
-    borderRadius: 10,
-    paddingVertical: 13,
+  contactButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    justifyContent: 'center',
     alignItems: 'center',
+  },
+  paymentSection: {
+    marginVertical: 10,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  paymentText: {
+    marginLeft: 8,
+    fontSize: 15,
+    color: '#222',
+  },
+  itemsSection: {
     marginTop: 8,
   },
-  endTripText: {
-    color: '#fff',
+  itemsTitle: {
+    fontSize: 14,
     fontWeight: 'bold',
-    fontSize: 17,
+    color: '#222',
+    marginBottom: 4,
+  },
+  itemText: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 2,
+  },
+  cancelButton: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cancelButtonText: {
+    color: '#E74C3C',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   separator: {
     height: 1,
@@ -193,6 +369,70 @@ const localStyles = StyleSheet.create({
   },
   infoItem: {
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#222',
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginHorizontal: 5,
+  },
+  cancelModalButton: {
+    backgroundColor: '#f8f9fa',
+  },
+  confirmModalButton: {
+    backgroundColor: '#E74C3C',
+  },
+  modalButtonText: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#E74C3C',
+  },
+  minimizedCard: {
+    height: 80,
+    padding: 15,
+  },
+  minimizedContent: {
+    flex: 1,
+  },
+  minimizedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  minimizeButton: {
+    padding: 4,
   },
 });
 

@@ -4,24 +4,40 @@ import axios from 'axios';
 import {API_URL_ANDROID, API_URL_IOS} from '@env';
 import {Platform} from 'react-native';
 const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-console.log(API_URL_IOS, API_URL_ANDROID, API_URL);
- 
+  
 export const userRegister = createAsyncThunk('user/register', async user => {
-  try {
-    return user
- 
-  } catch (error) {
-    throw error;
+  
+     if(user.jwt!=-1){
+      let response = await axios.put(
+        `${API_URL}/api/users/${user.user.id}`,
+        {
+          notificationId:user.user.notificationId 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.jwt}`,
+          },
+        },  
+      ).catch(error=>{
+        console.log("error",error)
+      } );
+      console.log("response",response.data)
+      return user
+     }else{
+      return user
+     }
+
      
-  }
+ 
+ 
+   
 });
 
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
-    console.log("url=====" ,API_URL);
+ 
     let response = await axios.post(`${API_URL}/api/auth/local`, login);
-    console.log(response.data, 'response');
-    
+     
     return response.data
     
   } catch (error) {
@@ -36,8 +52,8 @@ export const getCurrentUser = createAsyncThunk(
     try {
       const state = thunkAPI.getState();
       const jwt = state.user.token; // Access the token from the 'user' slice
-      console.log(jwt);
-      if (jwt) {
+      
+      if (jwt&&jwt!=-1) {
         const response = await axios.get(`${API_URL}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${jwt}`,
@@ -66,7 +82,7 @@ export const sendVerify = createAsyncThunk(
       let response = await axios.post(`${API_URL}/api/send-OTP`, {
         phoneNumber: phoneNumber,
       });
-      console.log(response, 'verif');
+     
       return response.data;
     } catch (error) {
       console.log(error, 'send');
@@ -121,7 +137,7 @@ export const updateUser = createAsyncThunk(
           },
         },
       );
-      console.log(response.data, 'update');
+    
       return await response.data;
     } catch (error) {
       throw error;
@@ -134,9 +150,7 @@ export const changePassword = createAsyncThunk(
   async (credentials, thunkAPI) => {
     const state = thunkAPI.getState();
     const token = state.user.token;
-
-    console.log('Sending credentials:', credentials); // Debugging: Log the credentials
-    console.log('Using token:', token); // Debugging: Log the token
+ 
 
     try {
       const response = await axios.post(
@@ -148,8 +162,7 @@ export const changePassword = createAsyncThunk(
           },
         },
       );
-
-      console.log('API Response:', response.data); // Debugging: Log the API response
+ 
       return response.data;
     } catch (error) {
       console.error('Change password error:', error); // Debugging: Log the error
@@ -157,23 +170,7 @@ export const changePassword = createAsyncThunk(
     }
   },
 );
-// export const forgetPassword = createAsyncThunk(
-//   'user/forgetPassword',
-//   async email => {
-//     try {
-//       const response = await axios.post(`${API_URL}/api/auth/forgot-password`, {
-//         email: email,
-//       });
-
-//       console.log(response);
-
-//       return response;
-//     } catch (error) {
-//       console.log(error);
-//       throw error; // Add this line to propagate the error up to the component
-//     }
-//   },
-// );
+ 
 export const forgetPassword = createAsyncThunk(
   'user/forgetPassword',
   async email => {
@@ -181,8 +178,7 @@ export const forgetPassword = createAsyncThunk(
       const response = await axios.post(`${API_URL}/api/auth/forgot-password`, {
         email: email,
       });
-      console.log(response.data,"==============<>==========")
-      return response.data;
+       return response.data;
     } catch (error) {
       throw error; // Add this line to propagate the error up to the component
     }
@@ -239,7 +235,7 @@ export const userSlice = createSlice({
     [changePassword.rejected]: (state, action) => {
       state.status = 'fail';
       state.isLoading = false;
-      console.log(action);
+ 
     },
     [forgetPassword.pending]: state => {
       state.status = 'pending';
@@ -275,7 +271,11 @@ export const userSlice = createSlice({
     [userRegister.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
-      state.token = action.payload.jwt;
+ 
+      if (action.payload.jwt && action?.payload?.user?.user_role === 'client') {
+        state.token = action.payload.jwt;
+        state.currentUser = action.payload.user;
+      }
     },
     [userRegister.rejected]: state => {
       state.status = 'fail';
@@ -335,7 +335,7 @@ export const userSlice = createSlice({
     [sendVerify.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
-      console.log(action.payload);
+     
     },
     [sendVerify.rejected]: state => {
       state.status = 'fail';

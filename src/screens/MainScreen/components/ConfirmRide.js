@@ -1,29 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator ,Image} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { styles } from '../styles';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
-import api from '../../../utils/api';
-const Step4 = ({ goBack,formData,rideData,goNext  }) => {
- 
+import { calculatePrice } from '../../../utils/CalculateDistanceAndTime';
+const vehicleOptions = [
+  {
+    key: 'eco',
+    label: 'Éco',
+    nearby: 4,
+    icon:require('../../../assets/TawsiletEcoCar.png'),
+    id:1,
+    description:'eco_description'
+  },
+  {
+    key: 'berline',
+    label: 'Berline',
+    nearby: 4,
+    icon:require('../../../assets/TawsiletBerlineCar.png'),
+    id:2,
+    description:'berline_description'
+  },
+  {
+    key: 'van',
+    label: 'Van',
+    nearby:7,
+    icon:require('../../../assets/TawsiletVanCar.png'),
+    id:3,
+    description:'van_description'
+  },
+];
+const Step3 = ({ goBack, formData, rideData, goNext }) => {
   const { t } = useTranslation();
   const user = useSelector(state => state.user.currentUser);
-  const [commande, setCommande] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [price, setPrice] = useState(0);
 
   useEffect(() => {
-    setLoading(true);
-    api.get(`/commands/${rideData?.commande?.data?.documentId}?populate[0]=driver&populate[1]=driver.profilePicture&populate[2]=driver.vehicule`).then(res => {
-      setCommande(res.data.data);
+    const getData = async () => {
+      setLoading(true);
+      const response = await calculatePrice(formData)
+      setPrice(response.price);
       setLoading(false);
-    }).catch(error => {
-      setLoading(false);
-    });
+    }
+    getData();
   }, [rideData]);
- 
+
   if (loading) {
     return (
       <View style={[localStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -32,34 +56,26 @@ const Step4 = ({ goBack,formData,rideData,goNext  }) => {
     );
   }
 
-  
   return (
     <View style={localStyles.container}>
-      {/* Driver Card */}
-      <View style={{gap:10, marginBottom: 18, marginTop: 10 ,flexDirection: 'row', alignItems: 'center',width:"100%" }}>
-          <TouchableOpacity
-        style={{  backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
-        onPress={goBack}
-      >
-        <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
-      </TouchableOpacity>
-      <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#19191C', }}>{t('booking.step4.confirm_ride')}</Text>
+      {/* Header */}
+      <View style={{ gap: 10, marginBottom: 18, marginTop: 10, flexDirection: 'row', alignItems: 'center', width: "100%" }}>
+        <TouchableOpacity
+          style={{ backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
+          onPress={goBack}
+        >
+          <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
+        </TouchableOpacity>
+        <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#19191C', }}>{t('booking.step4.confirm_ride')}</Text>
+      </View>
 
-          </View>
+      {/* Car Type Card */}
       <View style={localStyles.card}>
         <View style={localStyles.row}>
-          <Image source={{ uri: commande?.driver?.profilePicture?.url }} style={localStyles.avatar} />
-          <View style={{ flex: 1, marginLeft: 10 }}>
-            <Text style={localStyles.driverName}>{t('driver_name', { name: commande?.driver?.firstName })}</Text>
-            <Text style={localStyles.car}>{t('car_model', { model: commande?.driver?.vehicule?.model })}</Text>
-            <View style={localStyles.plateRow}>
-              <MaterialCommunityIcons name="car" size={18} color="#19191C" style={{ marginRight: 4 }} />
-              <Text style={localStyles.plate}>{commande?.driver?.vehicule?.matriculation}</Text>
-            </View>
-          </View>
-          <View style={localStyles.ratingBox}>
-            <FontAwesome name="star" size={16} color="#F9DC76" />
-            <Text style={localStyles.ratingText}>{commande?.driver?.rating||"4.5"}</Text>
+           <Image source={vehicleOptions[formData?.vehicleType?.id].icon} style={{ width: 70, height: 70, marginRight: 12 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={localStyles.carType}>{vehicleOptions[formData?.vehicleType?.id].label}</Text>
+            <Text style={localStyles.carDescription}>{t(vehicleOptions[formData?.vehicleType?.id].description)}</Text>
           </View>
         </View>
       </View>
@@ -83,19 +99,16 @@ const Step4 = ({ goBack,formData,rideData,goNext  }) => {
         </View>
       </View>
 
-     
       {/* Next Button */}
-      <View style={{ alignItems: 'center', marginTop: 0 }}>
-        <View style={localStyles.nextButtonWrapper}>
-          <Text style={localStyles.nextButtonPrice}>{parseFloat(commande?.totalPrice).toFixed(2)} DT</Text>
-          <Text style={localStyles.nextButtonText} onPress={goNext}>{t('go_to_payment')}</Text>
-        </View>
-      </View>
+      <TouchableOpacity style={localStyles.nextButtonWrapper} onPress={() => goNext({ price })}>
+        
+          <Text style={localStyles.nextButtonPrice}>{parseFloat(price).toFixed(2)} DT</Text>
+          <Text style={localStyles.nextButtonText} >{t('go_to_payment')}</Text>
+      
+      </TouchableOpacity>
     </View>
   );
 };
-
- 
 
 const localStyles = StyleSheet.create({
   container: {
@@ -103,14 +116,12 @@ const localStyles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     margin: 16,
-     
     width: '92%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 4,
-    
   },
   card: {
     backgroundColor: '#fff',
@@ -127,53 +138,15 @@ const localStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 2,
-    borderColor: '#F9DC76',
-  },
-  driverName: {
+  carType: {
     fontWeight: '700',
     fontSize: hp(2.2),
     color: '#19191C',
   },
-  car: {
+  carDescription: {
     color: '#BDBDBD',
     fontSize: hp(1.7),
     marginTop: 2,
-  },
-  plateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  plate: {
-    backgroundColor: '#F3F3F3',
-    color: '#19191C',
-    fontWeight: '700',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    fontSize: hp(1.7),
-  },
-  ratingBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: '#F9DC76',
-    marginLeft: 10,
-  },
-  ratingText: {
-    marginLeft: 4,
-    fontWeight: '700',
-    color: '#19191C',
-    fontSize: hp(1.8),
   },
   infoCard: {
     backgroundColor: '#fff',
@@ -209,32 +182,6 @@ const localStyles = StyleSheet.create({
     marginLeft: 10,
     marginBottom: 10,
   },
-  priceBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    alignSelf: 'center',
-    marginTop: 30,
-  },
-  priceCurrency: {
-    color: '#19191C',
-    fontWeight: '700',
-    fontSize: hp(2.5),
-    marginBottom: 2,
-    marginRight: 2,
-  },
-  price: {
-    color: '#19191C',
-    fontWeight: '700',
-    fontSize: hp(5.5),
-    lineHeight: hp(6),
-  },
-  priceCents: {
-    color: '#19191C',
-    fontWeight: '700',
-    fontSize: hp(2.5),
-    marginBottom: 2,
-    marginLeft: 1,
-  },
   nextButtonWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -265,4 +212,4 @@ const localStyles = StyleSheet.create({
   },
 });
 
-export default Step4; 
+export default Step3; 

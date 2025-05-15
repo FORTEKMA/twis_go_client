@@ -4145,6 +4145,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-google-signin/google-signin@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "@react-native-google-signin/google-signin@npm:14.0.0"
+  peerDependencies:
+    expo: ">=52.0.40"
+    react: "*"
+    react-dom: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 18208317d2cd9cbd47db94603da78175873bb923430c5ed7a7ec5abb30815c34bf029fcf93cb4854d92417335f3c588a574106a284194c98abcd7382806231ea
+  languageName: node
+  linkType: hard
+
 "@react-native-picker/picker@npm:^2.10.2":
   version: 2.10.2
   resolution: "@react-native-picker/picker@npm:2.10.2"
@@ -18084,6 +18101,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-fbsdk-next@npm:^13.4.1":
+  version: 13.4.1
+  resolution: "react-native-fbsdk-next@npm:13.4.1"
+  peerDependencies:
+    expo: ">=47.0.0"
+    react-native: ">=0.63.3"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: e8f0f470009485c48e17279b1dfe8e6f94303de52394ce579fb888518a694b79f741a060d957b097534003abb07827e03955203b55101c333ba07bf8f5d307b1
+  languageName: node
+  linkType: hard
+
 "react-native-feather@npm:^1.1.2":
   version: 1.1.2
   resolution: "react-native-feather@npm:1.1.2"
@@ -21066,6 +21096,7 @@ __metadata:
     "@react-native-community/geolocation": ^3.4.0
     "@react-native-firebase/app": ^22.1.0
     "@react-native-firebase/database": ^22.1.0
+    "@react-native-google-signin/google-signin": ^14.0.0
     "@react-native-picker/picker": ^2.10.2
     "@react-native/eslint-config": ^0.72.2
     "@react-native/metro-config": ^0.72.11
@@ -21103,6 +21134,7 @@ __metadata:
     react-native-document-picker: ^9.3.1
     react-native-dotenv: ^3.4.9
     react-native-eject: ^1.0.1
+    react-native-fbsdk-next: ^13.4.1
     react-native-geolocation-service: ^5.2.0
     react-native-gesture-handler: ^2.13.2
     react-native-google-places-autocomplete: ^2.5.6
