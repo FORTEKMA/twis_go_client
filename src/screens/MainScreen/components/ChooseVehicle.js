@@ -33,7 +33,7 @@ const vehicleOptions = [
 
 const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState(formData.vehicleType||vehicleOptions[1]);
+  const [selected, setSelected] = useState(formData.vehicleType||vehicleOptions[0]);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(formData.selectedDate);
   const [tripDetails, setTripDetails] = useState({});

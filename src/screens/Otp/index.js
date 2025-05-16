@@ -37,6 +37,7 @@ const Otp = ({ route, navigation }) => {
           return
          }
         const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
+        console.log("res", res);
          await dispatch(updateUser({
           id: res?.payload?.id,
           notificationId

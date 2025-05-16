@@ -6,7 +6,7 @@ import {useTranslation} from 'react-i18next';
 const TAGS = [
   'Very Professional',
   'Arrive On Time',
-  'Package Handed Over gently',
+  'Talk to much',
   'Other',
 ];
 

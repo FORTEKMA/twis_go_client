@@ -34,6 +34,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
       <View style={localStyles.content}>
         <GooglePlacesAutocomplete
           placeholder={t('location.pickUp')}
+          debounce={300} 
           onPress={(data, details = null) => {
             if (details) {
               const newAddress = {

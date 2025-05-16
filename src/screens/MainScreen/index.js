@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
   View,
   Image,
@@ -35,7 +35,7 @@ import LottieView from 'lottie-react-native';
 import {API_GOOGLE} from "@env"
 import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH,height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 const hapticOptions = {
@@ -76,22 +76,206 @@ const MainScreen = () => {
   const startInterval=useRef(null)
   const lottieRef = useRef(null);
   const [hasTouchedMap, setHasTouchedMap] = useState(false);
-   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = deg2rad(lat2 - lat1);
-    const dLon = deg2rad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in km
-    return distance;
-  };
+  
+  // Memoized distance calculation
+  const memoizedCalculateDistance = useMemo(() => {
+    return (lat1, lon1, lat2, lon2) => {
+      const R = 6371;
+      const dLat = deg2rad(lat2 - lat1);
+      const dLon = deg2rad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
+  }, []);
 
-  const deg2rad = (deg) => {
-    return deg * (Math.PI / 180);
-  };
+  // Memoized deg2rad function
+  const deg2rad = useMemo(() => {
+    return (deg) => deg * (Math.PI / 180);
+  }, []);
+
+  // Memoized driver filtering
+  const filterNearbyDrivers = useCallback((drivers, currentLocation, maxDistance = 5) => {
+    if (!currentLocation) return {};
+    
+    return Object.entries(drivers).reduce((acc, [uid, driver]) => {
+      const distance = memoizedCalculateDistance(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        driver.latitude,
+        driver.longitude
+      );
+      if (distance <= maxDistance) {
+        acc[uid] = driver;
+      }
+      return acc;
+    }, {});
+  }, [memoizedCalculateDistance]);
+
+  // Optimized Firebase listener
+  useEffect(() => {
+    const db = getDatabase(getApp());
+    const driversRef = dbRef(db, 'drivers');
+
+    const unsubscribe = onValue(driversRef, snapshot => {
+      const data = snapshot.val() || {};
+      
+      // Process in chunks to avoid blocking the main thread
+      const processChunk = (entries, startIndex) => {
+        const chunkSize = 450;
+        const chunk = entries.slice(startIndex, startIndex + chunkSize);
+        const activeDrivers = {};
+        
+        chunk.forEach(([uid, driver]) => {
+          if (driver.isFree && driver.latitude && driver.longitude) {
+            activeDrivers[uid] = driver;
+          }
+        });
+
+        if (startIndex + chunkSize < entries.length) {
+          setTimeout(() => processChunk(entries, startIndex + chunkSize), 0);
+        } else {
+          const nearbyDrivers = filterNearbyDrivers(activeDrivers, currentLocation);
+          setFilteredDrivers(nearbyDrivers);
+        }
+      };
+
+      processChunk(Object.entries(data), 0);
+    });
+
+    return () => {
+      driversRef.off('value', unsubscribe);
+    }
+  }, [currentLocation, filterNearbyDrivers]);
+
+  // Optimized route animation
+  const simplifyCoordinates = useCallback((coords, tolerance = 0.0001) => {
+    if (coords.length <= 2) return coords;
+    
+    const findPerpendicularDistance = (point, lineStart, lineEnd) => {
+      const x = point.latitude;
+      const y = point.longitude;
+      const x1 = lineStart.latitude;
+      const y1 = lineStart.longitude;
+      const x2 = lineEnd.latitude;
+      const y2 = lineEnd.longitude;
+      
+      const A = x - x1;
+      const B = y - y1;
+      const C = x2 - x1;
+      const D = y2 - y1;
+      
+      const dot = A * C + B * D;
+      const lenSq = C * C + D * D;
+      let param = -1;
+      
+      if (lenSq !== 0) {
+        param = dot / lenSq;
+      }
+      
+      let xx, yy;
+      
+      if (param < 0) {
+        xx = x1;
+        yy = y1;
+      } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+      } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+      }
+      
+      const dx = x - xx;
+      const dy = y - yy;
+      
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const douglasPeucker = (points, start, end, tolerance) => {
+      if (end - start <= 1) return;
+      
+      let maxDistance = 0;
+      let index = start;
+      
+      for (let i = start + 1; i < end; i++) {
+        const distance = findPerpendicularDistance(
+          points[i],
+          points[start],
+          points[end]
+        );
+        
+        if (distance > maxDistance) {
+          index = i;
+          maxDistance = distance;
+        }
+      }
+      
+      if (maxDistance > tolerance) {
+        points[index].keep = true;
+        douglasPeucker(points, start, index, tolerance);
+        douglasPeucker(points, index, end, tolerance);
+      }
+    };
+
+    const points = coords.map(coord => ({ ...coord, keep: false }));
+    points[0].keep = true;
+    points[points.length - 1].keep = true;
+    
+    douglasPeucker(points, 0, points.length - 1, tolerance);
+    
+    return points.filter(point => point.keep);
+  }, []);
+
+  const animatePolylineToStart = useCallback((coords) => {
+    animationIndex.current = 0;
+    setAnimatedCoords([]);
+    
+    // Simplify coordinates for smoother animation
+    const simplifiedCoords = simplifyCoordinates(coords);
+    const totalAnimationDuration = 10;
+    const intervalDelay = totalAnimationDuration / simplifiedCoords.length || 1;
+    
+    if(startInterval.current) {
+      clearInterval(startInterval.current);
+    }
+    
+    startInterval.current = setInterval(() => {
+      animationIndex.current += 1;
+      setAnimatedCoords(simplifiedCoords.slice(0, animationIndex.current));
+      
+      if (animationIndex.current >= simplifiedCoords.length) {
+        clearInterval(startInterval.current);
+      }
+    }, intervalDelay);
+  }, [simplifyCoordinates]);
+
+  // Optimized event handlers
+  const handleRegionChange = useCallback((region) => {
+    if(step === 1 || step === 2) {
+      ReactNativeHapticFeedback.trigger("impactLight", hapticOptions);
+      setIsMapDragging(false);
+      setHasTouchedMap(false);
+      lottieRef.current?.play(8, 1395);
+      fetchLocationDetails(region.latitude, region.longitude);
+    }
+  }, [step]);
+
+  const handleMapDrag = useCallback(() => {
+    if(step === 1 || step === 2) {
+      setIsMapDragging(true);
+      if (!hasTouchedMap) {
+        setHasTouchedMap(true);
+        lottieRef.current?.play(0, 7);
+        if(step === 2 && routeCoords.length > 0) {
+          animatePolylineToEnd(routeCoords);
+        }
+      }
+    }
+  }, [step, hasTouchedMap, routeCoords]);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'ios') {
@@ -160,19 +344,13 @@ const MainScreen = () => {
         if (
           driver.isFree === true &&
           driver.latitude &&
-          driver.longitude &&
-          currentLocation
-        ) {
-          const distance = calculateDistance(
-            currentLocation.latitude,
-            currentLocation.longitude,
-            driver.latitude,
-            driver.longitude
-          );
-
-          if (distance <= 50) {
+          driver.longitude 
+        ) { 
+          
+          
+ 
             activeDrivers[uid] = driver;
-          }
+          
         }
       });
 
@@ -373,6 +551,24 @@ const MainScreen = () => {
           animateStepTransition(step+1);
           setStep(step+1);
         }
+        if(step==3){
+          if(formData?.pickupAddress?.latitude&&formData?.pickupAddress?.longitude&&formData?.dropAddress?.latitude&&formData?.dropAddress?.longitude)
+          mapRef?.current?.fitToCoordinates([{
+            latitude: formData?.pickupAddress?.latitude,
+            longitude: formData?.pickupAddress?.longitude
+          },{
+            latitude: formData?.dropAddress?.latitude,
+            longitude: formData?.dropAddress?.longitude
+          }], {
+            edgePadding: {
+              top: 90,
+              right: 80,
+              bottom: SCREEN_HEIGHT * 0.5,
+              left: 80,
+            },
+            animated: true,
+          });
+        }
       }
      } catch (error) {
       console.log(error)
@@ -424,7 +620,7 @@ const MainScreen = () => {
     try {
       const response = await axios.get(url);
       if (response.data.status === 'OK') {
-        const address = response.data.results[0].formatted_address;
+        const address = response?.data?.results[0]?.formatted_address;
         const location = {
           address: address,
           latitude: lat,
@@ -452,47 +648,30 @@ const MainScreen = () => {
   };
   
 
-  const animatePolylineToStart = (coords) => {
-    animationIndex.current = 0;
+  const animatePolylineToEnd = useCallback((coords) => {
+    // Simplify coordinates for smoother animation
+    const simplifiedCoords = simplifyCoordinates(coords);
+    const totalAnimationDuration = 5;
+    const intervalDelay = totalAnimationDuration / simplifiedCoords.length || 1;
+    
+    animationIndex.current = simplifiedCoords.length;
     setAnimatedCoords([]);
-    const totalAnimationDuration =  10
-
-    // Calculate delay between points
-    const intervalDelay = totalAnimationDuration /  coords.length||1;
-    if(startInterval.current)
-      clearInterval(startInterval.current)
-     startInterval.current = setInterval(() => {
-      animationIndex.current += 1;
-      setAnimatedCoords(coords.slice(0, animationIndex.current));
   
-      if (animationIndex.current >= coords.length) {
-        clearInterval(startInterval.current);
-      }
-    }, intervalDelay); // speed of drawing
-  };
-
-  const animatePolylineToEnd = (coords) => {
-
-    const totalAnimationDuration = 5; 
-
-    // Calculate delay between points
-    const intervalDelay = totalAnimationDuration /  coords.length||1;
-    animationIndex.current = coords.length;
-    setAnimatedCoords([]);
+    if (backInterval.current) {
+      clearInterval(backInterval.current);
+    }
   
     backInterval.current = setInterval(() => {
       animationIndex.current -= 1;
-      setAnimatedCoords(coords.slice(0, animationIndex.current));
+      setAnimatedCoords(simplifiedCoords.slice(0, animationIndex.current));
       
       if (animationIndex.current <= 0) {
         clearInterval(backInterval.current);
-        setAnimatedCoords([])
-        setRouteCoords([])
-        
+        setAnimatedCoords([]);
+        setRouteCoords([]);
       }
-    }, intervalDelay); // speed of drawing
-  
-  }
+    }, intervalDelay);
+  }, [simplifyCoordinates]);
 
  
 handleBackFromStep2 = () => {
@@ -585,33 +764,10 @@ handleBackFromStep2 = () => {
         customMapStyle={mapStyle}
         showsUserLocation={true}
         showsMyLocationButton={false}
-        onPanDrag={() => {
-          if(step==1||step==2){   
-          setIsMapDragging(true);
-          if (!hasTouchedMap) {
-            setHasTouchedMap(true);
-            lottieRef.current?.play(0, 7);
-            if(step==2&&routeCoords.length>0){
-              animatePolylineToEnd(routeCoords)
-            }
-
-          }
-        }
-        }}
-        onRegionChangeComplete={async (region) => {
-          if(step==1||step==2){
-          ReactNativeHapticFeedback.trigger("impactLight", hapticOptions);
-
-          setIsMapDragging(false);
-          setHasTouchedMap(false);
-          lottieRef.current?.play(8, 1395);
-          console.log("selectd location",region)
-          fetchLocationDetails(region.latitude, region.longitude);
-        }
-        }}
+        onPanDrag={handleMapDrag}
+        onRegionChangeComplete={handleRegionChange}
       >
-        {/* Current Location Marker */}
-        
+         
 
         {/* Pickup Location Marker */}
         {formData?.pickupAddress?.latitude && step>1 && (

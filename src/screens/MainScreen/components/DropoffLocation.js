@@ -35,6 +35,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
       <View style={localStyles.content}>
         <GooglePlacesAutocomplete
           placeholder={t('location.dropOff')}
+          debounce={300} 
           onPress={(data, details = null) => {
             if (details) {
               const newAddress = {
