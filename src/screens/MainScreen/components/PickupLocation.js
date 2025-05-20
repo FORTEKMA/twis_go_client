@@ -33,6 +33,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
 
       <View style={localStyles.content}>
         <GooglePlacesAutocomplete
+        predefinedPlacesAlwaysVisible={false}
           placeholder={t('location.pickUp')}
           debounce={300} 
           onPress={(data, details = null) => {
@@ -55,6 +56,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
 
           }}
           ref={inputRef}
+          
           textInputProps={{
             style:{
                
@@ -80,26 +82,29 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
               borderRadius: 8,
               backgroundColor: '#fff',
               color:"#000",
-             
+              height: 50,
+              paddingHorizontal:10
             },
             textInput: {
               height: 50,
               color: '#000',
               fontSize: 16,
-              placeholderTextColor:"#ccc"
+              placeholderTextColor:"#ccc",
+              flex:1
             },
             listView: {
-              position: 'absolute',
-              bottom: '100%',
-              left: 0,
-              right: 0,
-              backgroundColor: '#fff',
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              zIndex: 1000,
-              marginBottom: 8,
-              maxHeight: 200,
+            //   position: 'absolute',
+            //   bottom: '100%',
+            //   left: 0,
+            //   right: 0,
+            //   backgroundColor: '#fff',
+            //  borderWidth: 1,
+            //  borderBottomWidth:0,
+            //  // borderColor: '#ccc',
+            //   borderRadius: 8,
+            //   zIndex: 1000,
+            //   marginBottom: 8,
+            //   maxHeight: 200,
             },
             row: {
               padding: 13,
@@ -118,7 +123,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
       </View>
 
       <ConfirmButton
-        onPress={() => goNext({ pickupAddress })}
+        onPress={() => goNext({pickupAddress: pickupAddress })}
         text={t('location.continue')}
         disabled={!pickupAddress.latitude}
       />

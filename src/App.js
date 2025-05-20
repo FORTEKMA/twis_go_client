@@ -8,7 +8,10 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  I18nManager
 } from 'react-native';
+import { useKeepAwake } from '@sayem314/react-native-keep-awake';
+
 import {persistStore} from 'redux-persist';
 import {PersistGate} from 'redux-persist/integration/react';
 import 'react-native-gesture-handler';
@@ -25,7 +28,8 @@ import SplashScreen from 'react-native-splash-screen';
 import PopOver from './components/PopOver';
 import {ModalPortal} from 'react-native-modals';
 import * as Sentry from '@sentry/react-native';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import i18n from "./local";
 Sentry.init({
   dsn: 'https://06ca632b0190704d22beae416f99b03e@o4509329011572736.ingest.de.sentry.io/4509329041588304',
 
@@ -47,19 +51,33 @@ Sentry.init({
 
 let persistor = persistStore(store);
 export default Sentry.wrap(function App() {
+  useKeepAwake()
+
+
+    const setupLanguage = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem("language");
+      const language = savedLanguage || "fr";
+      await i18n.changeLanguage(language);
+      const isRTL = i18n.dir(language) === "rtl";
+      I18nManager.allowRTL(isRTL);
+      I18nManager.forceRTL(isRTL);
+    } catch (error) {
+      console.error("Error setting up language:", error);
+    }
+  };
+
+  
   useEffect(() => {
-    setTimeout(() => {
+     
       SplashScreen.hide();
 
       OneSignal.initialize(ONESIGNAL_APP_ID);
       OneSignal.Notifications.requestPermission(true)
-        .then(res => {
-          console.log(res);
-        })
-        .catch(err => console.log(err));
+        
 
-      OneSignal.Debug.setLogLevel(6);
-    }, 1000);
+       setupLanguage()
+       
   }, []);
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');

@@ -6,7 +6,8 @@ import { OneSignal } from "react-native-onesignal";
 import { styles } from './styles';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/colors';
-import {sendVerify, verify,updateUser,getCurrentUser} from '../../store/userSlice/userSlice';
+import {sendVerify, verify,updateUser,getCurrentUser,userRegister} from '../../store/userSlice/userSlice';
+import api from '../../utils/api';
 
 const Otp = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -30,30 +31,37 @@ const Otp = ({ route, navigation }) => {
     setIsLoading(true);
     setError(false);
     try {
-       dispatch(verify({phoneNumber: number.replace(/\s/g, ''), code: otp.join('')})).then(async res => {
-         if(res?.payload?.status==false){
-          setError(t('otp.invalidCode'));
-          setIsLoading(false);
-          return
-         }
-        const notificationId =await OneSignal.User.pushSubscription.getPushSubscriptionId();
-        console.log("res", res);
-         await dispatch(updateUser({
-          id: res?.payload?.id,
-          notificationId
-        })).unwrap();
-        await dispatch(getCurrentUser());
-        console.log(res, 'res');
-       if(res?.payload?.status==false){
-        setError(t('otp.invalidCode'));
-       }
-       
-        
-        setIsLoading(false);
-      });
+const res=await api.post('verify-code',{phoneNumber: number.replace(/\s/g, ''), code: otp.join('')}) 
+console.log(res.data);
+if(res.data.status==false){
+  setError(t('otp.invalidCode'));
+  setIsLoading(false);
+  return
+}
+else {
+  if(res.data.success==true){
+   
+   
  
-      // Handle successful verification
+ OneSignal.login(String(res.data.id));
+ 
+  let payload={
+    user:res.data,
+    jwt:res.data.authToken
+  }
+  dispatch(userRegister(payload));
+
+   
+  }
+  else{
+    navigation.navigate('Register',{number:number});
+  }
+
+
+}
+ 
     } catch (error) {
+      console.log(error.response.data);
       setError(true);
     } finally {
       setIsLoading(false);

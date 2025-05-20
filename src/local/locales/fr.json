@@ -22,7 +22,17 @@
   "confirm_cancel": "Confirmer l'annulation",
   "cancel_ride_warning": "Êtes-vous sûr de vouloir annuler cette course ? Votre score sera réduit.",
   "yes": "Oui",
-  "no": "Non"
+  "no": "Non",
+  
+  "Home": "Accueil",
+    "Historique": "Historique",
+    "Notifications": "Notifications",
+    "Profile": "Profil" ,
+    "OrderDetails": "Détails de la commande",
+    "order_canceled_title": "Commande annulée",
+    "order_canceled_message": "Le chauffeur a annulé votre commande. Nous nous excusons pour tout inconvénient causé.",
+    "location_services": "Services de localisation",
+    "settings": "Paramètress"
 },
 "onboarding": {
     "login": "Connexion",
@@ -178,13 +188,13 @@
     },
     "status": {
      
-      "pending": "Pending",
+      "pending": "En attente",
       "dispatched_to_partner": "Dispatched to Partner",
       "assigned_to_driver": "Assigned to Driver",
       "driver_on_route_to_pickup": "Driver on Route to Pickup",
-      "arrived_at_pickup": "Arrived at Pickup",
-      "picked_up": "Picked Up",
-      "on_route_to_delivery": "On Route to Delivery",
+      "arrived_at_pickup": "Arrivé au point de départ",
+      "picked_up": "le chauffeur est en route vers le point d'arrivée",
+      "on_route_to_delivery": "le chauffeur est en route vers le point d'arrivée",
       "arrived_at_delivery": "Arrivé au point d'arrivée",
       "delivered": "Livré",
       "completed": "Terminé",
@@ -192,7 +202,7 @@
       "canceled_by_partner": "Annulé par le partenaire",
       "failed_pickup": "Échec de la prise en charge",
       "failed_delivery": "Échec de la livraison",
-      "go_to_pickup": "Aller au point de prise en charge",
+      "go_to_pickup": "le chauffeur est en route vers l'adresse de départ",
       "unknown": "Statut inconnu"
     },
     "status_filter": {
@@ -290,7 +300,10 @@
     "language": {
       "title": "Langue",
       "french": "Français",
-      "arabic": "Arabe"
+      "arabic": "Arabe",
+      "english":"Anglais",
+      "confirmation_title": "Changer de langue",
+      "confirmation_message": "L'application va se recharger pour appliquer le changement de langue. Voulez-vous continuer ?"
     },
     "security": {
       "title": "Sécurité",
@@ -335,6 +348,7 @@
     "image": {
       "upload_error": "Erreur lors du téléchargement de l'image"
     }
+   
   },
   "help": {
     "title": "Aide et Support",
@@ -478,5 +492,13 @@
       "talk_to_much": "Parle trop",
       "other": "Autre"
     }
+  },
+  "ride": {
+    "base_price": "Prix de base",
+    "additional_charges": "Frais supplémentaires",
+    "total_price": "Prix total",
+    "waiting_time": "Temps d'attente",
+    "charging_info": "La facturation commencera après {{time}} minutes",
+    "charging_period": "{{charge}} DT seront facturés toutes les {{period}} minutes"
   }
 } 

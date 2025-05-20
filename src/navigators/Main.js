@@ -12,7 +12,7 @@ const Stack = createStackNavigator();
 const MainNavigator = () => {
   const userIsLoggedIn = useSelector(state => state.user.token);
   const dispatch = useDispatch();
-
+  const isFirstTime = useSelector(state => state.user.isFirstTime);
   useEffect(() => {
     dispatch(getCurrentUser());
   }, [dispatch, userIsLoggedIn]);
@@ -29,7 +29,7 @@ const MainNavigator = () => {
 
  
       
-      <Stack.Screen name="onboarding" component={Onboarding} />
+    {isFirstTime==true&&(  <Stack.Screen name="onboarding" component={Onboarding} />)}
       
       <Stack.Screen name="Main" component={userIsLoggedIn ? TabNavigator : AuthStack} />
  

@@ -11,8 +11,6 @@ export default function SendingRequests() {
 
   const sendNotificationToDriver = async (driver, formData) => {
  
-    const notificationId = driver.notificationId;
-    if (!notificationId) return;
  
     // 🛑 Step 2: Prepare ride info
     const rideInfo = {
@@ -29,9 +27,10 @@ export default function SendingRequests() {
       time: formData.selectedDate,
       price: driver.price,
       currentUser: currentUser,
-      distanceBetweenPickupAndDropoff: driver.distance,
+      distanceBetweenPickupAndDropoff: formData.distance,
       driverPosition: '',
     };
+    console.log(rideInfo);
 
     // 🛑 Step 3: Send notification
     try {
@@ -39,7 +38,9 @@ export default function SendingRequests() {
         'https://onesignal.com/api/v1/notifications',
         {
           app_id: ONESIGNAL_DRIVER_APP_ID,
-          include_player_ids: [notificationId],
+          "include_aliases": {
+    "external_id": [ String(driver.id) ]
+  },
           headings: {en: 'New Ride'},
           contents: {
             en: 'You have a new ride request!',
@@ -57,12 +58,12 @@ export default function SendingRequests() {
       );
 
       console.log(
-        `✅ Notification sent to ${driver.username || notificationId}`,
+        `✅ Notification sent to ${driver.id}`,
       );
     } catch (error) {
       console.error(
         `❌ Error sending notification to ${
-          driver.username || notificationId
+          driver.id
         }:`,
         error.response?.data || error.message,
       );

@@ -12,7 +12,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import  {colors}  from "../utils/colors"
 import { useSelector,useDispatch } from 'react-redux';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-
+import { useTranslation } from 'react-i18next';
 import {
  
     logOut,
@@ -24,7 +24,7 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
 
     const currentUser = useSelector(state => state?.user);
     const dispatch = useDispatch();
-
+    const {t} = useTranslation();
     const animatedValues = useRef(
     state.routes.map(() => new Animated.Value(0)),
   ).current;
@@ -121,7 +121,7 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
                     styles.tabLabel,
                     {color: isFocused ? '#F9DC76' : '#666'},
                   ]}>
-                  {label}
+                  {t("common."+label)}
                 </Text>
               </Animated.View>
             </TouchableOpacity>

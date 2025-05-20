@@ -5000,6 +5000,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sayem314/react-native-keep-awake@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "@sayem314/react-native-keep-awake@npm:1.3.1"
+  checksum: 6a7117aaa7293c981286d315fd33bbf3273ccfa86b6900b73d404aa24cb5c53f34e5844a8e67a0ad0d4b8f4424fbbc2b4d926dcaeb344b477198d5d3f88262a9
+  languageName: node
+  linkType: hard
+
 "@sentry-internal/browser-utils@npm:8.54.0":
   version: 8.54.0
   resolution: "@sentry-internal/browser-utils@npm:8.54.0"
@@ -21381,6 +21388,7 @@ __metadata:
     "@react-navigation/native": ^6.1.8
     "@react-navigation/stack": ^6.3.18
     "@reduxjs/toolkit": ^1.9.7
+    "@sayem314/react-native-keep-awake": ^1.3.1
     "@sentry/react-native": ^6.14.0
     "@tsconfig/react-native": ^3.0.0
     "@types/react": ^18.0.24

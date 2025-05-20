@@ -2,6 +2,8 @@ import React, {useRef, useState, useEffect} from 'react';
 import {View, Text, Image, TouchableOpacity, SafeAreaView, Animated, Easing} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {styles} from './styles';
+import { updateIsFirstTime } from '../../store/userSlice/userSlice';
+import { useDispatch } from 'react-redux';
 
 const slides = [
   {
@@ -29,7 +31,7 @@ const OnboardingScreen = ({navigation}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
-
+  const dispatch = useDispatch();
   useEffect(() => {
     // Reset animation values
     fadeAnim.setValue(0);
@@ -54,11 +56,13 @@ const OnboardingScreen = ({navigation}) => {
     if (currentIndex < slides.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
+      dispatch(updateIsFirstTime(false));
       navigation.replace('Main');
     }
   };
 
   const handleSkip = () => {
+    dispatch(updateIsFirstTime(false));
     navigation.replace('Main');
   };
 

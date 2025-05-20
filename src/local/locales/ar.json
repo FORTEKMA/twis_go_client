@@ -23,7 +23,16 @@
     "confirm_cancel": "تأكيد الإلغاء",
     "cancel_ride_warning": "هل أنت متأكد أنك تريد إلغاء هذه الرحلة؟ سيتم تخفيض رصيدك.",
     "yes": "نعم",
-    "no": "لا"
+    "no": "لا",
+    "Home": "الرئيسية",
+    "Historique": "السجل",
+    "Notifications": "الإشعارات",
+    "Profile": "الحساب",
+    "OrderDetails": "تفاصيل الطلب",
+    "order_canceled_title": "تم إلغاء الطلب",
+    "order_canceled_message": "قام السائق بإلغاء طلبك. نعتذر عن أي إزعاج قد يكون سببه ذلك.",
+    "location_services": "خدمات الموقع",
+    "settings": "الإعدادات"
   },
   "onboarding": {
     "login": "تسجيل الدخول",
@@ -285,7 +294,10 @@
     "language": {
       "title": "اللغة",
       "french": "الفرنسية",
-      "arabic": "العربية"
+      "arabic": "العربية",
+      "english":"الإنجليزية", 
+      "confirmation_title": "تغيير اللغة",
+      "confirmation_message": "سيتم إعادة تحميل التطبيق لتطبيق تغيير اللغة. هل تريد المتابعة؟"
     },
     "security": {
       "title": "الأمان",
@@ -468,5 +480,13 @@
       "package_handed_over_gently": "تم تسليم الطرد بلطف",
       "other": "أخرى"
     }
+  },
+  "ride": {
+    "base_price": "السعر الأساسي",
+    "additional_charges": "رسوم إضافية",
+    "total_price": "السعر الإجمالي",
+    "waiting_time": "وقت الانتظار",
+    "charging_info": "سيبدأ التحصيل بعد {{time}} دقيقة",
+    "charging_period": "سيتم تحصيل {{charge}} د.ت كل {{period}} دقيقة"
   }
 }

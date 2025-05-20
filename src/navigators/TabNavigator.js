@@ -21,6 +21,7 @@ const TabNavigator = () => {
         component={HomeStackNavigator}
         options={{
           tabBarLabel: 'Home',
+          unmountOnBlur: true,
         }}
       />
       <Tab.Screen
@@ -28,6 +29,7 @@ const TabNavigator = () => {
         component={HisoryStackNavigator}
         options={{
           tabBarLabel: 'Historique',
+          unmountOnBlur: true,
         }}
       />
       <Tab.Screen
@@ -35,6 +37,7 @@ const TabNavigator = () => {
         component={Notifications}
         options={{
           tabBarLabel: 'Notifications',
+          unmountOnBlur: true,
         }}
       />
       <Tab.Screen
@@ -42,6 +45,7 @@ const TabNavigator = () => {
         component={ProfileStack}
         options={{
           tabBarLabel: 'Profile',
+          unmountOnBlur: true,
         }}
       />
     </Tab.Navigator>

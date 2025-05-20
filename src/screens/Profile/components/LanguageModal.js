@@ -1,11 +1,10 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, Animated, Image } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, Animated, Image, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { changeLanguage } from '../../../local';
 
-const LanguageModal = ({ isVisible, onClose }) => {
+const LanguageModal = ({ isVisible, onClose, onLanguageSelect }) => {
   const { t } = useTranslation();
   const translateY = React.useRef(new Animated.Value(300)).current;
 
@@ -22,13 +21,26 @@ const LanguageModal = ({ isVisible, onClose }) => {
     }
   }, [isVisible]);
 
-  const handleLanguageChange = (language) => {
-    changeLanguage(language);
+  const isRTL = (language) => {
+    return language === 'ar';
+  };
+
+  const handleLanguageSelect = (language) => {
+    const currentIsRTL = I18nManager.isRTL;
+    const newIsRTL = isRTL(language);
+    
+    // Only show confirmation if direction will change
+    if (currentIsRTL !== newIsRTL) {
+      onLanguageSelect(language, true);
+    } else {
+      // If direction doesn't change, change language directly
+      onLanguageSelect(language, false);
+    }
     onClose();
   };
 
   return (
-    <Modal visible={isVisible} transparent animationType="fade" onRequestClose={onClose} >
+    <Modal visible={isVisible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <Animated.View 
           style={[
@@ -59,7 +71,7 @@ const LanguageModal = ({ isVisible, onClose }) => {
           <View style={styles.languageButtons}>
             <TouchableOpacity
               style={[styles.languageButton]}
-              onPress={() => handleLanguageChange('fr')}
+              onPress={() => handleLanguageSelect('fr')}
             >
               <Image 
                 source={{ uri: 'https://flagcdn.com/w40/fr.png' }}
@@ -68,10 +80,22 @@ const LanguageModal = ({ isVisible, onClose }) => {
               />
               <Text style={styles.modalButtonText}>{t('profile.language.french')}</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.languageButton]}
+              onPress={() => handleLanguageSelect('en')}
+            >
+              <Image 
+                source={{ uri: 'https://flagcdn.com/w40/us.png' }}
+                style={{ width: 30, height: 20, marginRight: 10 }}
+                resizeMode="contain"
+              />
+              <Text style={styles.modalButtonText}>{t('profile.language.english')}</Text>
+            </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.languageButton]}
-              onPress={() => handleLanguageChange('ar')}
+              onPress={() => handleLanguageSelect('ar')}
             >
               <Image 
                 source={{ uri: 'https://flagcdn.com/w40/sa.png' }}
@@ -81,8 +105,6 @@ const LanguageModal = ({ isVisible, onClose }) => {
               <Text style={styles.modalButtonText}>{t('profile.language.arabic')}</Text>
             </TouchableOpacity>
           </View>
-
-        
         </Animated.View>
       </View>
     </Modal>

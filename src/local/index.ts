@@ -1,7 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import fr from './locales/fr.json';
-//import ar from './ar.json';
+import ar from './locales/ar.json';
+import en from './locales/en.json'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { I18nManager } from 'react-native';
 import { reloadApp } from '../utils/reloadApp';
@@ -13,9 +14,12 @@ i18n
       fr: {
         translation: fr
       },
-      // ar: {
-      //   translation: ar
-      // }
+      ar: {
+        translation: ar
+      },
+      en: {
+        translation: en
+      }
     },
     lng: 'fr', // default language
     fallbackLng: 'fr',

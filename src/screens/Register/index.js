@@ -103,7 +103,7 @@ const Register = ({navigation, route}) => {
       .post('register/client', {
         username: form.name,
         email: form.email,
-        phoneNumber: form.phone,
+        phoneNumber:form.phone.replace(/\s/g, ''),
         password: form.password,
         user_role: 'client',
         firstName: form.name.split(' ')[0],
@@ -111,11 +111,9 @@ const Register = ({navigation, route}) => {
       })
       .then(async response => {
         setIsLoading(false);
-        const notificationId =
-          await OneSignal.User.pushSubscription.getPushSubscriptionId();
-        let temp = response.data;
-        temp.user.notificationId = notificationId;
-
+       
+        
+        OneSignal.login(String(temp.user.id));
         dispatch(userRegister(temp));
       })
 

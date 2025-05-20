@@ -35,6 +35,7 @@ const Rating = ({route}) => {
   const {order} = route.params;
 
   const handleSubmit = async () => {
+    console.log("order",order)
     if (rating === 0) {
       // You might want to show an error message here
       return;
@@ -48,9 +49,7 @@ const Rating = ({route}) => {
         driver: order?.driver?.id,
         client: currentUser.id,}
       }) 
-      await api.put(`commands/${order?.id}`, {data:{
-        review:response.data.data.id
-      }}) 
+      
       
       navigation.reset({
         index: 0,

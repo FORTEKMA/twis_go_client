@@ -19,15 +19,19 @@ import OrderBottomCard from "./components/OrderBottomCard";
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "./components/Header";
+import CustomAlert from "./components/CustomAlert";
+import { useTranslation } from 'react-i18next';
 //import { updateReservation } from '../../store/slices/commandesSlice';
-
+import { OneSignal } from "react-native-onesignal";
 const Order = ({ route }) => {
+  const { t } = useTranslation();
   const { id } = route.params;
   const order = useSelector((state) => state?.commandes?.OrderById);
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
   const navigation = useNavigation();
   const refresh = route.params?.refresh;
+  const [showAlert, setShowAlert] = useState(false);
  
 
   useEffect(() => {
@@ -36,14 +40,49 @@ const Order = ({ route }) => {
     }
   }, [isFocused, id]);
 
+ 
+
+  useEffect(() => {
+ 
+    OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
+   
+      if(event?.notification?.additionalData?.type=="commande_status_updated"){
+        
+        if(event?.notification?.additionalData?.status=="Canceled_by_partner"){
+          setShowAlert(true);
+         return
+        }
+       
+        dispatch(getOrderById({ id }));
+
+        if(event?.notification?.additionalData?.status=="Completed"){
+          navigation.navigate('Rating', { order })
+          
+        }
+
+       
+        
+     }
+      
+
+      });
+  return () => {
+    OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
+   }
+  }, []);
   
 
   const handleCallDriver = () => {
-    if (order?.driver?.phone) {
-      Linking.openURL(`tel:${order.driver.phone}`);
+    if (order?.driver?.phoneNumber) {
+      Linking.openURL(`tel:${order.driver.phoneNumber}`);
     } else {
       Alert.alert("Error", "Driver's phone number is not available");
     }
+  };
+
+  const handleAlertClose = () => {
+    setShowAlert(false);
+    navigation.navigate('Home');
   };
 
   if (!order) {
@@ -65,6 +104,12 @@ const Order = ({ route }) => {
           onCallDriver={handleCallDriver}
         />
       </View>
+      <CustomAlert
+        visible={showAlert}
+        onClose={handleAlertClose}
+        title={t('common.order_canceled_title')}
+        message={t('common.order_canceled_message')}
+      />
     </View>
   );
 };

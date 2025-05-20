@@ -476,6 +476,8 @@ PODS:
     - React-Core
   - react-native-image-picker (7.0.3):
     - React-Core
+  - react-native-keep-awake (1.3.1):
+    - React-Core
   - react-native-maps (1.8.0):
     - React-Core
   - react-native-onesignal (5.0.3):
@@ -705,6 +707,7 @@ DEPENDENCIES:
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
   - react-native-google-maps (from `../node_modules/react-native-maps`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - "react-native-keep-awake (from `../node_modules/@sayem314/react-native-keep-awake`)"
   - react-native-maps (from `../node_modules/react-native-maps`)
   - react-native-onesignal (from `../node_modules/react-native-onesignal`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -835,6 +838,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-maps"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-keep-awake:
+    :path: "../node_modules/@sayem314/react-native-keep-awake"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
   react-native-onesignal:
@@ -970,6 +975,7 @@ SPEC CHECKSUMS:
   react-native-geolocation-service: 7c9436da6dfdecd9526c62eac62ea2bc3f0cc8ea
   react-native-google-maps: 356b9d01da0920be13e4c4dc83673b30e8a22c16
   react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
+  react-native-keep-awake: f242130d32a8e312b53c4b422534fd73ff35885a
   react-native-maps: f699e0753c22c4d5c3a44d03895b193a4dbca6c2
   react-native-onesignal: ade35db0b3bbdd8457bc69f1a353bb55382eefc0
   react-native-safe-area-context: 36cc67648134e89465663b8172336a19eeda493d

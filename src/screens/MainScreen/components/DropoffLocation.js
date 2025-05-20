@@ -34,8 +34,10 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
 
       <View style={localStyles.content}>
         <GooglePlacesAutocomplete
+        predefinedPlacesAlwaysVisible={false}
           placeholder={t('location.dropOff')}
           debounce={300} 
+           
           onPress={(data, details = null) => {
             if (details) {
               const newAddress = {
@@ -80,7 +82,8 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
               borderColor: '#ccc',
               borderRadius: 8,
               backgroundColor: '#fff',
-              
+              height: 50,
+              paddingHorizontal:10
             },
             textInput: {
               height: 50,
@@ -88,17 +91,17 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
               fontSize: 16,
             },
             listView: {
-              position: 'absolute',
-              bottom: '100%',
-              left: 0,
-              right: 0,
-              backgroundColor: '#fff',
-              borderWidth: 1,
-              borderColor: '#ccc',
-              borderRadius: 8,
-              zIndex: 1000,
-              marginBottom: 8,
-              maxHeight: 200,
+              // position: 'absolute',
+              // bottom: '100%',
+              // left: 0,
+              // right: 0,
+              // backgroundColor: '#fff',
+              // borderWidth: 1,
+              // borderColor: '#ccc',
+              // borderRadius: 8,
+              // zIndex: 1000,
+              // marginBottom: 8,
+              // maxHeight: 200,
             },
             row: {
               padding: 13,
@@ -116,7 +119,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
       </View>
 
       <ConfirmButton
-        onPress={() => goNext({ dropoffAddress })}
+        onPress={() => goNext({ dropAddress:dropoffAddress })}
         text={t('location.continue')}
         disabled={!dropoffAddress.latitude}
       />

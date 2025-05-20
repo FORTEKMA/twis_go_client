@@ -31,8 +31,7 @@ export const sendNotificationToDrivers = async (
   currentUser,}
  
 ) => {
-     const notificationId = driver.notificationId;
- 
+  
     // Prepare ride info
     const rideInfo = {
       type: "new_command",
@@ -46,20 +45,23 @@ export const sendNotificationToDrivers = async (
         latitude: formData.dropAddress.latitude,
       },
       to: formData.dropAddress.address,
-      time: formData.time,
+      time: formData.time||Date.now(),
       price: formData.price,
       currentUser: currentUser,
       distanceBetweenPickupAndDropoff: formData.distance,
       driverPosition: '',
     };
 
- 
- 
+
    return axios.post(
         'https://onesignal.com/api/v1/notifications',
         {
           app_id: ONESIGNAL_DRIVER_APP_ID,
-          include_player_ids: [notificationId],
+           
+          "include_aliases": {
+    "external_id": [ String(driver.id) ]
+  },
+    "target_channel": "push",
           headings: {en: 'New Ride'},
           contents: {
             en: 'You have a new ride request!',

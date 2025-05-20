@@ -14,8 +14,8 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
   const [loginError, setLoginError] = useState('');
   const { control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      identifier: '',
-      password: ''
+      identifier: 'ghoudi31222@gmail.com',
+      password: '123456789m'
     },
     mode: 'onChange'
   });
@@ -32,12 +32,7 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
         setLoginError(t('login.invalidCredentials'));
       }
       else {
-        const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
-        await dispatch(updateUser({
-          id: result?.id,
-          notificationId
-        })).unwrap();
-        await dispatch(getCurrentUser());
+        
         if (onLoginSuccess) {
           onLoginSuccess();
         }

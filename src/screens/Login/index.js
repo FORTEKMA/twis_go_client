@@ -58,8 +58,7 @@ const Login = ({ navigation }) => {
     try {
       setIsGoogleLoading(true);
       const result = await googleSignIn();
-      const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
-      result.user.notificationId = notificationId;
+       
       dispatch(userRegister(result));
       
     } catch (error) {
@@ -73,8 +72,7 @@ const Login = ({ navigation }) => {
     try {
       setIsFacebookLoading(true);
       const result = await facebookSignIn();
-      const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
-      result.user.notificationId = notificationId;
+    
       dispatch(userRegister(result));
     
    
@@ -125,12 +123,12 @@ const Login = ({ navigation }) => {
       ) : (
         <EmailLoginForm/>
       )}
-      <View style={styles.dividerContainer}>
+      {/* <View style={styles.dividerContainer}>
         <View style={styles.divider} />
         <Text style={styles.dividerText}>{t('login.orLoginWith')}</Text>
         <View style={styles.divider} />
-      </View>
-      <View style={styles.socialLoginContainer}>
+      </View> */}
+      {/* <View style={styles.socialLoginContainer}>
         <TouchableOpacity style={styles.socialIcon} onPress={handleFacebookLogin}>
           {isFacebookLoading ? (
             <ActivityIndicator size="small" color="#4267B2" />
@@ -150,7 +148,7 @@ const Login = ({ navigation }) => {
           )}
         </TouchableOpacity>
     
-      </View>
+      </View> */}
       <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
         <Text style={styles.registerText}>{t('login.noAccount')} <Text style={styles.registerNow}>{t('login.registerNow')}</Text></Text>
       </TouchableOpacity>

@@ -34,16 +34,20 @@ const OrderCancellationReasonSheet = ({
             'https://onesignal.com/api/v1/notifications',
             {
               app_id: ONESIGNAL_DRIVER_APP_ID,
-              include_player_ids: [order.driver.notificationId],
+      
+              "include_aliases": {
+                "external_id": [ String(order.driver.id) ]
+              },
+                "target_channel": "push",
               headings: {en:t("history.card.cancellation_reason_title") },
               contents: {
-                fr: t("history.card.cancellation_reason_title"),
+                en: t("history.card.cancellation_reason_title"),
                 ar: t("history.card.cancellation_reason_title"),
               },
               priority: 10,
               data: {
-          
-                type:replay
+                status:"Canceled_by_client",
+                type:"commande_status_updated"
               },
             },
             {

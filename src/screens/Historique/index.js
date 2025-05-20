@@ -16,6 +16,7 @@ import { SearchInput } from "./components/SearchInput";
 import { Card } from "./components/Card";
 import { Empty } from "./components/Empty";
 import { colors } from "../../utils/colors";
+import { useTranslation } from "react-i18next";
 const Historique = ({ navigation }) => {
   const dispatch = useDispatch();
   const [statusFilter, setStatusFilter] = useState(null);
@@ -27,7 +28,7 @@ const Historique = ({ navigation }) => {
   const [newOrders, setNewOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const isFocused = useIsFocused();
-
+  const {t} = useTranslation();
   useEffect(() => {
     getData(true);
   }, [statusFilter, filter]);
@@ -110,7 +111,7 @@ const mangeStatus = (status) => {
         <Text
         style={styles.headerText}
       >
-        Historique
+        {t("common.Historique")}
       </Text>  
         </View>
       

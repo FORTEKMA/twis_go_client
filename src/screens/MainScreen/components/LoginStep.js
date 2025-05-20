@@ -25,8 +25,7 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
     try {
       setIsGoogleLoading(true);
       const result = await googleSignIn();
-      const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
-      result.user.notificationId = notificationId;
+      
       await dispatch(userRegister(result));
       onLoginSuccess();
     } catch (error) {
@@ -40,8 +39,7 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
     try {
       setIsFacebookLoading(true);
       const result = await facebookSignIn();
-      const notificationId = await OneSignal.User.pushSubscription.getPushSubscriptionId();
-      result.user.notificationId = notificationId;
+      
       await dispatch(userRegister(result));
       onLoginSuccess();
     } catch (error) {

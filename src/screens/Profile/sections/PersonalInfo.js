@@ -58,6 +58,8 @@ const PersonalInfo = () => {
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>{t('profile.personal_info.first_name')}</Text>
           <TextInput
+            placeholder={t('profile.personal_info.first_name')}
+            placeholderTextColor={"#ccc"}
             style={styles.input}
             value={userData.firstName}
             onChangeText={(text) => setUserData({ ...userData, firstName: text })}
@@ -68,6 +70,8 @@ const PersonalInfo = () => {
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>{t('profile.personal_info.last_name')}</Text>
           <TextInput
+            placeholder={t('profile.personal_info.last_name')}
+            placeholderTextColor={"#ccc"}
             style={styles.input}
             value={userData.lastName}
             onChangeText={(text) => setUserData({ ...userData, lastName: text })}
@@ -78,6 +82,8 @@ const PersonalInfo = () => {
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>{t('profile.personal_info.email')}</Text>
           <TextInput
+            placeholder={t('profile.personal_info.email')}
+            placeholderTextColor={"#ccc"}
             style={styles.input}
             value={userData.email}
             onChangeText={(text) => setUserData({ ...userData, email: text })}
@@ -89,6 +95,8 @@ const PersonalInfo = () => {
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>{t('profile.personal_info.phone')}</Text>
           <TextInput
+            placeholder={t('profile.personal_info.phone')}
+            placeholderTextColor={"#ccc"}
             style={styles.input}
             value={userData.phoneNumber}
             onChangeText={(text) => setUserData({ ...userData, phoneNumber: text })}

@@ -3,13 +3,15 @@ import { View, TouchableOpacity, Text, StyleSheet, I18nManager ,Platform} from '
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { colors } from '../../../utils/colors';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'; 
+import { useTranslation } from 'react-i18next';
 const Header = ({ onBack }) => {
+  const {t} = useTranslation();
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
         <Ionicons name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"} size={24} color={colors.black} />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Order Details</Text>
+      <Text style={styles.headerTitle}>{t("common.OrderDetails")}</Text>
     </View>
   );
 };

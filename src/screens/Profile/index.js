@@ -10,15 +10,17 @@ import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/colors';
 import { styles } from './styles';
 import ProfileHeader from './components/ProfileHeader';
- import LogoutModal from './components/LogoutModal';
+import LogoutModal from './components/LogoutModal';
 import ImagePickerModal from './components/ImagePickerModal';
 import LanguageModal from './components/LanguageModal';
+import LanguageConfirmationModal from './components/LanguageConfirmationModal';
 import DeleteAccountModal from './components/DeleteAccountModal';
 import {
   getCurrentUser,
   logOut,
   uplaodImage,
 } from "../../store/userSlice/userSlice";
+import { changeLanguage } from '../../local';
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -31,7 +33,9 @@ const Profile = () => {
   const [galleyModal, setGalleyModal] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
 
   // Check if the user is authenticated
   useEffect(() => {
@@ -85,7 +89,6 @@ const Profile = () => {
   const menuButtons = [
     { title: t('profile.menu.information'), screen: 'PersonalInfo' },
     { title: t('profile.menu.security'), screen: 'Security' },
- 
     { title: t('profile.menu.help'), screen: 'Help' },
   ];
 
@@ -99,6 +102,28 @@ const Profile = () => {
     // Add your account deletion logic here
   };
 
+  const handleLanguageSelect = (language, needsConfirmation) => {
+    if (needsConfirmation) {
+      setSelectedLanguage(language);
+      setShowConfirmationModal(true);
+    } else {
+      changeLanguage(language);
+    }
+  };
+
+  const handleConfirmLanguageChange = () => {
+    if (selectedLanguage) {
+      changeLanguage(selectedLanguage);
+      setSelectedLanguage(null);
+    }
+    setShowConfirmationModal(false);
+  };
+
+  const handleCancelLanguageChange = () => {
+    setSelectedLanguage(null);
+    setShowConfirmationModal(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -107,7 +132,6 @@ const Profile = () => {
           onImagePress={() => setGalleyModal(true)}
         />
         
-       
         <View style={styles.menuContainer}>
           {menuButtons.map((button, index) => (
             <TouchableOpacity
@@ -122,7 +146,7 @@ const Profile = () => {
 
           <TouchableOpacity
             style={styles.menuButton}
-            onPress={() => setLanguageModalVisible(true)}
+            onPress={() => setShowLanguageModal(true)}
           >
             <Text style={styles.menuButtonText}>{t('profile.language.title')}</Text>
             <Ionicons name="language-outline" size={24} color={"#000"} />
@@ -166,8 +190,16 @@ const Profile = () => {
       />
 
       <LanguageModal
-        isVisible={isLanguageModalVisible}
-        onClose={() => setLanguageModalVisible(false)}
+        isVisible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        onLanguageSelect={handleLanguageSelect}
+      />
+
+      <LanguageConfirmationModal
+        isVisible={showConfirmationModal}
+        onClose={handleCancelLanguageChange}
+        onConfirm={handleConfirmLanguageChange}
+        selectedLanguage={selectedLanguage}
       />
 
       <DeleteAccountModal

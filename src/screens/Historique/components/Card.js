@@ -11,6 +11,9 @@ export const Card = ({ order ,refresh}) => {
   const scaleValue = new Animated.Value(1);
   const navigation = useNavigation();
   
+
+  console.log("order",order)
+
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
       toValue: 0.98,
@@ -167,7 +170,7 @@ export const Card = ({ order ,refresh}) => {
           <View style={styles.infoRow}>
             <Ionicons name="person-outline" size={hp(2)} color={colors.primary} />
             <Text style={styles.label}>
-              {order?.client?.firstName} {order?.client?.lastName}
+              {order?.driver?.firstName} {order?.driver?.lastName}
             </Text>
           </View>
           
@@ -241,6 +244,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     textTransform: "capitalize",
     fontWeight: "600",
+    maxWidth: wp(40),
   },
   body: {
     gap: hp(1.5),

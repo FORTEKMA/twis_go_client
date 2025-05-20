@@ -4,40 +4,20 @@ import axios from 'axios';
 import {API_URL_ANDROID, API_URL_IOS} from '@env';
 import {Platform} from 'react-native';
 const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-  
+import { OneSignal } from "react-native-onesignal";
 export const userRegister = createAsyncThunk('user/register', async user => {
-  
-     if(user.jwt!=-1){
-      let response = await axios.put(
-        `${API_URL}/api/users/${user.user.id}`,
-        {
-          notificationId:user.user.notificationId 
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${user.jwt}`,
-          },
-        },  
-      ).catch(error=>{
-        console.log("error",error)
-      } );
-      console.log("response",response.data)
-      return user
-     }else{
-      return user
-     }
-
-     
- 
- 
    
+    
+      return user
+    
 });
 
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
  
     let response = await axios.post(`${API_URL}/api/auth/local`, login);
-     
+    OneSignal.login(String(response.data.user.id));
+    
     return response.data
     
   } catch (error) {
@@ -208,7 +188,10 @@ const initialState = {
   message: '',
   forgetPsw: null,
   refresh: false,
+  isFirstTime: true,
 };
+
+
 
 export const userSlice = createSlice({
   name: 'user',
@@ -216,6 +199,9 @@ export const userSlice = createSlice({
   reducers: {
     setToken: (state, action) => {
       state.user.token = action.payload;
+    },
+    updateIsFirstTime: (state, action) => {
+      state.isFirstTime = action.payload;
     },
   },
   extraReducers: {
@@ -372,3 +358,4 @@ export const userSlice = createSlice({
 });
 
 export default userSlice.reducer;
+export const { setToken, updateIsFirstTime } = userSlice.actions;

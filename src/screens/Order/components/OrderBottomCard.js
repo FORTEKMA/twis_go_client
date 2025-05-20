@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback, useState } from 'react';
+import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import OrderCancelConfirmationModal from './OrderCancelConfirmationModal';
 import OrderCancellationReasonSheet from './OrderCancellationReasonSheet';
 import OrderReportProblemModal from './OrderReportProblemModal';
 import { useNavigation } from '@react-navigation/native';
+import api from '../../../utils/api';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.45 : SCREEN_HEIGHT * 0.47;
 
@@ -29,6 +30,12 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   const [selectedReason, setSelectedReason] = useState(null);
   const [otherReason, setOtherReason] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
+    const [waitingTime, setWaitingTime] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [additionalCharges, setAdditionalCharges] = useState(order?.additionalCharges || 0);
+  const [lastChargeTime, setLastChargeTime] = useState(0);
+  const [params, setParams] = useState({});
+  const timerRef = useRef(null);
   const navigation = useNavigation();
   const cancellationReasons = [
     'Driver is taking too long',
@@ -46,7 +53,8 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   ];
 
   // Memoized values
-  const status = order?.status || 'Driver_on_route_to_pickup';
+  const status = order?.commandStatus || 'Driver_on_route_to_pickup';
+  console.log("status",status)
   const statusColor = useMemo(() => STATUS_COLORS[status] || STATUS_COLORS.default, [status]);
   const statusText = useMemo(() =>  t(`history.status.${status.toLowerCase()}`), [status, t]);
 
@@ -99,6 +107,65 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
       refresh();
     }
 
+  };
+
+  useEffect(() => {
+    if(order?.commandStatus == "Arrived_at_pickup"){
+      const getParams = async () => {
+        const paramsRes = await api.get(`parameters`);
+        setParams(paramsRes.data.data[0]);
+        setTimeout(() => {
+          startTimer();
+        }, 30);
+      }
+      getParams();
+     
+    }else{
+      if(isTimerRunning){
+        stopTimer();
+      }
+    }
+  }, [order?.commandStatus]);
+
+  const startTimer = () => {
+    setIsTimerRunning(true);
+    setLastChargeTime(0); // lastChargeTime is in seconds
+    timerRef.current = setInterval(() => {
+      setWaitingTime((prevTime) => {
+        const newTime = prevTime + 1; // newTime is in seconds
+
+        const startChargeAfterTimeInSeconds =
+          params.START_CHARGE_AFTERT_TIME * 60;
+        const gracePeriodInSeconds = params.WAITING_TIME_GRACE_PERIOD * 60;
+
+        if (newTime > startChargeAfterTimeInSeconds) {
+          const timeSinceLastCharge = newTime - lastChargeTime;
+         
+          if (timeSinceLastCharge % gracePeriodInSeconds == 0) {
+            setAdditionalCharges((prev) => prev + params.WAITING_TIME_CHARGE);
+            setLastChargeTime(newTime); // update last charge time
+          }
+        }
+
+        return newTime;
+      });
+    }, 1000);
+  };
+
+
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      setIsTimerRunning(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
  
@@ -165,6 +232,61 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
             <Text style={[styles.addressText, { color: colors.primary }]}>{order?.dropOfAddress?.Address || ''}</Text>
           </View>
         </View>
+
+        <View style={styles.priceContainer}>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>{t('ride.base_price')}:</Text>
+            <Text style={styles.priceValue}>{parseFloat(order?.totalPrice || 0).toFixed(2)} DT</Text>
+          </View>
+          {additionalCharges > 0 && (
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>{t('ride.additional_charges')}:</Text>
+              <Text style={styles.priceValue}>{parseFloat(additionalCharges).toFixed(2)} DT</Text>
+            </View>
+          )}
+          <View style={styles.totalPriceRow}>
+            <Text style={styles.totalPriceLabel}>{t('ride.total_price')}:</Text>
+            <Text style={styles.totalPriceValue}>
+              {parseFloat((order?.totalPrice || 0) + additionalCharges).toFixed(2)} DT
+            </Text>
+          </View>
+        </View>
+
+        {order?.commandStatus == "Arrived_at_pickup" && (<View style={styles.timerContainer}>
+                      <Text style={styles.timerLabel}>
+                        {t("ride.waiting_time")}:
+                      </Text>
+                      <Text style={styles.timerText}>
+                        {formatTime(waitingTime)}
+                      </Text>
+                      {additionalCharges > 0 && (
+                        <Text style={styles.additionalCharges}>
+                          {t("ride.additional_charges")}:{" "}
+                          {parseFloat(additionalCharges).toFixed(2)}{" "}
+                          {"DT"}
+                        </Text>
+                      )}
+                      <View style={styles.chargingInfoContainer}>
+                        <Text style={styles.chargingInfoText}>
+                          {t(
+                            "ride.charging_info",
+                            {
+                              time: params.START_CHARGE_AFTERT_TIME,
+                            }
+                          )}
+                        </Text>
+                        <Text style={styles.chargingInfoText}>
+                          {t(
+                            "ride.charging_period",
+                            {
+                              charge: params.WAITING_TIME_CHARGE,
+                              period: params.WAITING_TIME_GRACE_PERIOD,
+                            }
+                          )}
+                        </Text>
+                      </View>
+                    </View>)}
+
         {order?.commandStatus === "Completed" && (<View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,flex:1,width:"100%"}}>
      
           <TouchableOpacity 
@@ -187,7 +309,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
         
           </View>  )}
 
-        {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
+        {"Pending" ==order?.commandStatus && (
           <TouchableOpacity 
             style={styles.cancelButton}
             onPress={handleCancelPress}
@@ -227,6 +349,42 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
 };
 
 const styles = StyleSheet.create({
+  timerContainer: {
+    backgroundColor: "#f8f8f8",
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 12,
+    alignItems: "center",
+  },
+  timerLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 4,
+  },
+  timerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: colors.primary,
+  },
+  additionalCharges: {
+    fontSize: 14,
+    color: "#ff4444",
+    marginTop: 4,
+    fontWeight: "500",
+  },
+  chargingInfoContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: "#fff",
+    borderRadius: 6,
+    width: "100%",
+  },
+  chargingInfoText: {
+    fontSize: 12,
+    color: "#666",
+    textAlign: "center",
+    marginVertical: 2,
+  },
   container: {
     position: 'absolute',
     bottom: 0,
@@ -486,6 +644,46 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  priceContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  priceValue: {
+    fontSize: 14,
+    color: '#222',
+    fontWeight: '500',
+  },
+  totalPriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  totalPriceLabel: {
+    fontSize: 16,
+    color: '#222',
+    fontWeight: '600',
+  },
+  totalPriceValue: {
+    fontSize: 16,
+    color: colors.primary,
+    fontWeight: '700',
   },
 });
 
