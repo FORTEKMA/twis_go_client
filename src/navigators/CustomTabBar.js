@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   activeTab: {
-    backgroundColor: colors.primary,
+    // backgroundColor: colors.primary,
     width: "100%",
   },
   tabLabel: {

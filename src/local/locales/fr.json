@@ -1,42 +1,43 @@
-{  "common": {
-  "loading": "Chargement...",
-  "error": "Une erreur est survenue",
-  "success": "Succès",
-  "cancel": "Annuler",
-  "confirm": "Confirmer",
-  "save": "Enregistrer",
-  "delete": "Supprimer",
-  "edit": "Modifier",
-  "search": "Rechercher...",
-  "search_orders": "Rechercher des commandes...",
-  "unknown": "Inconnu",
-  "accept": "Accepter",
-  "decline": "Refuser",
-  "next": "Suivant",
-  "currency": "DT",
-  "km": "km",
-  "no_driver_accepted": "Aucun chauffeur n'a accepté la demande",
-  "time_ended": "Temps écoulé",
-  "please_complete_order": "Veuillez compléter votre commande dans les plus brefs délais",
-  "ok": "OK",
-  "confirm_cancel": "Confirmer l'annulation",
-  "cancel_ride_warning": "Êtes-vous sûr de vouloir annuler cette course ? Votre score sera réduit.",
-  "yes": "Oui",
-  "no": "Non",
-  
-  "Home": "Accueil",
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher...",
+    "search_orders": "Rechercher des commandes...",
+    "unknown": "Inconnu",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "next": "Suivant",
+    "currency": "DT",
+    "km": "km",
+    "no_driver_accepted": "Aucun chauffeur n'a accepté la demande",
+    "time_ended": "Temps écoulé",
+    "please_complete_order": "Veuillez compléter votre commande dans les plus brefs délais",
+    "ok": "OK",
+    "confirm_cancel": "Confirmer l'annulation",
+    "cancel_ride_warning": "Êtes-vous sûr de vouloir annuler cette course ? Votre score sera réduit.",
+    "yes": "Oui",
+    "no": "Non",
+
+    "Home": "Accueil",
     "Historique": "Historique",
     "Notifications": "Notifications",
-    "Profile": "Profil" ,
+    "Profile": "Profil",
     "OrderDetails": "Détails de la commande",
     "order_canceled_title": "Commande annulée",
     "order_canceled_message": "Le chauffeur a annulé votre commande. Nous nous excusons pour tout inconvénient causé.",
     "location_services": "Services de localisation",
     "settings": "Paramètress"
-},
-"onboarding": {
+  },
+  "onboarding": {
     "login": "Connexion",
-   
+
     "newUser": "Nouvel utilisateur ?",
     "next": "Suivant",
     "registerHere": "Inscrivez-vous ici",
@@ -59,7 +60,7 @@
   "login": {
     "needToLogin": "Vous devez vous connecter pour continuer",
     "needToLoginSubtitle": "Connectez-vous pour accéder à votre compte et profiter de toutes les fonctionnalités",
-    "enterAsGuest":"Entrer en tant que invité",
+    "enterAsGuest": "Entrer en tant que invité",
     "enterRecoveryEmail": "Entrez votre email de récupération",
     "recoveryEmail": "Email de Récupération",
     "emailPlaceholder": "Email@example.com",
@@ -93,7 +94,6 @@
     "terms1": "En continuant, vous acceptez nos ",
     "termsOfService": "conditions d'utilisation",
     "terms2": "."
-    
   },
   "register": {
     "emailTaken": "Cette adresse email est déjà prise",
@@ -141,7 +141,6 @@
   },
   "history": {
     "card": {
-       
       "view_note": "View Note",
       "trip_id": "Trip id",
       "status": "Status",
@@ -187,7 +186,6 @@
       "rate_trip": "Évaluer le trajet"
     },
     "status": {
-     
       "pending": "En attente",
       "dispatched_to_partner": "Dispatched to Partner",
       "assigned_to_driver": "Assigned to Driver",
@@ -227,7 +225,7 @@
     "yesterday": "hier"
   },
   "profile": {
-    "confirmed": "Active",  
+    "confirmed": "Active",
     "pending": "En attente",
     "menu": {
       "information": "Informations",
@@ -291,7 +289,7 @@
       "passwords_not_match": "Passwords do not match",
       "update": "Mettre à jour"
     },
-  
+
     "help_center": {
       "title": "Centre d'aide",
       "available_24_7": "Prêts à vous aider 24h/24 et 7/7",
@@ -301,7 +299,7 @@
       "title": "Langue",
       "french": "Français",
       "arabic": "Arabe",
-      "english":"Anglais",
+      "english": "Anglais",
       "confirmation_title": "Changer de langue",
       "confirmation_message": "L'application va se recharger pour appliquer le changement de langue. Voulez-vous continuer ?"
     },
@@ -334,13 +332,12 @@
       "update_success": "Informations mises à jour avec succès!",
       "update_error": "Échec de la mise à jour"
     },
- 
-   
+
     "first_name": "Prénom",
     "last_name": "Nom",
     "phone": "Téléphone",
     "email": "Email",
- 
+
     "first_name_placeholder": "Prénom",
     "last_name_placeholder": "Nom",
     "phone_placeholder": "Numéro de téléphone",
@@ -348,7 +345,6 @@
     "image": {
       "upload_error": "Erreur lors du téléchargement de l'image"
     }
-   
   },
   "help": {
     "title": "Aide et Support",
@@ -369,7 +365,6 @@
         "question": "Comment mettre à jour mon mot de passe?",
         "answer": "Allez dans la section \"Sécurité\" et suivez les instructions pour changer votre mot de passe."
       }
-      
     }
   },
   "booking": {
@@ -457,9 +452,9 @@
   "Choose_location": "Choisir un lieu",
   "save": "Enregistrer",
   "search_placeholder": "Rechercher un lieu",
-  "eco_description":"Véhicule économique et écologique",
-  "berline_description":"Véhicule confortable et spacieux",
-  "van_description":"Véhicule de transport de personnes",
+  "eco_description": "Véhicule économique et écologique",
+  "berline_description": "Véhicule confortable et spacieux",
+  "van_description": "Véhicule de transport de personnes",
   "cancellation_reason_title": "Pourquoi annulez-vous ?",
   "cancellation_other_placeholder": "Veuillez préciser la raison",
   "cancellation_reasons": {
@@ -476,7 +471,7 @@
     "Emergency situation": "Situation d'urgence",
     "Other": "Autre"
   },
-  "Livraison":"Cash",
+  "Livraison": "Cash",
   "rating": {
     "title": "Évaluer le chauffeur",
     "leave_feedback": "Laisser un commentaire",
@@ -500,5 +495,16 @@
     "waiting_time": "Temps d'attente",
     "charging_info": "La facturation commencera après {{time}} minutes",
     "charging_period": "{{charge}} DT seront facturés toutes les {{period}} minutes"
+  },
+  "email": {
+    "status": {
+      "email_200": "Email de récupération a été envoyé",
+      "email_err": "Échec de l'envoi de l'email de récupération"
+    },
+    "code": {
+      "code_incomplete": "Veuillez remplir tous les chiffres.",
+      "code_invalid": "Le code est incorrect. Veuillez réessayer."
+    },
+    "reset_failed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer."
   }
 } 

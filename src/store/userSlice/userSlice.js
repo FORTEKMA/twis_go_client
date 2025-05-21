@@ -155,10 +155,13 @@ export const forgetPassword = createAsyncThunk(
   'user/forgetPassword',
   async email => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/forgot-password`, {
-        email: email,
-      });
-       return response.data;
+      const response = await axios.post(
+        `${API_URL}/api/codes/forgot-password`,
+        {
+          email: email,
+        },
+      );
+      return response.data;
     } catch (error) {
       throw error; // Add this line to propagate the error up to the component
     }
@@ -169,15 +172,18 @@ export const resetPassword = createAsyncThunk(
   'user/resetPassword',
   async data => {
     try {
-      let response = axios.post(`${API_URL}/api/auth/reset-password`, data);
+      let response = axios.post(`${API_URL}/api/codes/reset-password`, data);
 
-      return response.data.user;
-    } catch (error) {
-      console.log(error);
-    }
+      return response.data;
+    } catch (error) {}
   },
 );
-
+export const setEmailForgetPassword = createAsyncThunk(
+  'forgetpswd/setEmail',
+  async (body, thunkAPI) => {
+    return body;
+  },
+);
 const initialState = {
   user: null,
   currentUser: null,
@@ -189,6 +195,7 @@ const initialState = {
   forgetPsw: null,
   refresh: false,
   isFirstTime: true,
+  email:null
 };
 
 
@@ -229,10 +236,23 @@ export const userSlice = createSlice({
     },
     [forgetPassword.fulfilled]: (state, action) => {
       state.status = 'success';
-      state.forgetPsw = action.payload.data;
+      state.forgetPsw = action.payload;
       // state.isLoading = false;
     },
     [forgetPassword.rejected]: state => {
+      state.status = 'fail';
+      // state.isLoading = false;
+    },
+    [setEmailForgetPassword.pending]: state => {
+      state.status = 'pending';
+      // state.isLoading = true;
+    },
+    [setEmailForgetPassword.fulfilled]: (state, action) => {
+      state.status = 'success';
+      state.email = action.payload;
+      // state.isLoading = false;
+    },
+    [setEmailForgetPassword.rejected]: state => {
       state.status = 'fail';
       // state.isLoading = false;
     },
@@ -242,8 +262,6 @@ export const userSlice = createSlice({
     },
     [resetPassword.fulfilled]: (state, action) => {
       state.status = 'success';
-      state.currentUser = action.payload;
-
       state.isLoading = false;
     },
     [resetPassword.rejected]: state => {
