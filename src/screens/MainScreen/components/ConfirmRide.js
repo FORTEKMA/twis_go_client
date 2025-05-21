@@ -103,7 +103,7 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
       <TouchableOpacity style={localStyles.nextButtonWrapper} onPress={() => goNext({ price })}>
         
           <Text style={localStyles.nextButtonPrice}>{parseFloat(price).toFixed(2)} DT</Text>
-          <Text style={localStyles.nextButtonText} >{t('go_to_payment')}</Text>
+          <Text style={localStyles.nextButtonText} >{t('confirm')}</Text>
       
       </TouchableOpacity>
     </View>
