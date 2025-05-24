@@ -144,13 +144,13 @@ const OrderMapView = ({ order }) => {
           strokeWidth={6}
         />
       )}
-
+  
       {/* Remaining Path */}
       {driverPosition && dropoff && (
         <MapViewDirections
-          origin={driverPosition}
-          waypoints={[order?.pickUpAddress?.coordonne]}
-          destination={dropoff}
+          origin={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? driverPosition :order?.pickUpAddress?.coordonne}
+        
+          destination={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? order?.pickUpAddress?.coordonne: dropoff}
           apikey={API_GOOGLE}
           rotateEnabled={false}
           strokeWidth={6}
@@ -160,9 +160,9 @@ const OrderMapView = ({ order }) => {
       )}
       {["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&& (
         <MapViewDirections
-        origin={order?.pickUpAddress?.coordonne}
+        origin={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? driverPosition :order?.pickUpAddress?.coordonne}
         
-        destination={dropoff}
+        destination={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? order?.pickUpAddress?.coordonne: dropoff}
         apikey={API_GOOGLE}
         strokeWidth={6}
         strokeColor={remainingColor}

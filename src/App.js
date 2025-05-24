@@ -30,6 +30,7 @@ import {ModalPortal} from 'react-native-modals';
 import * as Sentry from '@sentry/react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "./local";
+import CheckConnection from './components/CheckConnection';
 Sentry.init({
   dsn: 'https://06ca632b0190704d22beae416f99b03e@o4509329011572736.ingest.de.sentry.io/4509329041588304',
 
@@ -92,6 +93,7 @@ export default Sentry.wrap(function App() {
               <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
                   <MainNavigator />
+                  <CheckConnection />
                   {isModalVisible && (
                     <PopOver
                       notificationBody={notificationBody}

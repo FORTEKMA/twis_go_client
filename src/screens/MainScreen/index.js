@@ -11,10 +11,13 @@ import {
   Platform,
   TouchableOpacity,
   Linking,
-  ActivityIndicator
+  ActivityIndicator,
+  Text
 } from 'react-native';
 import DriverMarker from '../../components/DriverMarker';
-import MapView, {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
+import {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
+import MapView from "react-native-map-clustering";
+
 import MapViewDirections from 'react-native-maps-directions';
 import {useDispatch, useSelector} from 'react-redux';
  import {styles} from './styles';
@@ -777,6 +780,26 @@ handleBackFromStep2 = () => {
     );
   };
 
+  const renderCluster = (cluster) => {
+    const {  geometry, properties } = cluster;
+    console.log("cluster",cluster)
+
+    return (
+      <Marker
+      key={`cluster-${cluster.id}`}
+      coordinate={{
+        longitude: geometry.coordinates[0],
+        latitude: geometry.coordinates[1]
+      }}
+      onPress={cluster.onPress}
+     
+    >
+      <View style={{ alignItems:"center",justifyContent:"center",width:36,height:36,backgroundColor:"#fff",borderRadius:18 }}>
+        <Text style={{fontSize:12,fontWeight:"bold",color:"#000"}}>{properties?.point_count}</Text>
+      </View>
+    </Marker>
+    );
+  };  
 
 
  
@@ -798,12 +821,14 @@ handleBackFromStep2 = () => {
         showsMyLocationButton={false}
         onPanDrag={handleMapDrag}
         onRegionChangeComplete={handleRegionChange}
-      >
+        renderCluster={renderCluster}
+       >
          
 
-        {/* Pickup Location Marker */}
-        {formData?.pickupAddress?.latitude  && (
+       
+        {formData?.pickupAddress?.latitude  && step > 1 && (
           <Marker
+            cluster={false}
             coordinate={{
               latitude: formData.pickupAddress.latitude,
               longitude: formData.pickupAddress.longitude
@@ -818,9 +843,10 @@ handleBackFromStep2 = () => {
           </Marker>
         )}
 
-        {/* Dropoff Location Marker */}
-        {formData?.dropAddress?.latitude && step>1 &&!isMapDragging&& (
+       
+        {formData?.dropAddress?.latitude && step > 2 &&!isMapDragging&& (
           <Marker
+            cluster={false}
             coordinate={{
               latitude: formData.dropAddress.latitude,
               longitude: formData.dropAddress.longitude

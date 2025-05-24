@@ -480,6 +480,8 @@ PODS:
     - React-Core
   - react-native-maps (1.8.0):
     - React-Core
+  - react-native-netinfo (11.4.1):
+    - React-Core
   - react-native-onesignal (5.0.3):
     - OneSignalXCFramework (= 5.0.4)
     - React (< 1.0.0, >= 0.13.0)
@@ -610,16 +612,16 @@ PODS:
     - React-Core
   - RNDateTimePicker (7.7.0):
     - React-Core
-  - RNFBApp (22.1.0):
+  - RNFBApp (22.2.0):
     - Firebase/CoreOnly (= 11.12.0)
     - React-Core
-  - RNFBDatabase (22.1.0):
+  - RNFBDatabase (22.2.0):
     - Firebase/Database (= 11.12.0)
     - React-Core
     - RNFBApp
   - RNGestureHandler (2.13.2):
     - React-Core
-  - RNGoogleSignin (14.0.0):
+  - RNGoogleSignin (14.0.1):
     - GoogleSignIn (~> 7.1)
     - React-Core
   - RNLocalize (3.0.2):
@@ -709,6 +711,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-keep-awake (from `../node_modules/@sayem314/react-native-keep-awake`)"
   - react-native-maps (from `../node_modules/react-native-maps`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-onesignal (from `../node_modules/react-native-onesignal`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
@@ -842,6 +845,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@sayem314/react-native-keep-awake"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-onesignal:
     :path: "../node_modules/react-native-onesignal"
   react-native-safe-area-context:
@@ -977,6 +982,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
   react-native-keep-awake: f242130d32a8e312b53c4b422534fd73ff35885a
   react-native-maps: f699e0753c22c4d5c3a44d03895b193a4dbca6c2
+  react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-onesignal: ade35db0b3bbdd8457bc69f1a353bb55382eefc0
   react-native-safe-area-context: 36cc67648134e89465663b8172336a19eeda493d
   react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
@@ -1001,10 +1007,10 @@ SPEC CHECKSUMS:
   RNCCheckbox: a3ca9978cb0846b981d28da4e9914bd437403d77
   RNCPicker: d162737e03e48797110dbb60e5ddc03012e87e0b
   RNDateTimePicker: 4f3c4dbd4f908be32ec8c93f086e8924bd4a2e07
-  RNFBApp: 042c5fd387792dca0d9d99756af0c8a400fdd859
-  RNFBDatabase: 6c5875ba14fd722659295939c0e629c9202420ab
+  RNFBApp: fa5825b36d8362ce9b993cac8bf070d116848640
+  RNFBDatabase: e9b2643a84cb5ee5410a489cd159e2679b464b3d
   RNGestureHandler: bb86e378287f7713baf3ca205423eb8109790022
-  RNGoogleSignin: 0299ea5127f39bc72fa40e9907c6438a5817758e
+  RNGoogleSignin: 5a4ed264f83efcc727cc0d4f3e977dbb037de4cc
   RNLocalize: dbea38dcb344bf80ff18a1757b1becf11f70cae4
   RNReactNativeHapticFeedback: 35ab91df9e7a1e4513806e3c091293c97fe38c83
   RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87

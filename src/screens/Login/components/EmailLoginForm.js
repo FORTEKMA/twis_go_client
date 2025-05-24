@@ -1,38 +1,51 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
+import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { styles } from '../styles';
-import { useDispatch } from 'react-redux';
-import { userLogin, updateUser, getCurrentUser } from '../../../store/userSlice/userSlice';
-import { useTranslation } from 'react-i18next';
-import { OneSignal } from "react-native-onesignal";
+import {styles} from '../styles';
+import {useDispatch} from 'react-redux';
+import {
+  userLogin,
+  updateUser,
+  getCurrentUser,
+} from '../../../store/userSlice/userSlice';
+import {useTranslation} from 'react-i18next';
+import {OneSignal} from 'react-native-onesignal';
+import {useNavigation} from '@react-navigation/native';
 
-const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
+const EmailLoginForm = ({onLoginSuccess, hideForgetPassword}) => {
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const {
+    control,
+    handleSubmit,
+    formState: {errors},
+  } = useForm({
     defaultValues: {
-      identifier: 'ghoudi31222@gmail.com',
-      password: '123456789m'
+      identifier: '',
+      password: '',
     },
-    mode: 'onChange'
+    mode: 'onChange',
   });
   const dispatch = useDispatch();
-  const { t } = useTranslation();
-
-  const onSubmit = async (data) => {
+  const {t} = useTranslation();
+  const navigation = useNavigation();
+  const onSubmit = async data => {
     setIsLoading(true);
     setLoginError('');
     try {
       const result = await dispatch(userLogin(data));
       console.log(result, 'result');
-      if(result?.payload?.error){
+      if (result?.payload?.error) {
         setLoginError(t('login.invalidCredentials'));
-      }
-      else {
-        
+      } else {
         if (onLoginSuccess) {
           onLoginSuccess();
         }
@@ -46,6 +59,7 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
   };
 
   const onForgotPassword = () => {
+    navigation.navigate('ForgotPassword');
   };
 
   return (
@@ -58,10 +72,10 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
             required: t('login.emailRequired'),
             pattern: {
               value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: t('login.invalidEmail')
-            }
+              message: t('login.invalidEmail'),
+            },
           }}
-          render={({ field: { onChange, value, onBlur } }) => (
+          render={({field: {onChange, value, onBlur}}) => (
             <TextInput
               style={[styles.input, errors.identifier && styles.inputError]}
               placeholder={t('login.emailPlaceholder')}
@@ -79,7 +93,11 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
         )}
       </View>
       <View style={styles.inputContainer}>
-        <View style={[styles.passwordInputWrapper, errors.password && styles.inputError]}>
+        <View
+          style={[
+            styles.passwordInputWrapper,
+            errors.password && styles.inputError,
+          ]}>
           <Controller
             control={control}
             name="password"
@@ -87,10 +105,10 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
               required: t('login.passwordRequired'),
               minLength: {
                 value: 6,
-                message: t('login.passwordMinLength')
-              }
+                message: t('login.passwordMinLength'),
+              },
             }}
-            render={({ field: { onChange, value, onBlur } }) => (
+            render={({field: {onChange, value, onBlur}}) => (
               <TextInput
                 style={styles.passwordInput}
                 placeholder={t('login.passwordPlaceholder')}
@@ -102,25 +120,34 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
               />
             )}
           />
-          <TouchableOpacity onPress={() => setShow(!show)} style={styles.eyeIcon}>
-            <Ionicons name={show ? 'eye-off-outline' : 'eye-outline'} size={22} color="#8391A1" />
+          <TouchableOpacity
+            onPress={() => setShow(!show)}
+            style={styles.eyeIcon}>
+            <Ionicons
+              name={show ? 'eye-off-outline' : 'eye-outline'}
+              size={22}
+              color="#8391A1"
+            />
           </TouchableOpacity>
         </View>
         {errors.password && (
-          <Text style={[styles.errorText,{marginTop: 0}]}>{errors.password.message}</Text>
+          <Text style={[styles.errorText, {marginTop: 0}]}>
+            {errors.password.message}
+          </Text>
         )}
       </View>
       {loginError ? (
-        <Text style={[styles.errorText, { marginTop: 10 }]}>{loginError}</Text>
+        <Text style={[styles.errorText, {marginTop: 10}]}>{loginError}</Text>
       ) : null}
-{!hideForgetPassword&&(      <TouchableOpacity onPress={onForgotPassword}>
-        <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
-      </TouchableOpacity>)}
-      <TouchableOpacity 
-        style={[styles.btn, isLoading && styles.btnDisabled]} 
+      {!hideForgetPassword && (
+        <TouchableOpacity onPress={onForgotPassword}>
+          <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity
+        style={[styles.btn, isLoading && styles.btnDisabled]}
         onPress={handleSubmit(onSubmit)}
-        disabled={isLoading}
-      >
+        disabled={isLoading}>
         {isLoading ? (
           <ActivityIndicator color="#FFFFFF" />
         ) : (
@@ -131,4 +158,4 @@ const EmailLoginForm = ({ onLoginSuccess,hideForgetPassword }) => {
   );
 };
 
-export default EmailLoginForm; 
+export default EmailLoginForm;

@@ -1,492 +1,503 @@
 {
-    "common": {
-      "loading": "Loading...",
-      "error": "An error occurred",
-      "success": "Success",
-      "cancel": "Cancel",
-      "confirm": "Confirm",
-      "save": "Save",
-      "delete": "Delete",
-      "edit": "Edit",
-      "search": "Search...",
-      "search_orders": "Search orders...",
-      "unknown": "Unknown",
-      "accept": "Accept",
-      "decline": "Decline",
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search...",
+    "search_orders": "Search orders...",
+    "unknown": "Unknown",
+    "accept": "Accept",
+    "decline": "Decline",
+    "next": "Next",
+    "currency": "TND",
+    "km": "km",
+    "no_driver_accepted": "No driver accepted the request",
+    "time_ended": "Time ended",
+    "please_complete_order": "Please complete your order as soon as possible",
+    "ok": "OK",
+    "confirm_cancel": "Confirm Cancellation",
+    "cancel_ride_warning": "Are you sure you want to cancel this ride? Your balance will be reduced.",
+    "yes": "Yes",
+    "no": "No",
+    "Home": "Home",
+    "Historique": "History",
+    "Notifications": "Notifications",
+    "Profile": "Profile",
+    "OrderDetails": "Order Details",
+    "order_canceled_title": "Order Canceled",
+    "order_canceled_message": "The driver canceled your order. We apologize for any inconvenience this may have caused.",
+    "location_services": "Location Services",
+    "settings": "Settings"
+  },
+  "onboarding": {
+    "login": "Login",
+    "newUser": "New user?",
+    "next": "Next",
+    "registerHere": "Register here",
+    "slide1": {
+      "title": "Book your ride",
+      "text": "Use our app or website to easily book your ride in just a few clicks."
+    },
+    "slide2": {
+      "title": "Travel with confidence",
+      "text": "Our experienced drivers and reliable vehicles ensure a smooth and safe journey."
+    },
+    "slide3": {
+      "title": "Arrive on time",
+      "text": "Enjoy a fast, efficient, and stress-free ride, tailored to your schedule."
+    },
+    "skip": "Skip",
+    "stepIndicator": "{{current}}/{{total}}"
+  },
+  "login": {
+    "needToLogin": "You need to login to continue",
+    "needToLoginSubtitle": "Log in to access your account and enjoy all the features",
+    "enterAsGuest": "Enter as guest",
+    "enterRecoveryEmail": "Enter your recovery email",
+    "recoveryEmail": "Recovery email",
+    "emailPlaceholder": "email@example.com",
+    "send": "Send",
+    "recoverySent": "Recovery email sent",
+    "enterEmailPassword": "Enter your email and password",
+    "email": "Email",
+    "password": "Password",
+    "passwordPlaceholder": "Password",
+    "login": "Login",
+    "enterNumber": "Enter your number",
+    "phoneNumber": "Phone number",
+    "smsInfo": "We will send an SMS code to verify your number",
+    "continue": "Continue",
+    "orLoginWith": "Or login with",
+    "loginWithEmail": "Login with email",
+    "forgotPassword": "Forgot password?",
+    "search": "Search...",
+    "invalidCredentials": "Invalid email or password",
+    "errorOccurred": "An error occurred. Please try again.",
+    "emailRequired": "Email is required",
+    "invalidEmail": "Please enter a valid email address.",
+    "enterPhoneNumber": "Please enter a phone number.",
+    "invalidPhoneNumber": "Invalid phone number.",
+    "welcomeBack": "Welcome back! We're happy to see you again!",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Register now",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters long",
+    "passwordSpecialChar": "Password must contain at least one special character (!@#$%^&*)",
+    "terms1": "By continuing, you agree to the ",
+    "termsOfService": "Terms of Service",
+    "terms2": "."
+  },
+  "register": {
+    "emailTaken": "This email address is already in use",
+    "phoneTaken": "This phone number is already in use",
+    "createAccount": "Create account",
+    "name": "Name",
+    "namePlaceholder": "Username",
+    "nameRequired": "Name is required",
+    "phone": "Phone number",
+    "phonePlaceholder": "Phone number",
+    "phoneRequired": "Phone number is required",
+    "invalidPhone": "Invalid phone number",
+    "email": "Email address",
+    "emailPlaceholder": "hello@example.com",
+    "emailRequired": "Email is required",
+    "invalidEmail": "Invalid email address",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••••••••",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters long",
+    "passwordSpecialChar": "Password must contain at least one special character (!@#$%^&*)",
+    "terms1": "By continuing, you agree to the ",
+    "termsOfService": "Terms of Service",
+    "terms2": ".",
+    "signup": "Sign up",
+    "or": "Or",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInHere": "Sign in here"
+  },
+  "otp": {
+    "enterCode": "Enter your OTP code here.",
+    "notReceived": "Didn't receive OTP?",
+    "resend": "Resend",
+    "verify": "Verify",
+    "invalidCode": "Invalid code!",
+    "errorOccurred": "An error occurred",
+    "verify_phone": "Verify phone",
+    "code_sent_to": "Code sent to",
+    "didnt_get_otp": "Didn't get OTP?",
+    "resend_code": "Resend code",
+    "resend_in": "Resend in",
+    "seconds": "seconds"
+  },
+  "history": {
+    "card": {
+      "view_note": "View note",
+      "trip_id": "Trip ID",
+      "status": "Status",
+      "time_to_destination": "Time to destination",
+      "trip_completed": "Trip completed",
       "next": "Next",
-      "currency": "TND",
-      "km": "km",
-      "no_driver_accepted": "No driver accepted the request",
-      "time_ended": "Time ended",
-      "please_complete_order": "Please complete your order as soon as possible",
-      "ok": "OK",
-      "confirm_cancel": "Confirm Cancellation",
-      "cancel_ride_warning": "Are you sure you want to cancel this ride? Your balance will be reduced.",
-      "yes": "Yes",
-      "no": "No",
-      "Home": "Home",
-      "Historique": "History",
-      "Notifications": "Notifications",
-      "Profile": "Profile",
-      "OrderDetails": "Order Details",
-      "order_canceled_title": "Order Canceled",
-      "order_canceled_message": "The driver canceled your order. We apologize for any inconvenience this may have caused.",
-      "location_services": "Location Services",
-      "settings": "Settings"
-    },
-    "onboarding": {
-      "login": "Login",
-      "newUser": "New user?",
-      "next": "Next",
-      "registerHere": "Register here",
-      "slide1": {
-        "title": "Book your ride",
-        "text": "Use our app or website to easily book your ride in just a few clicks."
+      "price": "Price",
+      "pickup": "Pickup point",
+      "delivery": "Delivery point",
+      "items": "Items",
+      "cancel_order": "Cancel order",
+      "cancel_confirmation": "Confirm cancellation",
+      "cancel_message": "Are you sure you want to cancel this order?",
+      "minimize": "Minimize",
+      "expand": "Expand",
+      "driver_on_the_way": "Driver on the way",
+      "arriving_in": "Arriving in {{time}}",
+      "pickup_at": "Pickup at {{time}}",
+      "driver_rating": "Driver rating",
+      "distance": "Distance",
+      "arrivas": "Arrivals",
+      "cancellation_reason_title": "Why do you want to cancel the order?",
+      "cancellation_other_placeholder": "Please specify the reason",
+      "cancellation_reasons": {
+        "Driver is taking too long": "Driver is taking too long",
+        "Driver is not moving / stuck": "Driver is not moving / stuck",
+        "Can't reach the driver": "Can't reach the driver",
+        "Driver is going the wrong way": "Driver is going the wrong way",
+        "Driver asked to cancel": "Driver asked to cancel",
+        "Fare is too high / changed": "Fare is too high / changed",
+        "I no longer need a ride": "I no longer need a ride",
+        "Waited too long at pickup": "Waited too long at pickup",
+        "Wrong pickup location": "Wrong pickup location",
+        "Don't feel safe": "Don't feel safe",
+        "Emergency situation": "Emergency situation",
+        "Other": "Other"
       },
-      "slide2": {
-        "title": "Travel with confidence",
-        "text": "Our experienced drivers and reliable vehicles ensure a smooth and safe journey."
-      },
-      "slide3": {
-        "title": "Arrive on time",
-        "text": "Enjoy a fast, efficient, and stress-free ride, tailored to your schedule."
-      },
-      "skip": "Skip",
-      "stepIndicator": "{{current}}/{{total}}"
+      "report_problem": "Report a problem",
+      "report_placeholder": "Please describe the problem you encountered...",
+      "submit_report": "Submit report",
+      "report_success": "Report sent successfully",
+      "report_error": "Error sending report",
+      "rate_trip": "Rate trip"
     },
-    "login": {
-      "needToLogin": "You need to login to continue",
-      "needToLoginSubtitle": "Log in to access your account and enjoy all the features",
-      "enterAsGuest": "Enter as guest",
-      "enterRecoveryEmail": "Enter your recovery email",
-      "recoveryEmail": "Recovery email",
-      "emailPlaceholder": "email@example.com",
-      "send": "Send",
-      "recoverySent": "Recovery email sent",
-      "enterEmailPassword": "Enter your email and password",
-      "email": "Email",
-      "password": "Password",
-      "passwordPlaceholder": "Password",
-      "login": "Login",
-      "enterNumber": "Enter your number",
-      "phoneNumber": "Phone number",
-      "smsInfo": "We will send an SMS code to verify your number",
-      "continue": "Continue",
-      "orLoginWith": "Or login with",
-      "loginWithEmail": "Login with email",
-      "forgotPassword": "Forgot password?",
-      "search": "Search...",
-      "invalidCredentials": "Invalid email or password",
-      "errorOccurred": "An error occurred. Please try again.",
-      "emailRequired": "Email is required",
-      "invalidEmail": "Please enter a valid email address.",
-      "enterPhoneNumber": "Please enter a phone number.",
-      "invalidPhoneNumber": "Invalid phone number.",
-      "welcomeBack": "Welcome back! We're happy to see you again!",
-      "noAccount": "Don't have an account?",
-      "registerNow": "Register now",
-      "passwordRequired": "Password is required",
-      "passwordMinLength": "Password must be at least 6 characters long",
-      "passwordSpecialChar": "Password must contain at least one special character (!@#$%^&*)",
-      "terms1": "By continuing, you agree to the ",
-      "termsOfService": "Terms of Service",
-      "terms2": "."
-    },
-    "register": {
-      "emailTaken": "This email address is already in use",
-      "phoneTaken": "This phone number is already in use",
-      "createAccount": "Create account",
-      "name": "Name",
-      "namePlaceholder": "Username",
-      "nameRequired": "Name is required",
-      "phone": "Phone number",
-      "phonePlaceholder": "Phone number",
-      "phoneRequired": "Phone number is required",
-      "invalidPhone": "Invalid phone number",
-      "email": "Email address",
-      "emailPlaceholder": "hello@example.com",
-      "emailRequired": "Email is required",
-      "invalidEmail": "Invalid email address",
-      "password": "Password",
-      "passwordPlaceholder": "••••••••••••••",
-      "passwordRequired": "Password is required",
-      "passwordMinLength": "Password must be at least 6 characters long",
-      "passwordSpecialChar": "Password must contain at least one special character (!@#$%^&*)",
-      "terms1": "By continuing, you agree to the ",
-      "termsOfService": "Terms of Service",
-      "terms2": ".",
-      "signup": "Sign up",
-      "or": "Or",
-      "continueWithGoogle": "Continue with Google",
-      "continueWithFacebook": "Continue with Facebook",
-      "alreadyHaveAccount": "Already have an account?",
-      "signInHere": "Sign in here"
-    },
-    "otp": {
-      "enterCode": "Enter your OTP code here.",
-      "notReceived": "Didn't receive OTP?",
-      "resend": "Resend",
-      "verify": "Verify",
-      "invalidCode": "Invalid code!",
-      "errorOccurred": "An error occurred",
-      "verify_phone": "Verify phone",
-      "code_sent_to": "Code sent to",
-      "didnt_get_otp": "Didn't get OTP?",
-      "resend_code": "Resend code",
-      "resend_in": "Resend in",
-      "seconds": "seconds"
-    },
-    "history": {
-      "card": {
-        "view_note": "View note",
-        "trip_id": "Trip ID",
-        "status": "Status",
-        "time_to_destination": "Time to destination",
-        "trip_completed": "Trip completed",
-        "next": "Next",
-        "price": "Price",
-        "pickup": "Pickup point",
-        "delivery": "Delivery point",
-        "items": "Items",
-        "cancel_order": "Cancel order",
-        "cancel_confirmation": "Confirm cancellation",
-        "cancel_message": "Are you sure you want to cancel this order?",
-        "minimize": "Minimize",
-        "expand": "Expand",
-        "driver_on_the_way": "Driver on the way",
-        "arriving_in": "Arriving in {{time}}",
-        "pickup_at": "Pickup at {{time}}",
-        "driver_rating": "Driver rating",
-        "distance": "Distance",
-        "arrivas": "Arrivals",
-        "cancellation_reason_title": "Why do you want to cancel the order?",
-        "cancellation_other_placeholder": "Please specify the reason",
-        "cancellation_reasons": {
-          "Driver is taking too long": "Driver is taking too long",
-          "Driver is not moving / stuck": "Driver is not moving / stuck",
-          "Can't reach the driver": "Can't reach the driver",
-          "Driver is going the wrong way": "Driver is going the wrong way",
-          "Driver asked to cancel": "Driver asked to cancel",
-          "Fare is too high / changed": "Fare is too high / changed",
-          "I no longer need a ride": "I no longer need a ride",
-          "Waited too long at pickup": "Waited too long at pickup",
-          "Wrong pickup location": "Wrong pickup location",
-          "Don't feel safe": "Don't feel safe",
-          "Emergency situation": "Emergency situation",
-          "Other": "Other"
-        },
-        "report_problem": "Report a problem",
-        "report_placeholder": "Please describe the problem you encountered...",
-        "submit_report": "Submit report",
-        "report_success": "Report sent successfully",
-        "report_error": "Error sending report",
-        "rate_trip": "Rate trip"
-      },
-      "status": {
-        "pending": "Pending",
-        "dispatched_to_partner": "Dispatched to partner",
-        "assigned_to_driver": "Assigned to driver",
-        "driver_on_route_to_pickup": "Driver on route to pickup",
-        "arrived_at_pickup": "Arrived at pickup",
-        "picked_up": "Picked up",
-        "on_route_to_delivery": "On route to delivery",
-        "arrived_at_delivery": "Arrived at delivery",
-        "delivered": "Delivered",
-        "completed": "Completed",
-        "canceled_by_client": "Canceled by client",
-        "canceled_by_partner": "Canceled by partner",
-        "failed_pickup": "Failed pickup",
-        "failed_delivery": "Failed delivery",
-        "go_to_pickup": "Go to pickup",
-        "unknown": "Unknown status"
-      },
-      "status_filter": {
-        "all": "All",
-        "active": "Active",
-        "completed": "Completed",
-        "cancelled": "Cancelled"
-      }
-    },
-    "notifications": {
-      "title": "Notifications",
-      "empty": {
-        "title": "No notifications",
-        "description": "You haven't received any notifications yet"
-      },
-      "types": {
-        "new_ride": "New ride available",
-        "payment": "Payment received",
-        "update": "App update"
-      },
-      "today": "Today",
-      "yesterday": "Yesterday"
-    },
-    "profile": {
-      "confirmed": "Active",
+    "status": {
       "pending": "Pending",
-      "menu": {
-        "information": "Information",
-        "vehicle": "Vehicle",
-        "security": "Security",
-        "help": "Help"
+      "dispatched_to_partner": "Dispatched to partner",
+      "assigned_to_driver": "Assigned to driver",
+      "driver_on_route_to_pickup": "Driver on route to pickup",
+      "arrived_at_pickup": "Arrived at pickup",
+      "picked_up": "Picked up",
+      "on_route_to_delivery": "On route to delivery",
+      "arrived_at_delivery": "Arrived at delivery",
+      "delivered": "Delivered",
+      "completed": "Completed",
+      "canceled_by_client": "Canceled by client",
+      "canceled_by_partner": "Canceled by partner",
+      "failed_pickup": "Failed pickup",
+      "failed_delivery": "Failed delivery",
+      "go_to_pickup": "Go to pickup",
+      "unknown": "Unknown status"
+    },
+    "status_filter": {
+      "all": "All",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": {
+      "title": "No notifications",
+      "description": "You haven't received any notifications yet"
+    },
+    "types": {
+      "new_ride": "New ride available",
+      "payment": "Payment received",
+      "update": "App update"
+    },
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "profile": {
+    "confirmed": "Active",
+    "pending": "Pending",
+    "menu": {
+      "information": "Information",
+      "vehicle": "Vehicle",
+      "security": "Security",
+      "help": "Help"
+    },
+    "logout": {
+      "title": "Logout?",
+      "message": "Are you sure you want to logout?",
+      "button": "Logout",
+      "cancel": "Cancel"
+    },
+    "delete_account": {
+      "title": "Confirm",
+      "message": "Are you sure you want to delete your account? This action is irreversible.",
+      "button": "Delete Account",
+      "cancel": "Cancel"
+    },
+    "image_picker": {
+      "title": "Choose image",
+      "subtitle": "Select a source for your profile picture",
+      "camera": "Camera",
+      "gallery": "Gallery",
+      "cancel": "Cancel"
+    },
+    "vehicle": {
+      "title": "Vehicle Information",
+      "model": "Model",
+      "year": "Year",
+      "color": "Color",
+      "license_plate": "License Plate",
+      "insurance_date": "Insurance Date",
+      "insurance_expiring_soon": "Insurance expiring soon!",
+      "update_success": "Vehicle information updated successfully!",
+      "update_error": "Update failed",
+      "delete": {
+        "title": "Confirm Deletion",
+        "confirmation": "Are you sure you want to delete this vehicle?"
       },
-      "logout": {
-        "title": "Logout?",
-        "message": "Are you sure you want to logout?",
-        "button": "Logout",
-        "cancel": "Cancel"
-      },
-      "delete_account": {
-        "title": "Confirm",
-        "message": "Are you sure you want to delete your account? This action is irreversible.",
-        "button": "Delete Account",
-        "cancel": "Cancel"
-      },
-      "image_picker": {
-        "title": "Choose image",
-        "subtitle": "Select a source for your profile picture",
-        "camera": "Camera",
-        "gallery": "Gallery",
-        "cancel": "Cancel"
-      },
-      "vehicle": {
-        "title": "Vehicle Information",
-        "model": "Model",
-        "year": "Year",
-        "color": "Color",
-        "license_plate": "License Plate",
-        "insurance_date": "Insurance Date",
-        "insurance_expiring_soon": "Insurance expiring soon!",
-        "update_success": "Vehicle information updated successfully!",
-        "update_error": "Update failed",
-        "delete": {
-          "title": "Confirm Deletion",
-          "confirmation": "Are you sure you want to delete this vehicle?"
-        },
-        "attach_sub_driver": "Attach sub-driver",
-        "attach_sub_driver_success": "Sub-driver attached successfully",
-        "detach_sub_driver_success": "Sub-driver detached successfully",
-        "delete_success": "Vehicle deleted successfully"
-      },
-      "edit_profile": {
-        "title": "Edit Profile",
-        "first_name": "First Name",
-        "last_name": "Last Name",
-        "phone": "Phone",
-        "save": "Save"
-      },
-      "password": {
-        "title": "Password",
-        "current_password": "Enter current password",
-        "new_password": "New password",
-        "confirm_password": "Confirm password",
-        "current_password_required": "Password is required",
-        "new_password_required": "New password is required",
-        "confirm_password_required": "Confirm password is required",
-        "passwords_not_match": "Passwords do not match",
-        "update": "Update"
-      },
-      "help_center": {
-        "title": "Help Center",
-        "available_24_7": "Ready to help you 24/7",
-        "call_us": "Call us"
-      },
-      "language": {
-        "title": "Language",
-        "french": "French",
-        "arabic": "Arabic",
-        "english":"English",
-        "confirmation_title": "Change Language",
-        "confirmation_message": "The app will reload to apply the language change. Do you want to continue?"
-      },
-      "security": {
-        "title": "Security",
-        "current_password": "Current Password",
-        "new_password": "New Password",
-        "confirm_password": "Confirm Password",
-        "update_button": "Update Password",
-        "update_success": "Password updated successfully!",
-        "update_error": "Password update failed.",
-        "validation": {
-          "title": "Validation Error",
-          "current_required": "Current password is required",
-          "min_length": "Password must contain at least 8 characters",
-          "uppercase": "Password must contain at least one uppercase letter",
-          "lowercase": "Password must contain at least one lowercase letter",
-          "number": "Password must contain at least one number",
-          "special": "Password must contain at least one special character (!@#$%^&*)",
-          "passwords_not_match": "Passwords do not match"
-        }
-      },
-      "personal_info": {
-        "title": "Personal Information",
-        "first_name": "First Name",
-        "last_name": "Last Name",
-        "email": "Email",
-        "phone": "Phone",
-        "cin": "National ID Card Number",
-        "update_success": "Information updated successfully!",
-        "update_error": "Update failed"
-      },
+      "attach_sub_driver": "Attach sub-driver",
+      "attach_sub_driver_success": "Sub-driver attached successfully",
+      "detach_sub_driver_success": "Sub-driver detached successfully",
+      "delete_success": "Vehicle deleted successfully"
+    },
+    "edit_profile": {
+      "title": "Edit Profile",
       "first_name": "First Name",
       "last_name": "Last Name",
       "phone": "Phone",
+      "save": "Save"
+    },
+    "password": {
+      "title": "Password",
+      "current_password": "Enter current password",
+      "new_password": "New password",
+      "confirm_password": "Confirm password",
+      "current_password_required": "Password is required",
+      "new_password_required": "New password is required",
+      "confirm_password_required": "Confirm password is required",
+      "passwords_not_match": "Passwords do not match",
+      "update": "Update"
+    },
+    "help_center": {
+      "title": "Help Center",
+      "available_24_7": "Ready to help you 24/7",
+      "call_us": "Call us"
+    },
+    "language": {
+      "title": "Language",
+      "french": "French",
+      "arabic": "Arabic",
+      "english": "English",
+      "confirmation_title": "Change Language",
+      "confirmation_message": "The app will reload to apply the language change. Do you want to continue?"
+    },
+    "security": {
+      "title": "Security",
+      "current_password": "Current Password",
+      "new_password": "New Password",
+      "confirm_password": "Confirm Password",
+      "update_button": "Update Password",
+      "update_success": "Password updated successfully!",
+      "update_error": "Password update failed.",
+      "validation": {
+        "title": "Validation Error",
+        "current_required": "Current password is required",
+        "min_length": "Password must contain at least 8 characters",
+        "uppercase": "Password must contain at least one uppercase letter",
+        "lowercase": "Password must contain at least one lowercase letter",
+        "number": "Password must contain at least one number",
+        "special": "Password must contain at least one special character (!@#$%^&*)",
+        "passwords_not_match": "Passwords do not match"
+      }
+    },
+    "personal_info": {
+      "title": "Personal Information",
+      "first_name": "First Name",
+      "last_name": "Last Name",
       "email": "Email",
-      "first_name_placeholder": "First Name",
-      "last_name_placeholder": "Last Name",
-      "phone_placeholder": "Phone Number",
-      "email_placeholder": "Email",
-      "image": {
-        "upload_error": "Error uploading image"
-      }
+      "phone": "Phone",
+      "cin": "National ID Card Number",
+      "update_success": "Information updated successfully!",
+      "update_error": "Update failed"
     },
-    "help": {
-      "title": "Help and Support",
-      "call_support": "Call Support",
-      "send_email": "Send Email",
-      "whatsapp": "WhatsApp",
-      "errors": {
-        "email": "Could not open email app.",
-        "whatsapp": "Could not open WhatsApp."
-      },
-      "faq": {
-        "title": "FAQ",
-        "personal_info": {
-          "question": "How can I edit my personal information?",
-          "answer": "Go to the \"Information\" section and click on the \"Edit\" button."
-        },
-        "password": {
-          "question": "How can I update my password?",
-          "answer": "Go to the \"Security\" section and follow the instructions to change your password."
-        }
-      }
-    },
-    "booking": {
-      "step1": {
-        "title": "Pickup Address",
-        "subtitle": "Where are you going today?",
-        "confirm": "Confirm Order",
-        "pick_location": "Please select a location"
-      },
-      "step2": {
-        "title": "Destination Address",
-        "search": "Search...",
-        "confirm": "Confirm Destination",
-        "pick_location": "Please select a location"
-      },
-      "step3": {
-        "title": "Pickup Details",
-        "asap": "As soon as possible (within an hour)",
-        "confirm": "Confirm Details",
-        "select_date": "Please select a date",
-        "select_car": "Select a car",
-        "eco": "Economy",
-        "berline": "class",
-        "van": "XL",
-        "nearby": "Nearby",
-        "distance": "{value}",
-        "time": "{value}",
-        "book_now": "Book Now",
-        "searching_ride": "Searching for a ride",
-        "it_may_take_some_time": "This may take some time",
-        "slide_to_cancel": ">> Slide to cancel",
-        "swipe_right_to_cancel": "Swipe right to cancel"
-      },
-      "step4": {
-        "title": "Choose Vehicle",
-        "searching_title": "Searching for a driver",
-        "searching_ride": "Searching for a ride",
-        "searching_subtitle": "This may take a few moments",
-        "slide_to_cancel": ">> Slide to cancel",
-        "swipe_hint": "Swipe right to cancel",
-        "confirm_ride": "Confirm Ride"
-      },
-      "step5": {
-        "title": "Price 25€",
-        "confirm": "Confirm Details",
-        "select_payment": "Select payment method",
-        "confirm_payment": "Confirm Payment"
-      },
-      "step6": {
-        "title": "Price 25€"
-      }
-    },
-    "driver_name": "{{name}}",
-    "car_model": "{{model}}",
-    "pickup_point": "Pickup Point",
-    "pick_off": "Drop-off Point",
-    "go_to_payment": "Go to Payment",
-    "proceeding_to_payment": "Proceeding to payment...",
-    "payment": {
-      "online": "Pay Online",
-      "online_description": "Pay securely with your bank card",
-      "cash": "Pay with Cash",
-      "cash_description": "Pay the driver directly at the end of the ride"
-    },
-    "location": {
-      "permission": {
-        "title": "Location Permission",
-        "message": "The app needs access to your location.",
-        "ask_later": "Ask Later",
-        "cancel": "Cancel",
-        "ok": "OK"
-      },
-      "where_are_you": "Where are you?",
-      "where_to": "Where are you going?",
-      "pickUp": "Pickup Point",
-      "dropOff": "Drop-off Point",
-      "use_current_location": "Use my current location",
-      "suggested_locations": "Suggested Locations",
-      "continue": "Continue",
-      "error": {
-        "get_location": "Could not get your location",
-        "fetch_address": "Could not get address"
-      }
-    },
-    "Choose_location": "Choose a location",
-    "save": "Save",
-    "search_placeholder": "Search for a location",
-    "eco_description": "Economical and eco-friendly vehicle",
-    "berline_description": "Comfortable and spacious vehicle",
-    "van_description": "Passenger transport vehicle",
-    "cancellation_reason_title": "Why are you canceling?",
-    "cancellation_other_placeholder": "Please specify the reason",
-    "cancellation_reasons": {
-      "Driver is taking too long": "Driver is taking too long",
-      "Driver is not moving / stuck": "Driver is not moving / stuck",
-      "Can't reach the driver": "Can't reach the driver",
-      "Driver is going the wrong way": "Driver is going the wrong way",
-      "Driver asked to cancel": "Driver asked to cancel",
-      "Fare is too high / changed": "Fare is too high / changed",
-      "I no longer need a ride": "I no longer need a ride",
-      "Waited too long at pickup": "Waited too long at pickup",
-      "Wrong pickup location": "Wrong pickup location",
-      "Don't feel safe": "Don't feel safe",
-      "Emergency situation": "Emergency situation",
-      "Other": "Other"
-    },
-    "Livraison": "Cash",
-    "rating": {
-      "title": "Rate Driver",
-      "leave_feedback": "Leave feedback",
-      "type_comment": "Type your comment here",
-      "already_rated": "You have already rated",
-      "rate": "Rate",
-      "success": "Feedback sent successfully",
-      "characters": "{{current}}/{{max}}",
-      "feedback_tags": {
-        "very_professional": "Very professional",
-        "arrive_on_time": "Arrived on time",
-        "package_handed_over_gently": "Package handed over gently",
-        "other": "Other"
-      }
-    },
-    "ride": {
-      "base_price": "Base price",
-      "additional_charges": "Additional charges",
-      "total_price": "Total price",
-      "waiting_time": "Waiting time",
-      "charging_info": "Charging will start after {{time}} minutes",
-      "charging_period": "{{charge}} DT will be charged every {{period}} minutes"
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "phone": "Phone",
+    "email": "Email",
+    "first_name_placeholder": "First Name",
+    "last_name_placeholder": "Last Name",
+    "phone_placeholder": "Phone Number",
+    "email_placeholder": "Email",
+    "image": {
+      "upload_error": "Error uploading image"
     }
+  },
+  "help": {
+    "title": "Help and Support",
+    "call_support": "Call Support",
+    "send_email": "Send Email",
+    "whatsapp": "WhatsApp",
+    "errors": {
+      "email": "Could not open email app.",
+      "whatsapp": "Could not open WhatsApp."
+    },
+    "faq": {
+      "title": "FAQ",
+      "personal_info": {
+        "question": "How can I edit my personal information?",
+        "answer": "Go to the \"Information\" section and click on the \"Edit\" button."
+      },
+      "password": {
+        "question": "How can I update my password?",
+        "answer": "Go to the \"Security\" section and follow the instructions to change your password."
+      }
+    }
+  },
+  "booking": {
+    "step1": {
+      "title": "Pickup Address",
+      "subtitle": "Where are you going today?",
+      "confirm": "Confirm Order",
+      "pick_location": "Please select a location"
+    },
+    "step2": {
+      "title": "Destination Address",
+      "search": "Search...",
+      "confirm": "Confirm Destination",
+      "pick_location": "Please select a location"
+    },
+    "step3": {
+      "title": "Pickup Details",
+      "asap": "As soon as possible (within an hour)",
+      "confirm": "Confirm Details",
+      "select_date": "Please select a date",
+      "select_car": "Select a car",
+      "eco": "Economy",
+      "berline": "Sedan",
+      "van": "Van",
+      "nearby": "Nearby",
+      "distance": "{value}",
+      "time": "{value}",
+      "book_now": "Book Now",
+      "searching_ride": "Searching for a ride",
+      "it_may_take_some_time": "This may take some time",
+      "slide_to_cancel": ">> Slide to cancel",
+      "swipe_right_to_cancel": "Swipe right to cancel"
+    },
+    "step4": {
+      "title": "Choose Vehicle",
+      "searching_title": "Searching for a driver",
+      "searching_ride": "Searching for a ride",
+      "searching_subtitle": "This may take a few moments",
+      "slide_to_cancel": ">> Slide to cancel",
+      "swipe_hint": "Swipe right to cancel",
+      "confirm_ride": "Confirm Ride"
+    },
+    "step5": {
+      "title": "Price 25€",
+      "confirm": "Confirm Details",
+      "select_payment": "Select payment method",
+      "confirm_payment": "Confirm Payment"
+    },
+    "step6": {
+      "title": "Price 25€"
+    }
+  },
+  "driver_name": "{{name}}",
+  "car_model": "{{model}}",
+  "pickup_point": "Pickup Point",
+  "pick_off": "Drop-off Point",
+  "go_to_payment": "Go to Payment",
+  "proceeding_to_payment": "Proceeding to payment...",
+  "payment": {
+    "online": "Pay Online",
+    "online_description": "Pay securely with your bank card",
+    "cash": "Pay with Cash",
+    "cash_description": "Pay the driver directly at the end of the ride"
+  },
+  "location": {
+    "permission": {
+      "title": "Location Permission",
+      "message": "The app needs access to your location.",
+      "ask_later": "Ask Later",
+      "cancel": "Cancel",
+      "ok": "OK"
+    },
+    "where_are_you": "Where are you?",
+    "where_to": "Where are you going?",
+    "pickUp": "Pickup Point",
+    "dropOff": "Drop-off Point",
+    "use_current_location": "Use my current location",
+    "suggested_locations": "Suggested Locations",
+    "continue": "Continue",
+    "error": {
+      "get_location": "Could not get your location",
+      "fetch_address": "Could not get address"
+    }
+  },
+  "Choose_location": "Choose a location",
+  "save": "Save",
+  "search_placeholder": "Search for a location",
+  "eco_description": "Economical and eco-friendly vehicle",
+  "berline_description": "Comfortable and spacious vehicle",
+  "van_description": "Passenger transport vehicle",
+  "cancellation_reason_title": "Why are you canceling?",
+  "cancellation_other_placeholder": "Please specify the reason",
+  "cancellation_reasons": {
+    "Driver is taking too long": "Driver is taking too long",
+    "Driver is not moving / stuck": "Driver is not moving / stuck",
+    "Can't reach the driver": "Can't reach the driver",
+    "Driver is going the wrong way": "Driver is going the wrong way",
+    "Driver asked to cancel": "Driver asked to cancel",
+    "Fare is too high / changed": "Fare is too high / changed",
+    "I no longer need a ride": "I no longer need a ride",
+    "Waited too long at pickup": "Waited too long at pickup",
+    "Wrong pickup location": "Wrong pickup location",
+    "Don't feel safe": "Don't feel safe",
+    "Emergency situation": "Emergency situation",
+    "Other": "Other"
+  },
+  "Livraison": "Cash",
+  "rating": {
+    "title": "Rate Driver",
+    "leave_feedback": "Leave feedback",
+    "type_comment": "Type your comment here",
+    "already_rated": "You have already rated",
+    "rate": "Rate",
+    "success": "Feedback sent successfully",
+    "characters": "{{current}}/{{max}}",
+    "feedback_tags": {
+      "very_professional": "Very professional",
+      "arrive_on_time": "Arrived on time",
+      "package_handed_over_gently": "Package handed over gently",
+      "other": "Other"
+    }
+  },
+  "ride": {
+    "base_price": "Base price",
+    "additional_charges": "Additional charges",
+    "total_price": "Total price",
+    "waiting_time": "Waiting time",
+    "charging_info": "Charging will start after {{time}} minutes",
+    "charging_period": "{{charge}} DT will be charged every {{period}} minutes"
+  },
+  "email": {
+    "status": {
+      "email_200": "Recovery email sent",
+      "email_err": "Failed to send recovery email"
+    },
+    "code": {
+      "code_incomplete": "Please enter all the digits.",
+      "code_invalid": "The code is incorrect. Please try again."
+    },
+    "reset_failed": "Failed to reset the password. Please try again."
   }
+}
