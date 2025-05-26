@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: hp(2),
     fontWeight: 'bold',
-    color: '#F9DC76',
+    color: '#030303',
   },
   progressBarContainer: {
     height: 4,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
   },
 });
 

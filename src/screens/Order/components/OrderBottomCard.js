@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView, PanResponder, Platform } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../utils/colors';
@@ -9,7 +9,7 @@ import OrderReportProblemModal from './OrderReportProblemModal';
 import { useNavigation } from '@react-navigation/native';
 import api from '../../../utils/api';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.45 : SCREEN_HEIGHT * 0.47;
+const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.47;
 
 const STATUS_COLORS = {
   Driver_on_route_to_pickup: '#3498db',
@@ -25,12 +25,13 @@ const STATUS_COLORS = {
 const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   const { t } = useTranslation();
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showReasonSheet, setShowReasonSheet] = useState(false);
   const [selectedReason, setSelectedReason] = useState(null);
   const [otherReason, setOtherReason] = useState('');
   const [showReportModal, setShowReportModal] = useState(false);
-    const [waitingTime, setWaitingTime] = useState(0);
+  const [waitingTime, setWaitingTime] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [additionalCharges, setAdditionalCharges] = useState(order?.additionalCharges || 0);
   const [lastChargeTime, setLastChargeTime] = useState(0);
@@ -51,6 +52,8 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
     'Emergency situation',
     'Other'
   ];
+  const [isExpanded, setIsExpanded] = useState(true);
+  const MINIMUM_HEIGHT = CARD_HEIGHT * 0.4; // 20% of the card height
 
   // Memoized values
   const status = order?.commandStatus || 'Driver_on_route_to_pickup';
@@ -170,89 +173,151 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
 
  
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only allow downward movement
+        return gestureState.dy > 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow downward movement and limit the maximum distance
+        const newTranslateY = Math.max(0, Math.min(gestureState.dy, CARD_HEIGHT - MINIMUM_HEIGHT));
+        translateY.setValue(newTranslateY);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100) {
+          // Slide down to minimum height
+          Animated.spring(translateY, {
+            toValue: CARD_HEIGHT - MINIMUM_HEIGHT,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 7,
+          }).start();
+          setIsExpanded(false);
+        } else {
+          // Return to original position
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 50,
+            friction: 7,
+          }).start();
+          setIsExpanded(true);
+        }
+      },
+    })
+  ).current;
+
+  // Add effect to ensure translateY never goes below 0
+  useEffect(() => {
+    const listener = translateY.addListener(({ value }) => {
+      if (value < 0) {
+        translateY.setValue(0);
+      }
+    });
+
+    return () => {
+      translateY.removeListener(listener);
+    };
+  }, [translateY]);
+
   return (
-    <View style={styles.container}>
+    <Animated.View 
+      style={[
+        styles.container,
+        {
+          transform: [{ translateY }],
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+        }
+      ]}
+      {...panResponder.panHandlers}
+    >
       <View style={styles.cardContainer}>
         <View style={styles.handleContainer}>
           <View style={styles.handleBar} />
         </View>
-        
-        <View style={styles.statusBanner}>
-          <View style={[styles.statusIndicator, { backgroundColor: statusColor }]} />
-          <Text style={styles.statusText}>{statusText}</Text>
-        </View>
+        {isExpanded ? (
+          <>
+            <View style={styles.statusBanner}>
+              <View style={[styles.statusIndicator, { backgroundColor: statusColor }]} />
+              <Text style={styles.statusText}>{statusText}</Text>
+            </View>
 
-        <View style={styles.driverSection}>
-          <View style={styles.driverRow}>
-            <Image source={{ uri: driverAvatar }} style={styles.avatar} />
-            <View style={styles.driverInfo}>
-              <View style={styles.driverNameRow}>
-                <Text style={styles.driverName}>{driverName}</Text>
-                {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
-                  <TouchableOpacity 
-                    style={styles.callButtonCircle}
-                    onPress={onCallDriver}
-                    onPressIn={handlePressIn}
-                    onPressOut={handlePressOut}
-                  >
-                    <Ionicons name="call" size={20} color="#fff" />
-                  </TouchableOpacity>
-                )}
+            <View style={styles.driverSection}>
+              <View style={styles.driverRow}>
+                <Image source={{ uri: driverAvatar }} style={styles.avatar} />
+                <View style={styles.driverInfo}>
+                  <View style={styles.driverNameRow}>
+                    <Text style={styles.driverName}>{driverName}</Text>
+                    {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
+                      <TouchableOpacity 
+                        style={styles.callButtonCircle}
+                        onPress={onCallDriver}
+                        onPressIn={handlePressIn}
+                        onPressOut={handlePressOut}
+                      >
+                        <Ionicons name="call" size={20} color="#fff" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <View style={styles.ratingContainer}>
+                    <Ionicons name="star" size={16} color="#FFB800" />
+                    <Text style={styles.rating}>{driverRating}</Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.ratingContainer}>
-                <Ionicons name="star" size={16} color="#FFB800" />
-                <Text style={styles.rating}>{driverRating}</Text>
+
+              <View style={styles.carSection}>
+                <View style={styles.carInfoRow}>
+                  <View style={styles.carInfoItem}>
+                    <Ionicons name="car" size={20} color="#666" />
+                    <Text style={styles.carInfoText}>{carModel}</Text>
+                  </View>
+                  <View style={styles.carInfoDivider} />
+                  <View style={styles.carInfoItem}>
+                    <Ionicons name="card" size={20} color="#666" />
+                    <Text style={styles.carInfoText}>{carPlate}</Text>
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
 
-          <View style={styles.carSection}>
-            <View style={styles.carInfoRow}>
-              <View style={styles.carInfoItem}>
-                <Ionicons name="car" size={20} color="#666" />
-                <Text style={styles.carInfoText}>{carModel}</Text>
+            <View style={styles.addressContainer}>
+              <View style={styles.addressLine} />
+              <View style={styles.addressRow}>
+                <View style={styles.dotBlack} />
+                <Text style={styles.addressText}>{order?.pickUpAddress?.Address || ''}</Text>
               </View>
-              <View style={styles.carInfoDivider} />
-              <View style={styles.carInfoItem}>
-                <Ionicons name="card" size={20} color="#666" />
-                <Text style={styles.carInfoText}>{carPlate}</Text>
+              <View style={styles.addressRow}>
+                <View style={styles.dotBlue} />
+                <Text style={[styles.addressText, { color: colors.primary }]}>{order?.dropOfAddress?.Address || ''}</Text>
               </View>
             </View>
-          </View>
-        </View>
 
-        <View style={styles.addressContainer}>
-          <View style={styles.addressLine} />
-          <View style={styles.addressRow}>
-            <View style={styles.dotBlack} />
-            <Text style={styles.addressText}>{order?.pickUpAddress?.Address || ''}</Text>
-          </View>
-          <View style={styles.addressRow}>
-            <View style={styles.dotBlue} />
-            <Text style={[styles.addressText, { color: colors.primary }]}>{order?.dropOfAddress?.Address || ''}</Text>
-          </View>
-        </View>
-
-        <View style={styles.priceContainer}>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>{t('ride.base_price')}:</Text>
-            <Text style={styles.priceValue}>{parseFloat(order?.totalPrice || 0).toFixed(2)} DT</Text>
-          </View>
-          {additionalCharges > 0 && (
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>{t('ride.additional_charges')}:</Text>
-              <Text style={styles.priceValue}>{parseFloat(additionalCharges).toFixed(2)} DT</Text>
+            <View style={styles.priceContainer}>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>{t('ride.base_price')}:</Text>
+                <Text style={styles.priceValue}>{parseFloat(order?.totalPrice || 0).toFixed(2)} DT</Text>
+              </View>
+              {additionalCharges > 0 && (
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceLabel}>{t('ride.additional_charges')}:</Text>
+                  <Text style={styles.priceValue}>{parseFloat(additionalCharges).toFixed(2)} DT</Text>
+                </View>
+              )}
+              <View style={styles.totalPriceRow}>
+                <Text style={styles.totalPriceLabel}>{t('ride.total_price')}:</Text>
+                <Text style={styles.totalPriceValue}>
+                  {parseFloat((order?.totalPrice || 0) + additionalCharges).toFixed(2)} DT
+                </Text>
+              </View>
             </View>
-          )}
-          <View style={styles.totalPriceRow}>
-            <Text style={styles.totalPriceLabel}>{t('ride.total_price')}:</Text>
-            <Text style={styles.totalPriceValue}>
-              {parseFloat((order?.totalPrice || 0) + additionalCharges).toFixed(2)} DT
-            </Text>
-          </View>
-        </View>
 
-        {order?.commandStatus == "Arrived_at_pickup" && (<View style={styles.timerContainer}>
+            {order?.commandStatus == "Arrived_at_pickup" && (<View style={styles.timerContainer}>
                       <Text style={styles.timerLabel}>
                         {t("ride.waiting_time")}:
                       </Text>
@@ -287,37 +352,86 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
                       </View>
                     </View>)}
 
-        {order?.commandStatus === "Completed" && (<View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,flex:1,width:"100%"}}>
-     
-          <TouchableOpacity 
-            style={styles.reportButton}
-            onPress={() => setShowReportModal(true)}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-          >
-            <Text style={styles.reportButtonText}>{t('history.card.report_problem')}</Text>
-          </TouchableOpacity>
-    
-
- 
-            <TouchableOpacity 
-              style={[styles.submitReportButton, styles.rateButton]}
-              onPress={()=>  navigation.navigate('Rating', { order })}
-            >
-              <Text style={styles.submitReportButtonText}>{t('history.card.rate_trip')}</Text>
-            </TouchableOpacity>
+            {order?.commandStatus === "Completed" && (<View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,flex:1,width:"100%"}}>
+             
+              <TouchableOpacity 
+                style={styles.reportButton}
+                onPress={() => setShowReportModal(true)}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+              >
+                <Text style={styles.reportButtonText}>{t('history.card.report_problem')}</Text>
+              </TouchableOpacity>
         
-          </View>  )}
 
-        {"Pending" ==order?.commandStatus && (
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={handleCancelPress}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-          >
-            <Text style={styles.cancelButtonText}>{t('history.card.cancel_order')}</Text>
-          </TouchableOpacity>
+
+                <TouchableOpacity 
+                  disabled={order?.review}
+                  style={[styles.submitReportButton, styles.rateButton,{opacity:!order?.review?1:0.2}]}
+                  onPress={()=>  navigation.navigate('Rating', { order })}
+                >
+                  <Text style={styles.submitReportButtonText}>{t('history.card.rate_trip')}</Text>
+                </TouchableOpacity>
+            
+            </View>  )}
+
+            {"Pending" ==order?.commandStatus && (
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={handleCancelPress}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+              >
+                <Text style={styles.cancelButtonText}>{t('history.card.cancel_order')}</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          <View style={styles.collapsedContent}>
+            <View style={styles.statusBanner}>
+              <View style={[styles.statusIndicator, { backgroundColor: statusColor }]} />
+              <Text style={styles.statusText}>{statusText}</Text>
+            </View>
+
+            <View style={styles.driverSection}>
+              <View style={styles.driverRow}>
+                <Image source={{ uri: driverAvatar }} style={styles.avatar} />
+                <View style={styles.driverInfo}>
+                  <View style={styles.driverNameRow}>
+                    <Text style={styles.driverName}>{driverName}</Text>
+                    {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
+                      <TouchableOpacity 
+                        style={styles.callButtonCircle}
+                        onPress={onCallDriver}
+                        onPressIn={handlePressIn}
+                        onPressOut={handlePressOut}
+                      >
+                        <Ionicons name="call" size={20} color="#fff" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <View style={styles.ratingContainer}>
+                    <Ionicons name="star" size={16} color="#FFB800" />
+                    <Text style={styles.rating}>{driverRating}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.carSection}>
+                <View style={styles.carInfoRow}>
+                  <View style={styles.carInfoItem}>
+                    <Ionicons name="car" size={20} color="#666" />
+                    <Text style={styles.carInfoText}>{carModel}</Text>
+                  </View>
+                  <View style={styles.carInfoDivider} />
+                  <View style={styles.carInfoItem}>
+                    <Ionicons name="card" size={20} color="#666" />
+                    <Text style={styles.carInfoText}>{carPlate}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
         )}
       </View>
 
@@ -344,7 +458,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
         onClose={() => setShowReportModal(false)}
         order={order}
       />
-    </View>
+    </Animated.View>
   );
 };
 
@@ -386,11 +500,6 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
   container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  //  height: CARD_HEIGHT,
     backgroundColor: '#fff',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
@@ -402,6 +511,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    height: CARD_HEIGHT,
   },
   cardContainer: {
     flex: 1,
@@ -589,6 +699,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primary,
     marginBottom: 12,
+    height:50,
 
     flex:1,
   },
@@ -684,6 +795,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primary,
     fontWeight: '700',
+  },
+  collapsedContent: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
   },
 });
 

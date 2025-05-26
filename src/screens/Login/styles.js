@@ -97,7 +97,7 @@ export const styles = StyleSheet.create({
   btn: {
     width: '100%',
     paddingVertical: 16,
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
@@ -107,7 +107,7 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
   },
   btnText: {
-    color: '#222',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -159,7 +159,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   registerNow: {
-    color: '#F9DC76',
+    color: '#030303',
     fontWeight: '700',
   },
   switchContainer: {
@@ -176,10 +176,10 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     width: '50%',
     height: '100%',
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#F9DC76',
+    borderColor: '#030303',
   },
   switchButton: {
     flex: 1,
@@ -198,7 +198,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   switchTextActive: {
-    color: '#222',
+    color: '#fff',
     fontWeight: '700',
   },
   guestBtn: {

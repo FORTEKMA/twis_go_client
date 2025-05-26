@@ -54,7 +54,7 @@ export const Card = ({ order ,refresh}) => {
         return "#27AE60"; // Dark Green
       case "canceled_by_client":
       case "canceled_by_partner":
-        return "#E74C3C"; // Red
+        return "red"; // Red
       case "failed_pickup":
       case "failed_delivery":
         return "#C0392B"; // Dark Red
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     padding: hp(2.5),
     marginVertical: hp(1),
     marginHorizontal: hp(2),
-    borderWidth: 1,
+    borderWidth: 3,
     borderColor: "#ccc",
    
   },
@@ -222,6 +222,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: wp(2),
+    
   },
   title: {
     fontSize: hp(2.2),
@@ -232,9 +233,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: hp(0.5),
-    paddingHorizontal: wp(3),
+    paddingHorizontal: wp(2),
     borderRadius: hp(1.5),
     gap: wp(1),
+    width:100
   },
   statusIcon: {
     marginRight: wp(1),
@@ -263,8 +265,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   footer: {
-    borderTopWidth: 1,
-    borderTopColor: colors.lightPrimary,
+    borderTopWidth:3,
+    borderTopColor: "#ccc",
    // marginTop: hp(1),
     paddingTop: hp(1.5),
   },
@@ -275,7 +277,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: hp(1.5),
-    color: colors.gray,
+    color: "#0c0c0c",
     fontWeight: "500",
   },
 });

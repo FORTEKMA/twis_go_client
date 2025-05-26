@@ -59,7 +59,7 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
+          <MaterialCommunityIcons name="arrow-left" size={28} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('login.needToLogin')}</Text>
        

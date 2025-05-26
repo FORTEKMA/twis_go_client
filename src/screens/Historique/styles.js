@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 25,
-    borderWidth: 1,
+    borderWidth: 3,
     borderColor: "#ccc",
   },
   headerContainer: 

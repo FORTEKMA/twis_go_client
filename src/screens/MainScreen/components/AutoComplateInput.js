@@ -81,7 +81,7 @@ function AutoComplateInput({value,loading,setLocationInfo,setLoading,changeRegio
             <TouchableOpacity key={item.place_id}  style={{padding:8,borderBottomWidth:0.5,borderColor:"#334155"}} onPress={()=>{onPlaceSelect(item)}} >
 
             <View style={{flexDirection:"row",alignItems:"center"}} >
-            <MaterialIcons style={{marginLeft:8,marginRight:4,}} name={parseIcon(item)} size={30} color={"#F9DC76"}></MaterialIcons>
+            <MaterialIcons style={{marginLeft:8,marginRight:4,}} name={parseIcon(item)} size={30} color={"#030303"}></MaterialIcons>
 
            
             <Text style={{fontSize:14,fontWeight:"400",color:"#000",width:"80%"}} numberOfLines={1} >{item.description}</Text>
@@ -98,7 +98,7 @@ function AutoComplateInput({value,loading,setLocationInfo,setLoading,changeRegio
         <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 20}}>
                      <View style={[style.inputContainer, {borderColor: "#ccc", height: 48, flex: 1}]}>
                      
-                        <TextInput ref={inputRef} onBlur={()=>setFocus(false)} onFocus={()=>setFocus(true)} value={value} onChangeText={onChangeText} placeholder={t('search_placeholder')} selectionColor={ "#F9DC76"} placeholderTextColor={"#94A3B8"} style={[style.r14, {paddingHorizontal: 10, color: "#000", flex: 1}]} />
+                        <TextInput ref={inputRef} onBlur={()=>setFocus(false)} onFocus={()=>setFocus(true)} value={value} onChangeText={onChangeText} placeholder={t('search_placeholder')} selectionColor={ "#030303"} placeholderTextColor={"#94A3B8"} style={[style.r14, {paddingHorizontal: 10, color: "#000", flex: 1}]} />
                         {loading?<ActivityIndicator/>:(<MaterialIcons name="search"  size={25} color={"#94A3B8"}/>)}
 
   

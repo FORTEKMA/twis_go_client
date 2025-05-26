@@ -80,7 +80,7 @@ const Step4 = ({ goBack }) => {
     {/* Status Header */}
     <View style={{ alignItems: 'center', marginTop: hp(2) }}>
       <View style={localStyles.statusIconWrapper}>
-        <MaterialCommunityIcons name="progress-clock" size={32} color="#F9DC76" />
+        <MaterialCommunityIcons name="progress-clock" size={32} color="#030303" />
       </View>
       <Text style={localStyles.statusTitle}>{t("booking.step3.searching_ride")}</Text>
       <Text style={localStyles.statusSubtitle}>{t("booking.step3.it_may_take_some_time")}</Text>
@@ -121,7 +121,7 @@ const Step4 = ({ goBack }) => {
             },
           ]}
         />
-        <MaterialCommunityIcons name="close" size={24} color="#19191C" />
+        <MaterialCommunityIcons name="close" size={24} color="#fff" />
         <Text style={localStyles.cancelText}>{t('booking.step3.slide_to_cancel')}</Text>
       </View>
       <Text style={localStyles.swipeHint}>{t('booking.step3.swipe_right_to_cancel')}</Text>
@@ -163,7 +163,7 @@ const localStyles = StyleSheet.create({
   statusTitle: {
     fontWeight: '700',
     fontSize: hp(2.5),
-    color: '#19191C',
+    color: '#fff',
     marginTop: 4,
   },
   statusSubtitle: {
@@ -240,7 +240,7 @@ const localStyles = StyleSheet.create({
   },
   driverName: {
     fontWeight: '700',
-    color: '#19191C',
+    color: '#fff',
     fontSize: hp(1.7),
   },
   driverDistance: {

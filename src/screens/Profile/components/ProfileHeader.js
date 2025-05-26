@@ -31,7 +31,7 @@ const ProfileHeader = ({ user, onImagePress }) => {
               position: 'absolute',
               bottom: 0,
               right: 0,
-              backgroundColor: '#F0C877',
+              backgroundColor: '#0c0c0c',
               borderRadius: 15,
               padding: 8,
               borderWidth: 2,

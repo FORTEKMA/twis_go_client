@@ -64,7 +64,7 @@ const LanguageModal = ({ isVisible, onClose, onLanguageSelect }) => {
           </TouchableOpacity>
 
           <View style={styles.modalIconContainer}>
-            <Icon name="translate" size={40} color="#F0C877" />
+            <Icon name="translate" size={40} color="#0c0c0c" />
           </View>
           <Text style={styles.modalTitle}>{t('profile.language.title')}</Text>
           

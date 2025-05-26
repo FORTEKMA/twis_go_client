@@ -45,7 +45,7 @@ const Help = () => {
             style={styles.helpOption}
             onPress={handleCall}
           >
-            <Icon name="phone" size={24} color="#F0C877" />
+            <Icon name="phone" size={24} color="#0c0c0c" />
             <Text style={styles.helpOptionText}>{t('help.call_support')}</Text>
           </TouchableOpacity>
 
@@ -53,7 +53,7 @@ const Help = () => {
             style={styles.helpOption}
             onPress={handleEmail}
           >
-            <Icon name="email" size={24} color="#F0C877" />
+            <Icon name="email" size={24} color="#0c0c0c" />
             <Text style={styles.helpOptionText}>{t('help.send_email')}</Text>
           </TouchableOpacity>
 
@@ -61,7 +61,7 @@ const Help = () => {
             style={styles.helpOption}
             onPress={handleWhatsApp}
           >
-            <Icon name="whatsapp" size={24} color="#F0C877" />
+            <Icon name="whatsapp" size={24} color="#0c0c0c" />
             <Text style={styles.helpOptionText}>{t('help.whatsapp')}</Text>
           </TouchableOpacity>
         </View>

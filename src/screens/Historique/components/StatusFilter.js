@@ -32,7 +32,7 @@ export const StatusFilter = ({ setStatusFilter, statusFilter }) => {
               paddingHorizontal: wp(4),
               paddingVertical: hp(1.2),
               borderRadius: hp(2),
-              backgroundColor:statusFilter === filter.value ? colors.primary : colors.gray,
+              backgroundColor:statusFilter === filter.value ? "#0c0c0c": colors.gray,
              
               borderWidth: 1,
               borderColor: "#ccc",

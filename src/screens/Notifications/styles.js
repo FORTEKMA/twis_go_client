@@ -10,8 +10,10 @@ export const styles = StyleSheet.create({
   header: {
     paddingHorizontal: wp(5),
     paddingVertical: hp(2),
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomWidth: 3,
+    borderBottomColor: "#ccc",
+    width:"90%",
+    alignSelf:"center"
   },
   headerTitle: {
     fontSize: hp(2.5),
@@ -39,7 +41,7 @@ export const styles = StyleSheet.create({
     padding: wp(4),
     marginBottom: hp(1),
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 3,
     borderColor: "#ccc",
    
   },

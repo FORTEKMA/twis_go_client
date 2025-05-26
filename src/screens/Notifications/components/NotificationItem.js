@@ -59,6 +59,7 @@ const NotificationItem = ({ notification }) => {
       <Image
         source={getNotificationIcon(notification?.notification_type)}
         style={styles.notificationImage}
+        tintColor={"#0c0c0c"}
       />
 
       <View style={styles.notificationContent}>

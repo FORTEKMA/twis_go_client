@@ -23,8 +23,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
+    borderBottomWidth: 3,
     borderBottomColor: '#eee',
+    width:"90%",
+    alignSelf:"center",
     paddingTop:Platform.OS=='ios'?hp(6):hp(2)
   },
   backButton: {

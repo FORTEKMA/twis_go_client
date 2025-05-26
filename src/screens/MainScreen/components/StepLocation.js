@@ -199,9 +199,9 @@ const StepLocation = ({ formData, goNext, isMapDragging, selectedLocation }) => 
               disabled={isLoadingLocation}
             >
               {isLoadingLocation ? (
-                <Spinner size="sm" color="#F9DC76" />
+                <Spinner size="sm" color="#030303" />
               ) : (
-                <MaterialIcons name="my-location" size={22} color="#F9DC76" />
+                <MaterialIcons name="my-location" size={22} color="#030303" />
               )}
             </TouchableOpacity>
           </View>
@@ -252,7 +252,7 @@ const localStyles = StyleSheet.create({
     marginBottom: 5,
   },
   selectedContainer: {
-    borderColor: '#F9DC76',
+    borderColor: '#030303',
     borderWidth: 2,
   }
 });

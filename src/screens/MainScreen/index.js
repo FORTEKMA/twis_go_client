@@ -12,7 +12,9 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
-  Text
+  Text,
+  Keyboard,
+  KeyboardEvent
 } from 'react-native';
 import DriverMarker from '../../components/DriverMarker';
 import {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
@@ -40,6 +42,7 @@ import LottieView from 'lottie-react-native';
 import {API_GOOGLE} from "@env"
 import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AnimatedPolyline from './components/AnimatedPolyline';
 const { width: SCREEN_WIDTH,height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
@@ -85,6 +88,8 @@ const MainScreen = () => {
   const [hasTouchedMap, setHasTouchedMap] = useState(false);
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [locationAlertMessage, setLocationAlertMessage] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
  
   // Memoized distance calculation
   const memoizedCalculateDistance = useMemo(() => {
@@ -160,108 +165,6 @@ const MainScreen = () => {
     }
   }, [currentLocation, filterNearbyDrivers]);
 
-  // Optimized route animation
-  const simplifyCoordinates = useCallback((coords, tolerance = 0.0001) => {
-    if (coords.length <= 2) return coords;
-    
-    const findPerpendicularDistance = (point, lineStart, lineEnd) => {
-      const x = point.latitude;
-      const y = point.longitude;
-      const x1 = lineStart.latitude;
-      const y1 = lineStart.longitude;
-      const x2 = lineEnd.latitude;
-      const y2 = lineEnd.longitude;
-      
-      const A = x - x1;
-      const B = y - y1;
-      const C = x2 - x1;
-      const D = y2 - y1;
-      
-      const dot = A * C + B * D;
-      const lenSq = C * C + D * D;
-      let param = -1;
-      
-      if (lenSq !== 0) {
-        param = dot / lenSq;
-      }
-      
-      let xx, yy;
-      
-      if (param < 0) {
-        xx = x1;
-        yy = y1;
-      } else if (param > 1) {
-        xx = x2;
-        yy = y2;
-      } else {
-        xx = x1 + param * C;
-        yy = y1 + param * D;
-      }
-      
-      const dx = x - xx;
-      const dy = y - yy;
-      
-      return Math.sqrt(dx * dx + dy * dy);
-    };
-
-    const douglasPeucker = (points, start, end, tolerance) => {
-      if (end - start <= 1) return;
-      
-      let maxDistance = 0;
-      let index = start;
-      
-      for (let i = start + 1; i < end; i++) {
-        const distance = findPerpendicularDistance(
-          points[i],
-          points[start],
-          points[end]
-        );
-        
-        if (distance > maxDistance) {
-          index = i;
-          maxDistance = distance;
-        }
-      }
-      
-      if (maxDistance > tolerance) {
-        points[index].keep = true;
-        douglasPeucker(points, start, index, tolerance);
-        douglasPeucker(points, index, end, tolerance);
-      }
-    };
-
-    const points = coords.map(coord => ({ ...coord, keep: false }));
-    points[0].keep = true;
-    points[points.length - 1].keep = true;
-    
-    douglasPeucker(points, 0, points.length - 1, tolerance);
-    
-    return points.filter(point => point.keep);
-  }, []);
-
-  const animatePolylineToStart = useCallback((coords) => {
-    animationIndex.current = 0;
-    setAnimatedCoords([]);
-    
-    // Simplify coordinates for smoother animation
-    const simplifiedCoords = simplifyCoordinates(coords);
-    const totalAnimationDuration = 10;
-    const intervalDelay = totalAnimationDuration / simplifiedCoords.length || 1;
-    
-    if(startInterval.current) {
-      clearInterval(startInterval.current);
-    }
-    
-    startInterval.current = setInterval(() => {
-      animationIndex.current += 1;
-      setAnimatedCoords(simplifiedCoords.slice(0, animationIndex.current));
-      
-      if (animationIndex.current >= simplifiedCoords.length) {
-        clearInterval(startInterval.current);
-      }
-    }, intervalDelay);
-  }, [simplifyCoordinates]);
-
   // Optimized event handlers
   const handleRegionChange = useCallback((region) => {
     if(step === 1 || step === 2) {
@@ -269,7 +172,8 @@ const MainScreen = () => {
       setIsMapDragging(false);
       setHasTouchedMap(false);
       lottieRef.current?.play(8, 1395);
-      fetchLocationDetails(region.latitude, region.longitude);
+      console.log(region)
+      fetchLocationDetails(region);
     }
   }, [step]);
 
@@ -279,9 +183,7 @@ const MainScreen = () => {
       if (!hasTouchedMap) {
         setHasTouchedMap(true);
         lottieRef.current?.play(0, 7);
-        if(step === 2 && routeCoords.length > 0) {
-          animatePolylineToEnd(routeCoords);
-        }
+       
       }
     }
   }, [step, hasTouchedMap, routeCoords]);
@@ -336,8 +238,8 @@ const MainScreen = () => {
           mapRef.current.animateToRegion({
             latitude,
             longitude,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
+            latitudeDelta: 0.006,
+            longitudeDelta: 0.006,
           }, 0);
         }
       },
@@ -624,9 +526,11 @@ const MainScreen = () => {
     if(step==2){
       setFormData(prev=>({
         ...prev,
-        dropAddress:{}
+        dropAddress:{},
       }))
     }
+ 
+
     if(step === 4.5) {
       // If going back from login step, go back to step 4
       animateStepTransition(4);
@@ -647,24 +551,28 @@ const MainScreen = () => {
 
   
 
-  const fetchLocationDetails = async (lat, lng) => {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_GOOGLE}`;
-
+  const fetchLocationDetails = async (region) => {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${region.latitude},${region.longitude}&key=${API_GOOGLE}`;
+ 
     try {
       const response = await axios.get(url);
       if (response.data.status === 'OK') {
         const address = response?.data?.results[0]?.formatted_address;
         const location = {
+          ...region,
           address: address,
-          latitude: lat,
-          longitude: lng
+          
         };
 
         if (step === 1) {
           setFormData(prev => ({
             ...prev,
-            pickupAddress: location
+            pickupAddress: location,
+
+
           }));
+
+         
         } else if (step === 2) {
           setFormData(prev => ({
             ...prev,
@@ -682,44 +590,51 @@ const MainScreen = () => {
   };
   
 
-  const animatePolylineToEnd = useCallback((coords) => {
-    // Simplify coordinates for smoother animation
-    const simplifiedCoords = simplifyCoordinates(coords);
-    const totalAnimationDuration = 5;
-    const intervalDelay = totalAnimationDuration / simplifiedCoords.length || 1;
-    
-    animationIndex.current = simplifiedCoords.length;
-    setAnimatedCoords([]);
-  
+  const handleBackFromStep2 = () => {
+    setFormData(prev=>({
+      ...prev,
+      dropAddress:{},
+     // pickupAddress:{}
+    }))
+    setRouteCoords([])
+
+    animateStepTransition(step-1);
+    setStep(step-1)
+    // Stop the animation loop when going back
+    if (startInterval.current) {
+      clearInterval(startInterval.current);
+    }
     if (backInterval.current) {
       clearInterval(backInterval.current);
     }
-  
-    backInterval.current = setInterval(() => {
-      animationIndex.current -= 1;
-      setAnimatedCoords(simplifiedCoords.slice(0, animationIndex.current));
-      
-      if (animationIndex.current <= 0) {
-        clearInterval(backInterval.current);
-        setAnimatedCoords([]);
-        setRouteCoords([]);
-      }
-    }, intervalDelay);
-  }, [simplifyCoordinates]);
+    setAnimatedCoords([]);
+    setRouteCoords([]);
+  }
 
- 
-handleBackFromStep2 = () => {
-  
-  setFormData(prev=>({
-    ...prev,
-    dropAddress:{},
-    pickupAddress:{}
-  }))
-  animateStepTransition(step-1);
-  setStep(step-1)
-  animatePolylineToEnd(routeCoords)
-}
+  useEffect(() => {
+    const keyboardWillShow = Platform.OS === 'ios' 
+      ? Keyboard.addListener('keyboardWillShow', handleKeyboardShow)
+      : Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
+    
+    const keyboardWillHide = Platform.OS === 'ios'
+      ? Keyboard.addListener('keyboardWillHide', handleKeyboardHide)
+      : Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
 
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
+  const handleKeyboardShow = (event) => {
+    setKeyboardHeight(event.endCoordinates.height);
+    setIsKeyboardVisible(true);
+  };
+
+  const handleKeyboardHide = () => {
+    setKeyboardHeight(0);
+    setIsKeyboardVisible(false);
+  };
 
   const renderStep = () => {
     const translateX = position.interpolate({
@@ -741,10 +656,10 @@ handleBackFromStep2 = () => {
               { translateX },
               { translateY }
             ],
+            bottom: isKeyboardVisible ? keyboardHeight-100 : 0,
           },
         ]}>
         <View style={localStyles.stepContent}>
-        
           {step === 1 && (
             <PickupLocation 
               formData={formData} 
@@ -794,7 +709,7 @@ handleBackFromStep2 = () => {
       onPress={cluster.onPress}
      
     >
-      <View style={{ alignItems:"center",justifyContent:"center",width:36,height:36,backgroundColor:"#fff",borderRadius:18 }}>
+      <View style={{ alignItems:"center",justifyContent:"center",width:36,height:36,backgroundColor:"#fff",borderRadius:1 }}>
         <Text style={{fontSize:12,fontWeight:"bold",color:"#000"}}>{properties?.point_count}</Text>
       </View>
     </Marker>
@@ -802,7 +717,20 @@ handleBackFromStep2 = () => {
   };  
 
 
- 
+  const getAdjustedCenterCoordinate = async () => {
+    try {
+      const screenPoint = {
+        x:  (SCREEN_WIDTH ) / 2,
+        y:  (SCREEN_HEIGHT / 2)-18, // 50 = vertical offset from center to bottom of Lottie pin
+      };
+  
+      const coord = await mapRef.current.coordinateForPoint(screenPoint);
+      handleRegionChange(coord)
+      return coord;
+    } catch (err) {
+      console.warn("Failed to get coordinate for point:", err);
+    }
+  };
   
 
   const renderMap = () => {
@@ -820,7 +748,7 @@ handleBackFromStep2 = () => {
         showsUserLocation={true}
         showsMyLocationButton={false}
         onPanDrag={handleMapDrag}
-        onRegionChangeComplete={handleRegionChange}
+        onRegionChangeComplete={getAdjustedCenterCoordinate}
         renderCluster={renderCluster}
        >
          
@@ -833,13 +761,26 @@ handleBackFromStep2 = () => {
               latitude: formData.pickupAddress.latitude,
               longitude: formData.pickupAddress.longitude
             }}
-            tracksViewChanges={Platform.OS==="ios"}
+            tracksViewChanges={false}
             title="Pickup Location"
           >
-            <Image
-              source={require('../../assets/startPostion.png')}
-              style={{ width: 20, height: 20,resizeMode:"contain" }}
-            />
+            <View style={{ 
+              width: 20, 
+              height: 20, 
+              borderRadius: 10,
+              backgroundColor: '#030303',
+              borderWidth: 2,
+              borderColor: 'white',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <View style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: 'white'
+              }} />
+            </View>
           </Marker>
         )}
 
@@ -851,13 +792,25 @@ handleBackFromStep2 = () => {
               latitude: formData.dropAddress.latitude,
               longitude: formData.dropAddress.longitude
             }}
-            tracksViewChanges={Platform.OS==="ios"}
+            tracksViewChanges={true}
             title="Dropoff Location"
           >
-            <Image
-              source={require('../../assets/endPostion.png')}
-              style={{ width: 20, height: 20,resizeMode:"contain" }}
-            />
+            <View style={{ 
+              width: 20, 
+              height: 20, 
+              backgroundColor: '#030303',
+              borderWidth: 2,
+              borderColor: 'white',
+              justifyContent: 'center',
+              alignItems: 'center',
+             // transform: [{ rotate: '45deg' }]
+            }}>
+              <View style={{
+                width: 8,
+                height: 8,
+                backgroundColor: 'white'
+              }} />
+            </View>
           </Marker>
         )}
 
@@ -870,8 +823,8 @@ handleBackFromStep2 = () => {
               longitude: driver.longitude
             }}
             title={`Driver ${uid}`}
-            tracksViewChanges={Platform.OS==="ios"}
             flat={true}
+            anchor={{ x: 0.5, y: 0.5 }}
           >
             <DriverMarker type={driver.type} angle={driver.angle} />
           </Marker>
@@ -890,34 +843,19 @@ handleBackFromStep2 = () => {
             }}
             apikey={API_GOOGLE}
             strokeWidth={7}
-            strokeColor="#ccc"
-  onReady={result => {
-
-    
-    if(backInterval.current)
-      {
-         
-        setAnimatedCoords([])
-        setRouteCoords([])
-        clearInterval(backInterval.current);
-
-
-      }
-
-    setRouteCoords(result.coordinates);
-    animatePolylineToStart(result.coordinates);
-    
-   
-  }}
+            strokeColor="#999"
+            onReady={result => {
+              if(backInterval.current) {
+                setAnimatedCoords([])
+                setRouteCoords([])
+                clearInterval(backInterval.current);
+              }
+              setRouteCoords(result.coordinates);
+            }}
           />
         )}
-
-{animatedCoords.length>0&&(<Polyline
-  coordinates={animatedCoords}
-  strokeWidth={4}
-  style={{zIndex:1000 }}
-  strokeColor="#444" //#444
-/>)}
+ 
+       {routeCoords.length>0&&( <AnimatedPolyline coords={routeCoords} step={step} />)}
 
       </MapView>
     );
@@ -930,8 +868,8 @@ handleBackFromStep2 = () => {
         mapRef.current?.animateToRegion({
           latitude: currentLocation.latitude,
           longitude: currentLocation.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
+          latitudeDelta: 0.006,
+          longitudeDelta: 0.006,
       }, 1000);
       setLoadingCurrentLocation(false)
     } else {
@@ -946,30 +884,37 @@ handleBackFromStep2 = () => {
   return (
     <View style={localStyles.container}>
       {renderMap()}
-    {(step==1||(step==2)) && (  <LottieView
-        ref={lottieRef}
-        source={require("../../utils/marker.json")}
-        style={{
-          width: 140,
-          height: 140,
-          position: "absolute",
-          top:Platform.OS === "ios" ? "39.6%" : "36%",
-          alignSelf: "center"
-        }}
-        loop={false}
-        autoPlay={false}
-      />)}
+   
       {(step === 1 || step === 2) && (
         <TouchableOpacity
           style={localStyles.currentLocationButton}
           onPress={handleCurrentLocation}
         >
-          {loadingCurrentLocation?(<ActivityIndicator/>): <MaterialIcons name="my-location" size={22} color="#595FE5" />}
+          {loadingCurrentLocation?(<ActivityIndicator/>): <MaterialIcons name="my-location" size={22} color="#030303" />}
    
  
         </TouchableOpacity>
       )}
       {renderStep()}  
+             
+      {(step<=2) && (  <LottieView
+  ref={lottieRef}
+  source={require("../../utils/marker.json")}
+  style={{
+    width: 70,
+    height: 100,
+    position: "absolute",
+    top: (SCREEN_HEIGHT - 230) / 2, // use the actual height of the view here
+    left: (SCREEN_WIDTH - 70) / 2,  // add this to horizontally center it
+    pointerEvents: "none",
+    resizeMode:"cover",
+    backgroundColor:"transparent"
+  }}
+  
+  resizeMode="center"
+  loop={false}
+  autoPlay={false}
+/>)}
       <CustomAlert
         visible={showLocationAlert}
         onClose={() => setShowLocationAlert(false)}
@@ -1005,18 +950,18 @@ const localStyles = StyleSheet.create({
     flex: 1,
   },
   stepContainer: {
-    
     backgroundColor: 'transparent',
-    position:'absolute',
-    bottom:0, 
-    flex:1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flex: 1,
   },
   stepContent: {
     width: SCREEN_WIDTH,
     backgroundColor: 'transparent',
-    flex:1,
-   },
-   currentLocationButton: {
+    flex: 1,
+  },
+  currentLocationButton: {
     position: 'absolute',
     right: 20,
     bottom: 250,

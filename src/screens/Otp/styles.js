@@ -9,14 +9,15 @@ export const styles = StyleSheet.create({
     padding: 20,
   },
   backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    zIndex: 1,
+   // position: 'absolute',
+   // top: 50,
+  //  left: 20,
+  //  zIndex: 1,
     padding: 8,
+    marginTop:50
   },
   titleContainer: {
-    marginTop: 140,
+    marginTop: 100,
     alignItems: 'center',
     marginBottom: 32,
   },
@@ -80,7 +81,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
   btn: {
-    backgroundColor: "#F9DC76",
+    backgroundColor: "#030303",
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -90,7 +91,7 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
   },
   btnText: {
-    color: '#000',
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
   },

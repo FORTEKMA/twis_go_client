@@ -64,7 +64,7 @@ const Notifications = () => {
   }, []);
 
   // Use fake data for testing
-  const displayNotifications = notifications?.length > 0 ? notifications : fakeNotifications;
+  const displayNotifications =notifications;
 
   // Group notifications by date
   const groupedNotifications = displayNotifications?.reduce((acc, notification) => {

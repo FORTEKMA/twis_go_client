@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
       width: 80,
       height: 80,
       borderRadius: 40,
-      borderColor: "#F9DC76",
+      borderColor: "#030303",
       borderWidth: 10,
     },
   });

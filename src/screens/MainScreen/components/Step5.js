@@ -38,9 +38,9 @@ const Step5 = ({
           style={{ backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
           onPress={goBack}
         >
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
+          <MaterialCommunityIcons name="arrow-left" size={28} color="#fff" />
         </TouchableOpacity>
-        <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#19191C' }}>{t('booking.step5.select_payment')}</Text>
+        <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#fff' }}>{t('booking.step5.select_payment')}</Text>
       </View>
 
       <View style={localStyles.optionsContainer}>
@@ -60,7 +60,7 @@ const Step5 = ({
               <MaterialCommunityIcons 
                 name={option.icon} 
                 size={32} 
-                color={selectedPayment === option.key ? '#F9DC76' : '#19191C'} 
+                color={selectedPayment === option.key ? '#030303' : '#fff'} 
                 style={{ marginBottom: 8 }} 
               />
               <Text style={localStyles.optionLabel}>{option.label}</Text>
@@ -120,7 +120,7 @@ const localStyles = StyleSheet.create({
     elevation: 1,
   },
   selectedOption: {
-    borderColor: '#F9DC76',
+    borderColor: '#030303',
     borderWidth: 2,
     backgroundColor: '#FFFDF5',
   },
@@ -130,7 +130,7 @@ const localStyles = StyleSheet.create({
   optionLabel: {
     fontWeight: '700',
     fontSize: hp(2),
-    color: '#19191C',
+    color: '#fff',
     marginBottom: 4,
   },
   optionDescription: {
@@ -139,18 +139,18 @@ const localStyles = StyleSheet.create({
     textAlign: 'center',
   },
   confirmButton: {
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 24,
-    shadowColor: '#F9DC76',
+    shadowColor: '#030303',
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   confirmButtonText: {
-    color: '#19191C',
+    color: '#fff',
     fontWeight: '700',
     fontSize: hp(2.2),
   },

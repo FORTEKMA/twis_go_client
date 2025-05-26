@@ -7,24 +7,38 @@ const DriverMarker = ({ angle = 0, type = 1 }) => {
   const getIconName = () => {
     switch (type) {
       case 1:
-        return require("../assets/eco.png")
+        return require("../assets/TawsiletEcoCar.png")
       case 2:
-        return require("../assets/van.png")
+        return require("../assets/TawsiletBerlineCar.png")
       case 3:
-        return require("../assets/Berline.png")
+        return require("../assets/TawsiletVanCar.png")
      
     }
   };
 
   return (
-    <Image source={getIconName()} style={[styles.icon,{transform:[{rotate:`${angle}deg`}]}]} />
+    <View style={styles.container}>
+      <Image 
+        source={getIconName()} 
+        style={[
+          styles.icon,
+          {transform:[{rotateY:`${angle}deg`}]}
+        ]} 
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    width: 55,
+    height: 55,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   icon: {
-    width: 50,
-    height: 50,
+    width: 55,
+    height: 55,
     resizeMode: 'contain',
   },
 });

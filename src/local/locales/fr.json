@@ -191,21 +191,21 @@
       "assigned_to_driver": "Assigned to Driver",
       "driver_on_route_to_pickup": "Driver on Route to Pickup",
       "arrived_at_pickup": "Arrivé au point de départ",
-      "picked_up": "le chauffeur est en route vers le point d'arrivée",
-      "on_route_to_delivery": "le chauffeur est en route vers le point d'arrivée",
+      "picked_up": "En Cours",
+      "on_route_to_delivery": "En Cours",
       "arrived_at_delivery": "Arrivé au point d'arrivée",
       "delivered": "Livré",
       "completed": "Terminé",
-      "canceled_by_client": "Annulé par le client",
-      "canceled_by_partner": "Annulé par le partenaire",
+      "canceled_by_client": "Annulé",
+      "canceled_by_partner": "Annulé",
       "failed_pickup": "Échec de la prise en charge",
       "failed_delivery": "Échec de la livraison",
-      "go_to_pickup": "le chauffeur est en route vers l'adresse de départ",
+      "go_to_pickup": "En Cours",
       "unknown": "Statut inconnu"
     },
     "status_filter": {
       "all": "Tous",
-      "active": "Actif",
+      "active": "En Cours",
       "completed": "Terminé",
       "cancelled": "Annulé"
     }
@@ -387,9 +387,9 @@
       "select_date": "Veuillez sélectionner une date",
       "select_car": "Sélectionner une voiture",
       "eco": "Éco",
-      "berline": "class",
+      "berline": "classe",
       "van": "XL",
-      "nearby": "proches",
+      "nearby": "personnes",
       "distance": "{value}",
       "time": "{value}",
       "book_now": "Réserver maintenant",
@@ -506,5 +506,7 @@
       "code_invalid": "Le code est incorrect. Veuillez réessayer."
     },
     "reset_failed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer."
-  }
+  },
+  "confirm":"Confirmer",
+  "cancel":"Annuler"
 } 

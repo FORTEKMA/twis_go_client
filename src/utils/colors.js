@@ -1,5 +1,5 @@
 export const colors = {
-  primary: 'rgba(24, 54, 90, 1)',
+  primary: '#0c0c0c',
   secondary: 'rgba(243, 122, 29, 1)',
   secondary_1: 'rgba(178, 181, 196, 1)',
   secondary_2: 'rgba(142, 146, 168, 1)',

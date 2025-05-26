@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Image, Dimensions, Appearance } from 'react-native';
+import { Image, Dimensions, Appearance, View, TouchableOpacity } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { styles } from '../styles';
@@ -8,6 +8,7 @@ import { getDatabase, ref as dbRef, onValue } from '@react-native-firebase/datab
 import { getApp } from '@react-native-firebase/app';
 import mapStyle from '../../../utils/googleMapStyle';
 import DriverMarker from "../../../components/DriverMarker";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -16,9 +17,25 @@ const OrderMapView = ({ order }) => {
   const mapRef = useRef(null);
   const colorScheme = Appearance.getColorScheme();
   const [maxZoomLevel, setMaxZoomLevel] = useState(0);
+  const [showResetButton, setShowResetButton] = useState(false);
 
   const pickup = order?.pickUpAddress?.coordonne;
   const dropoff = order?.dropOfAddress?.coordonne;
+
+  const resetMapView = () => {
+    if (pickup && dropoff) {
+      mapRef.current?.fitToCoordinates([pickup, dropoff], {
+        edgePadding: {
+          top: 40,
+          right: 80,
+          bottom: SCREEN_HEIGHT * 0.5,
+          left: 80,
+        },
+        animated: true,
+      });
+      setShowResetButton(false);
+    }
+  };
 
   useEffect(() => {
     if (pickup && dropoff) {
@@ -98,77 +115,140 @@ const OrderMapView = ({ order }) => {
   // Choose colors based on dark/light mode
   const traveledColor = '#ccc'  
   const remainingColor = '#000'
-  console.log("maxZoomLevel",maxZoomLevel)
-  return (
-    <MapView
-      style={styles.map}
-      ref={mapRef}
-      provider={PROVIDER_GOOGLE}
-      customMapStyle={mapStyle}
-      showsCompass={false}
-      rotateEnabled={true}
-      minZoomLevel={maxZoomLevel>0?maxZoomLevel-1.9:null}
-      pitchEnabled={false}
- 
+   return (
+    <View style={{ flex: 1 }}>
+      <MapView
+        style={styles.map}
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
+        customMapStyle={mapStyle}
+        showsCompass={false}
+        rotateEnabled={true}
+        minZoomLevel={maxZoomLevel}
+        maxZoomLevel={20}
+        pitchEnabled={false}
+        onRegionChangeComplete={() => setShowResetButton(true)}
+      >
+        {pickup && (
+          <Marker
+            cluster={false}
+            coordinate={{
+              latitude: pickup.latitude,
+              longitude: pickup.longitude
+            }}
+            tracksViewChanges={false}
+            title="Pickup Location"
+          >
+            <View style={{ 
+              width: 20, 
+              height: 20, 
+              borderRadius: 10,
+              backgroundColor: '#030303',
+              borderWidth: 2,
+              borderColor: 'white',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <View style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: 'white'
+              }} />
+            </View>
+          </Marker>
+        )}
 
-    >
-      {pickup && (
-        <Marker coordinate={pickup} title="Pickup Location">
-          <Image
-            source={require('../../../assets/startPostion.png')}
-            style={{ width: 20, height: 20, resizeMode: "contain" }}
+        {dropoff && (
+          <Marker
+            cluster={false}
+            coordinate={{
+              latitude: dropoff.latitude,
+              longitude: dropoff.longitude
+            }}
+            tracksViewChanges={Platform.OS==="ios"}
+            title="Dropoff Location"
+          >
+            <View style={{ 
+              width: 20, 
+              height: 20, 
+              backgroundColor: '#030303',
+              borderWidth: 2,
+              borderColor: 'white',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <View style={{
+                width: 8,
+                height: 8,
+                backgroundColor: 'white'
+              }} />
+            </View>
+          </Marker>
+        )}
+
+        {driverPosition && (
+          <Marker coordinate={driverPosition} >
+            <DriverMarker type={driverPosition.type} angle={driverPosition.angle+180} />
+          </Marker>
+        )}
+
+        {/* Traveled Path */}
+        {pickup && driverPosition && (
+          <Polyline
+            coordinates={[pickup, driverPosition]}
+            strokeColor={traveledColor}
+            strokeWidth={6}
           />
-        </Marker>
-      )}
-
-      {dropoff && (
-        <Marker coordinate={dropoff} title="Dropoff Location">
-          <Image
-            source={require('../../../assets/endPostion.png')}
-            style={{ width: 20, height: 20, resizeMode: "contain" }}
+        )}
+    
+        {/* Remaining Path */}
+        {driverPosition && dropoff && (
+          <MapViewDirections
+            origin={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? driverPosition :order?.pickUpAddress?.coordonne}
+          
+            destination={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? order?.pickUpAddress?.coordonne: dropoff}
+            apikey={API_GOOGLE}
+            rotateEnabled={false}
+            strokeWidth={6}
+            
+            strokeColor={remainingColor}
           />
-        </Marker>
-      )}
+        )}
 
-      {driverPosition && (
-        <Marker coordinate={driverPosition} >
-          <DriverMarker type={driverPosition.type} angle={driverPosition.angle+180} />
-        </Marker>
-      )}
-
-      {/* Traveled Path */}
-      {pickup && driverPosition && (
-        <Polyline
-          coordinates={[pickup, driverPosition]}
-          strokeColor={traveledColor}
-          strokeWidth={6}
-        />
-      )}
-  
-      {/* Remaining Path */}
-      {driverPosition && dropoff && (
-        <MapViewDirections
+        {["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&& (
+          <MapViewDirections
           origin={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? driverPosition :order?.pickUpAddress?.coordonne}
-        
+          
           destination={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? order?.pickUpAddress?.coordonne: dropoff}
           apikey={API_GOOGLE}
-          rotateEnabled={false}
           strokeWidth={6}
-          
           strokeColor={remainingColor}
         />
+        )}
+      </MapView>
+      
+      {showResetButton && (
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 30,
+            right: 20,
+            backgroundColor: 'white',
+            padding: 10,
+            borderRadius: 30,
+            elevation: 5,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+          }}
+          onPress={resetMapView}
+        >
+          <Icon name="my-location" size={24} color="#000" />
+        </TouchableOpacity>
       )}
-      {["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&& (
-        <MapViewDirections
-        origin={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? driverPosition :order?.pickUpAddress?.coordonne}
-        
-        destination={["Pending","Go_to_pickup","Arrived_at_pickup"].includes(order?.commandStatus) ? order?.pickUpAddress?.coordonne: dropoff}
-        apikey={API_GOOGLE}
-        strokeWidth={6}
-        strokeColor={remainingColor}
-      />
-      )}
-    </MapView>
+    </View>
   );
 };
 

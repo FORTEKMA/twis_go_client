@@ -114,12 +114,12 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
                 <Ionicons
                   name={iconName}
                   size={24}
-                  color={isFocused ? '#F9DC76' : '#666'}
+                  color={isFocused ? '#030303' : '#666'}
                 />
                 <Text
                   style={[
                     styles.tabLabel,
-                    {color: isFocused ? '#F9DC76' : '#666'},
+                    {color: isFocused ? '#030303' : '#666'},
                   ]}>
                   {t("common."+label)}
                 </Text>
@@ -140,11 +140,11 @@ const styles = StyleSheet.create({
   tabBarContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    height: 60,
+    height: 70,
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
     paddingBottom: Platform.OS === 'ios' ? 5 : 0,
-    paddingTop: 5,
+    paddingTop: 25,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 5,
+     
   },
   tabItem: {
     flex: 1,

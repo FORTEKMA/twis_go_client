@@ -307,7 +307,7 @@ const ProfileSections = ({
                 shadowOpacity: 0.1,
                 shadowRadius: 1.84,
                 elevation: 5,
-                backgroundColor: "#F0C877",
+                backgroundColor: "#0c0c0c",
                 borderWidth: 2,
                 borderColor: colors.primary,
                 borderRightWidth: 3,

@@ -20,13 +20,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
-
-	<!-- URL Types for Facebook and Google Sign-In -->
 	<key>CFBundleURLTypes</key>
 	<array>
-		<!-- Facebook Login -->
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
@@ -35,7 +30,6 @@
 				<string>fb245483121678302</string>
 			</array>
 		</dict>
-		<!-- Google Sign-In -->
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
@@ -47,19 +41,16 @@
 			</array>
 		</dict>
 	</array>
-
-	<!-- Facebook Configuration -->
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FacebookAppID</key>
 	<string>245483121678302</string>
 	<key>FacebookClientToken</key>
 	<string>CLIENT-TOKEN</string>
 	<key>FacebookDisplayName</key>
 	<string>Tawsilet</string>
-
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-
-	<!-- App Transport Security (Allow Localhost) -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -71,16 +62,14 @@
 			</dict>
 		</dict>
 	</dict>
-
-	<!-- Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need your location to show you the nearest Tawsilet services</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>We need your location to show you the nearest Tawsilet services</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need your location to show you the nearest Tawsilet services</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to update your profile image</string>
-
-	<!-- Fonts -->
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
@@ -103,32 +92,26 @@
 		<string>Zocial.ttf</string>
 		<string>Fontisto.ttf</string>
 	</array>
-
-	<!-- Background Modes -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
-
-	<!-- Launch -->
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
-
-	<!-- Device Requirements -->
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
 	</array>
-
-	<!-- Supported Orientations -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-
-	<!-- Status Bar -->
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

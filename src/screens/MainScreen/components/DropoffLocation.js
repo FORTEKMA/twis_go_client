@@ -26,7 +26,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
     <View style={[styles.step1Wrapper, isMapDragging && { opacity: 0.5 }]}>
       <View style={localStyles.header}>
         <TouchableOpacity onPress={onBack} style={localStyles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
+          <MaterialCommunityIcons name="arrow-left" size={28} color="#030303" />
         </TouchableOpacity>
         <Text style={localStyles.headerTitle}>{t('location.where_to')}</Text>
         <View style={{ width: 24 }} />
@@ -56,62 +56,57 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
               }
             }
           }}
-
-          textInputProps={{
-            style:{
-               
-              color:"#000"
-            },
-            placeholderTextColor:"#ccc"
-          }}
+ 
           ref={inputRef}
           query={{
             key: API_GOOGLE,
             language: 'en',
             components: 'country:tn',
           }}
+          textInputProps={{
+             
+            placeholderTextColor:"#ccc",
+            style:{
+              width:"100%"
+            }
+          }}
+         
           styles={{
-            container: {
-              flex: 0,
-              width: '100%',
-              position: 'relative',
+            container:{
+            
+              width:"100%"
             },
             textInputContainer: {
-              width: '100%',
-              borderWidth: 1,
+             
+              borderWidth: 3,
               borderColor: '#ccc',
               borderRadius: 8,
               backgroundColor: '#fff',
+              color:"#000",
               height: 50,
-              paddingHorizontal:10
+              paddingHorizontal:10,
+             
+            },
+            listView:{
+              marginTop:15,
             },
             textInput: {
               height: 50,
               color: '#000',
               fontSize: 16,
+              placeholderTextColor:"#ccc",
+              width:"100%"
             },
-            listView: {
-              // position: 'absolute',
-              // bottom: '100%',
-              // left: 0,
-              // right: 0,
-              // backgroundColor: '#fff',
-              // borderWidth: 1,
-              // borderColor: '#ccc',
-              // borderRadius: 8,
-              // zIndex: 1000,
-              // marginBottom: 8,
-              // maxHeight: 200,
+            row:{
+              width:"100%"
             },
-            row: {
-              padding: 13,
-              height: 'auto',
-              minHeight: 44,
-            },
+          
+          
             description: {
               color: '#000',
             },
           }}
+          
           fetchDetails={true}
           enablePoweredByContainer={false}
           minLength={2}
@@ -149,7 +144,7 @@ const localStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: '#030303',
   },
   content: {
     flex: 1,

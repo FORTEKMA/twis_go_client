@@ -20,7 +20,7 @@ import {useTranslation} from 'react-i18next';
 import api from '../../utils/api';
 import {OneSignal} from 'react-native-onesignal';
 
-const PRIMARY_COLOR = '#F9DC76';
+const PRIMARY_COLOR = '#030303';
 
 const Register = ({navigation, route}) => {
   const {t} = useTranslation();

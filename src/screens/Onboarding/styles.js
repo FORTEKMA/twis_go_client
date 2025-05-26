@@ -75,7 +75,7 @@ export const styles = StyleSheet.create({
   },
   nextButton: {
     flex: 1,
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
     borderRadius: 14,
     paddingVertical: hp(2),
     marginLeft: wp(2),
@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   nextText: {
-    color: '#222',
+    color: '#fff',
     fontSize: hp(2),
     fontWeight: '500',
   },
@@ -101,7 +101,7 @@ export const styles = StyleSheet.create({
   },
   btn: {
     padding: 20,
-    backgroundColor: '#F0C877',
+    backgroundColor: '#0c0c0c',
     width: '100%',
     borderRadius: 5,
     borderRightWidth: 5,

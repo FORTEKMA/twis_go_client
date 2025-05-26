@@ -6,8 +6,9 @@ import { styles } from '../styles';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { calculatePrice } from '../../../utils/CalculateDistanceAndTime';
-const vehicleOptions = [
-  {
+const vehicleOptions = 
+{
+1:  {
     key: 'eco',
     label: 'Éco',
     nearby: 4,
@@ -15,7 +16,7 @@ const vehicleOptions = [
     id:1,
     description:'eco_description'
   },
-  {
+ 2: {
     key: 'berline',
     label: 'Berline',
     nearby: 4,
@@ -23,7 +24,7 @@ const vehicleOptions = [
     id:2,
     description:'berline_description'
   },
-  {
+3:  {
     key: 'van',
     label: 'Van',
     nearby:7,
@@ -31,7 +32,7 @@ const vehicleOptions = [
     id:3,
     description:'van_description'
   },
-];
+};
 const Step3 = ({ goBack, formData, rideData, goNext }) => {
   const { t } = useTranslation();
   const user = useSelector(state => state.user.currentUser);
@@ -51,7 +52,7 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
   if (loading) {
     return (
       <View style={[localStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#F9DC76" />
+        <ActivityIndicator size="large" color="#030303" />
       </View>
     );
   }
@@ -64,18 +65,18 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
           style={{ backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
           onPress={goBack}
         >
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
+          <MaterialCommunityIcons name="arrow-left" size={28} color="#030303" />
         </TouchableOpacity>
-        <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#19191C', }}>{t('booking.step4.confirm_ride')}</Text>
+        <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#030303', }}>{t('booking.step4.confirm_ride')}</Text>
       </View>
 
       {/* Car Type Card */}
       <View style={localStyles.card}>
         <View style={localStyles.row}>
-           <Image source={vehicleOptions[formData?.vehicleType?.id-1].icon} style={{ width: 70, height: 70, marginRight: 12 }} />
+           <Image source={vehicleOptions[formData?.vehicleType?.id].icon} style={{ width: 70, height: 70, marginRight: 12 }} />
           <View style={{ flex: 1 }}>
-            <Text style={localStyles.carType}>{vehicleOptions[formData?.vehicleType?.id-1].label}</Text>
-            <Text style={localStyles.carDescription}>{t(vehicleOptions[formData?.vehicleType?.id-1].description)}</Text>
+            <Text style={localStyles.carType}>{t(`booking.step3.${vehicleOptions[formData?.vehicleType?.id].key}`)}</Text>
+            <Text style={localStyles.carDescription}>{t(vehicleOptions[formData?.vehicleType?.id].description)}</Text>
           </View>
         </View>
       </View>
@@ -83,7 +84,7 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
       {/* Pickup & Dropoff */}
       <View style={localStyles.infoCard}>
         <View style={localStyles.pickupDropRow}>
-          <MaterialCommunityIcons name="map-marker" size={22} color="#F9DC76" style={{ marginRight: 8 }} />
+          <MaterialCommunityIcons name="map-marker" size={22} color="#030303" style={{ marginRight: 8 }} />
           <View>
             <Text style={localStyles.label}>{t('pickup_point')}</Text>
             <Text style={localStyles.boldText}>{formData?.pickupAddress?.address}</Text>
@@ -141,7 +142,7 @@ const localStyles = StyleSheet.create({
   carType: {
     fontWeight: '700',
     fontSize: hp(2.2),
-    color: '#19191C',
+    color: '#030303',
   },
   carDescription: {
     color: '#BDBDBD',
@@ -170,14 +171,14 @@ const localStyles = StyleSheet.create({
     fontWeight: '400',
   },
   boldText: {
-    color: '#19191C',
+    color: '#030303',
     fontWeight: '700',
     fontSize: hp(2),
   },
   verticalLine: {
     width: 2,
     height: 18,
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
     alignSelf: 'flex-start',
     marginLeft: 10,
     marginBottom: 10,
@@ -186,26 +187,26 @@ const localStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9DC76',
+    backgroundColor: '#030303',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 32,
     width: '100%',
     marginTop: 8,
-    shadowColor: '#F9DC76',
+    shadowColor: '#030303',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.18,
     shadowRadius: 4,
     elevation: 2,
   },
   nextButtonPrice: {
-    color: '#19191C',
+    color: '#fff',
     fontWeight: '700',
     fontSize: hp(2.2),
     marginRight: 16,
   },
   nextButtonText: {
-    color: '#19191C',
+    color: '#fff',
     fontWeight: '700',
     fontSize: hp(2.2),
     letterSpacing: 0.5,

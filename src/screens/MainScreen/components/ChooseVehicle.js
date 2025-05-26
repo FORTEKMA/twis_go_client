@@ -1,5 +1,5 @@
-import React, { useState,useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState,useEffect, useRef } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
@@ -7,6 +7,7 @@ import MapHeader from './MapHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {calculateDistanceAndTime} from '../../../utils/CalculateDistanceAndTime';
+import i18n from '../../../local';
 const vehicleOptions = [
   {
     key: 'eco',
@@ -38,6 +39,94 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const [selectedDate, setSelectedDate] = useState(formData.selectedDate);
   const [tripDetails, setTripDetails] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  // New animation system
+  const animations = useRef(
+    vehicleOptions.map(() => ({
+      slide: new Animated.Value(0),
+      fade: new Animated.Value(1),
+      pulse: new Animated.Value(1),
+      glow: new Animated.Value(0)
+    }))
+  ).current;
+
+  // Pulse animation function
+  const startPulseAnimation = (index) => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(animations[index].pulse, {
+          toValue: 1.05,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
+        }),
+        Animated.timing(animations[index].pulse, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
+        })
+      ])
+    ).start();
+  };
+
+  const animateSelection = (index) => {
+    // Stop all pulse animations
+    animations.forEach(anim => {
+      anim.pulse.stopAnimation();
+      anim.pulse.setValue(1);
+    });
+
+    // Create new animations for each option
+    const newAnimations = vehicleOptions.map((_, i) => {
+      const isSelected = i === index;
+      
+      return Animated.parallel([
+        // Slide animation
+        Animated.spring(animations[i].slide, {
+          toValue: isSelected ? 0 : -10,
+          useNativeDriver: true,
+        //  friction: 8,
+        //  tension: 40,
+          speed: 12,
+          bounciness: 8
+        }),
+        // Fade animation
+        Animated.timing(animations[i].fade, {
+          toValue: isSelected ? 1 : 0.7,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true
+        }),
+        // Glow animation
+        Animated.timing(animations[i].glow, {
+          toValue: isSelected ? 1 : 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true
+        })
+      ]);
+    });
+
+    // Run all animations
+    Animated.parallel(newAnimations).start(() => {
+     
+    });
+
+    if (index !== -1) {
+      startPulseAnimation(index);
+    }
+    
+  };
+
+  // Initialize animations
+  useEffect(() => {
+    const initialIndex = vehicleOptions.findIndex(opt => opt.id === selected.id);
+    if (initialIndex !== -1) {
+      animateSelection(initialIndex);
+    }
+  }, []);
+
   useEffect(()=>{
     setIsLoading(true);
     calculateDistanceAndTime(formData.pickupAddress,formData.dropAddress).then(res=>{
@@ -88,41 +177,74 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
         style={{  backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
         onPress={goBack}
       >
-        <MaterialCommunityIcons name="arrow-left" size={28} color="#19191C" />
+        <MaterialCommunityIcons name="arrow-left" size={28} color="#030303" />
       </TouchableOpacity>
-      <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#19191C', }}>{t('booking.step3.select_car')}</Text>
+      <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#030303', }}>{t('booking.step3.select_car')}</Text>
 
           </View>
 
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 18 }}>
-            {vehicleOptions.map(option => (
-              <TouchableOpacity
-                key={option.key}
-                style={{
-                  flex: 1,
-                  alignItems: 'center',
-                  backgroundColor: selected.id === option.id ? '#F6F6F6' : '#fff',
-                  borderRadius: 14,
-                  marginHorizontal: 6,
-                  paddingVertical: 12,
-                  borderWidth: selected.id === option.id ? 2 : 1,
-                  borderColor: selected.id === option.id ? '#F9DC76' : '#E0E0E0',
-                  shadowColor: selected.id === option.id ? '#F9DC76' : 'transparent',
-                  shadowOpacity: selected.id === option.id ? 0.15 : 0,
-                  shadowRadius: 6,
-                  elevation: selected.id === option.id ? 2 : 0,
-                }}
-                onPress={() => setSelected(option)}
-              >
-                <Image source={option.icon} style={{ width: 72, height: 72, marginBottom: 6,resizeMode:"cover" }} />
-                <Text style={{ fontWeight: '700', color: '#19191C', fontSize: hp(1.8) }}>{t(`booking.step3.${option.key}`)}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2  }}>
-                  <MaterialCommunityIcons name="account" size={14} color="#BDBDBD" style={{ marginRight: 4 }} />
-                  <Text style={{ color: '#BDBDBD', fontSize: hp(1.4),}}>{option.nearby} {t('booking.step3.nearby')}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {vehicleOptions.map((option, index) => {
+              const glowColor = animations[index].glow.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['rgba(3, 3, 3, 0)', 'rgba(3, 3, 3, 0.15)']
+              });
+
+              return (
+                <Animated.View
+                  key={option.key}
+                  style={{
+                    flex: 1,
+                    transform: [
+                      { translateY: animations[index].slide },
+                      { scale: animations[index].pulse }
+                    ],
+                   // opacity: animations[index].fade,
+                  }}
+                >
+                  <TouchableOpacity
+                    style={{
+                      alignItems: 'center',
+                      backgroundColor: selected.id === option.id ? '#F6F6F6' : '#fff',
+                      borderRadius: 14,
+                      marginHorizontal: 6,
+                      paddingVertical: 12,
+                      borderWidth: selected.id === option.id ? 3 : 1,
+                      borderColor: selected.id === option.id ? '#030303' : '#E0E0E0',
+                    }}
+                    onPress={() => {
+                      setSelected(option);
+                      animateSelection(index);
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        //backgroundColor: glowColor,
+                        borderRadius: 12,
+                        padding: 8,
+                        marginBottom: 6
+                      }}
+                    >
+                      <Image 
+                        source={option.icon} 
+                        style={{ 
+                          width: 72, 
+                        //  tintColor:selected.id === option.id ? '#030303' : '#BDBDBD',
+                          height: 72,
+                          resizeMode: "cover"
+                        }} 
+                      />
+                    </Animated.View>
+                    <Text style={{ fontWeight: '700', color: '#000', fontSize: hp(1.8) }}>{t(`booking.step3.${option.key}`)}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                      <MaterialCommunityIcons name="account" size={14} color="#BDBDBD" style={{ marginRight: 4 }} />
+                      <Text style={{ color: '#BDBDBD', fontSize: hp(1.4) }}>{option.nearby} {t('booking.step3.nearby')}</Text>
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
+              );
+            })}
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '95%', backgroundColor: '#F6F6F6', borderRadius: 12, padding: 12, marginBottom: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -161,24 +283,27 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
               style={{
                 opacity: isLoading ? 0.5 : 1,
                 flex: 1,
-                backgroundColor: '#F9DC76',
+                backgroundColor: '#030303',
                 borderRadius: 12,
                 paddingVertical: 16,
                 alignItems: 'center',
-                shadowColor: '#F9DC76',
+                shadowColor: '#030303',
                 shadowOpacity: 0.3,
                 shadowRadius: 8,
                 elevation: 4,
               }}
               onPress={onConfirm}
             >
-              <Text style={{ color: '#19191C', fontWeight: '700', fontSize: hp(2.2) }}>{t('booking.step3.book_now')}</Text>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: hp(2.2) }}>{t('booking.step3.book_now')}</Text>
             </TouchableOpacity>
           </View>
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="datetime"
+            confirmTextIOS={t("confirm")}
+            cancelTextIOS={t("cancel")}
             display="spinner"
+            locale={i18n.language}
             onConfirm={handleDateConfirm}
             onCancel={hideDatePicker}
           />

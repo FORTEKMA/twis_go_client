@@ -20,32 +20,32 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 15,
     paddingHorizontal: 20,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#fff',
     borderRadius: 10,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderWidth: 3,
+    borderColor: '#ccc',
   },
   menuButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#333',
+
   },
   arrowIcon: {
     width: 20,
     height: 20,
-    tintColor: '#F0C877',
+    tintColor: '#0c0c0c',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#0c0c0c',
     padding: 15,
     margin: 20,
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    
   },
   logoutIcon: {
     width: 20,
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: '#fff',
   },
   header: {
     backgroundColor: colors.general_1,
@@ -121,7 +121,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statValue: {
-    color: "#F0C877",
+    color: "#0c0c0c",
     fontSize: hp(2.2),
     fontWeight: "700",
     marginTop: 5,
@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
   },
   // Tab Navigation Styles
   tabBar: {
-    backgroundColor: "#19191C",
+    backgroundColor: "#fff",
     elevation: 0,
     shadowOpacity: 0,
     borderBottomWidth: 1,
@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabIndicator: {
-    backgroundColor: '#F0C877',
+    backgroundColor: '#0c0c0c',
     height: 3,
   },
   // Section Styles
@@ -158,7 +158,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   sectionTitle: {
-    color: '#F0C877',
+    color: '#0c0c0c',
     fontSize: hp(2.2),
     fontWeight: '600',
     marginBottom: 20,
@@ -168,13 +168,14 @@ export const styles = StyleSheet.create({
   },
   inputLabel: {
     color: '#000',
-    fontSize: hp(1.8),
+    fontSize: hp(2),
     marginBottom: 8,
+
   },
   input: {
    // backgroundColor: '#2A2A2A',
-    borderWidth: 1,
-    borderColor: '#000',
+    borderWidth: 3,
+    borderColor: '#ccc',
     borderRadius: 10,
     padding: 15,
     color: '#000',
@@ -185,18 +186,18 @@ export const styles = StyleSheet.create({
     borderColor: '#D21313',
   },
   saveButton: {
-    backgroundColor: '#F0C877',
+    backgroundColor: '#0c0c0c',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
   },
   saveButtonDisabled: {
-    backgroundColor: '#F0C87780',
+    backgroundColor: '#0c0c0c80',
     opacity: 0.7,
   },
   saveButtonText: {
-    color: '#01050D',
+    color: '#fff',
     fontSize: hp(1.8),
     fontWeight: '600',
   },
@@ -259,7 +260,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalButtonPrimary: {
-    backgroundColor: '#F0C877',
+    backgroundColor: '#0c0c0c',
   },
   modalButtonSecondary: {
     backgroundColor: '#F5F5F5',
@@ -267,7 +268,7 @@ export const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: hp(1.8),
     fontWeight: "600",
-    color: "#01050D",
+    color: "#fff",
   },
   modalButtonTextSecondary: {
     color: "#666666",
@@ -303,7 +304,7 @@ export const styles = StyleSheet.create({
    // marginTop: 20,
   },
   faqTitle: {
-    color: '#F0C877',
+    color: '#0c0c0c',
     fontSize: hp(2),
     fontWeight: '600',
     marginBottom: 15,
