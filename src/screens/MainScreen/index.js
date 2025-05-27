@@ -895,7 +895,7 @@ const MainScreen = () => {
  
         </TouchableOpacity>
       )}
-      {renderStep()}  
+   
              
       {(step<=2) && (  <LottieView
   ref={lottieRef}
@@ -941,6 +941,8 @@ const MainScreen = () => {
           }
         ]}
       />
+
+{renderStep()}  
     </View>
   );
 };

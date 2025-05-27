@@ -32,7 +32,7 @@ const Otp = ({ route, navigation }) => {
     setError(false);
     try {
 const res=await api.post('verify-code',{phoneNumber: number.replace(/\s/g, ''), code: otp.join('')}) 
-console.log(res.data);
+console.log(res);
 if(res.data.status==false){
   setError(t('otp.invalidCode'));
   setIsLoading(false);
@@ -61,7 +61,7 @@ else {
 }
  
     } catch (error) {
-      console.log(error.response.data);
+      console.log(error.response);
       setError(true);
     } finally {
       setIsLoading(false);
@@ -159,7 +159,7 @@ else {
         disabled={isLoading}
       >
         {isLoading ? (
-          <ActivityIndicator color="#000" />
+          <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.btnText}>{t('otp.verify')}</Text>
         )}

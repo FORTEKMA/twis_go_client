@@ -65,7 +65,7 @@ export const sendVerify = createAsyncThunk(
      
       return response.data;
     } catch (error) {
-      console.log(error, 'send');
+      console.log(error.response, 'send');
     }
   },
 );
