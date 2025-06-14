@@ -6,28 +6,37 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
+  Platform
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { OneSignal } from "react-native-onesignal";
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { googleSignIn, facebookSignIn } from '../../../services/socialAuth';
+import { googleSignIn, appleSignIn } from '../../../services/socialAuth';
 import { userRegister } from '../../../store/userSlice/userSlice';
 import EmailLoginForm from '../../../screens/Login/components/EmailLoginForm';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-const LoginStep = ({ onLoginSuccess, onBack }) => {
+
+const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
       const result = await googleSignIn();
-      
+      OneSignal.login(String(result.user.id));
+      console.log("resultresult",result)
+      if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
+         
+        onRegisterPress(result)
+else  
+    {
       await dispatch(userRegister(result));
       onLoginSuccess();
+    }
     } catch (error) {
       console.log(error, 'error');
     } finally {
@@ -35,17 +44,22 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
     }
   };
 
-  const handleFacebookLogin = async () => {
+  const handleAppleLogin = async () => {
     try {
-      setIsFacebookLoading(true);
-      const result = await facebookSignIn();
-      
+      setIsAppleLoading(true);
+      const result = await appleSignIn();
+      OneSignal.login(String(result.user.id));
+      if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
+         
+      onRegisterPress(result)
+else {    
       await dispatch(userRegister(result));
-      onLoginSuccess();
+
+      onLoginSuccess();}
     } catch (error) {
       console.log(error, 'error');
     } finally {
-      setIsFacebookLoading(false);
+      setIsAppleLoading(false);
     }
   };
 
@@ -59,7 +73,7 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={28} color="#0c0c0c" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('login.needToLogin')}</Text>
        
@@ -80,22 +94,22 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
       </View>
 
       <View style={styles.socialLoginContainer}>
-        <TouchableOpacity 
+       {Platform.OS=="ios"&&( <TouchableOpacity 
           style={styles.socialButton} 
-          onPress={handleFacebookLogin}
-          disabled={isFacebookLoading}
+          onPress={handleAppleLogin}
+          disabled={isAppleLoading}
         >
-          {isFacebookLoading ? (
-            <ActivityIndicator size="small" color="#4267B2" />
+          {isAppleLoading ? (
+            <ActivityIndicator size="small" color="#000" />
           ) : (
             <>
-              <FontAwesome name="facebook" size={24} color="#4267B2" />
-              <Text style={[styles.socialButtonText, { color: '#4267B2' }]}>
-                Facebook
+              <FontAwesome name="apple" size={24} color="#000" />
+              <Text style={[styles.socialButtonText, { color: '#000' }]}>
+                Apple
               </Text>
             </>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity>)}
 
         <TouchableOpacity 
           style={styles.socialButton} 
@@ -114,6 +128,15 @@ const LoginStep = ({ onLoginSuccess, onBack }) => {
           )}
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity 
+        style={styles.registerButton}
+        onPress={onRegisterPress}
+      >
+        <Text style={styles.registerButtonText}>
+          {t('login.registerNow')}
+        </Text>
+      </TouchableOpacity>
  
     </View>
   );
@@ -209,6 +232,20 @@ const styles = StyleSheet.create({
     color: '#222',
     fontSize: 16,
     fontWeight: '700',
+  },
+  registerButton: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderWidth:3,
+    borderColor:"#0c0c0c",
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  registerButtonText: {
+    color: '#0c0c0c',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

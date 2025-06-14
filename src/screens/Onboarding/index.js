@@ -8,19 +8,19 @@ import { useDispatch } from 'react-redux';
 const slides = [
   {
     id: 1,
-    image: require('../../assets/step1.jpg'),
+    image: require('../../assets/step1.png'),
     titleKey: 'onboarding.slide1.title',
     textKey: 'onboarding.slide1.text',
   },
   {
     id: 2,
-    image: require('../../assets/step2.jpg'),
+    image: require('../../assets/step2.png'),
     titleKey: 'onboarding.slide2.title',
     textKey: 'onboarding.slide2.text',
   },
   {
     id: 3,
-    image: require('../../assets/step3.jpg'),
+    image: require('../../assets/step3.png'),
     titleKey: 'onboarding.slide3.title',
     textKey: 'onboarding.slide3.text',
   },
@@ -70,19 +70,20 @@ const OnboardingScreen = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      
-
-      
-      <View style={styles.stepIndicatorWrapper}>
-        <Text style={styles.stepIndicator}>{t('onboarding.stepIndicator', {current: `0${currentIndex + 1}`, total: `0${slides.length}`})}</Text>
-      </View>
-      
       <Animated.View
         style={[styles.contentWrapper, {opacity: fadeAnim, transform: [{translateY: slideAnim}]}]}
       >
+        <Image source={slide.image} style={styles.illustration} resizeMode="contain" />
+        <View style={styles.paginationDots}>
+          {slides.map((_, i) => (
+            <View
+              key={i}
+              style={[styles.dot, i === currentIndex ? styles.activeDot : styles.inactiveDot]}
+            />
+          ))}
+        </View>
         <Text style={styles.title}>{t(slide.titleKey)}</Text>
         <Text style={styles.subtitle}>{t(slide.textKey)}</Text>
-        <Image source={slide.image} style={styles.illustration} resizeMode="contain" />
       </Animated.View>
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
@@ -92,7 +93,6 @@ const OnboardingScreen = ({navigation}) => {
           <Text style={styles.nextText}>{t('onboarding.next')}</Text>
         </TouchableOpacity>
       </View>
- 
     </SafeAreaView>
   );
 };

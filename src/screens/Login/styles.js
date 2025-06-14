@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { I18nManager, Platform, StyleSheet } from 'react-native';
 import { colors } from '../../utils/colors';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
@@ -22,17 +22,33 @@ export const styles = StyleSheet.create({
   },
   header: {
     width: '100%',
+    paddingStart: 20,
+    paddingVertical: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: hp(2),
-    paddingTop: hp(6),
   },
   headerTitle: {
-    marginTop: 0,
-    fontWeight: '700',
     fontSize: 24,
-    color: '#222',
-    textAlign: 'center',
-    lineHeight: 32,
+    fontWeight: 'bold',
+    color: '#0c0c0c',
+  },
+  languageButton: {
+    padding: 8,
+   
+    
+    
+    alignSelf:"flex-end",
+    marginHorizontal:15,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flagImage: {
+    width: 30,
+    height: 20,
+    borderRadius: 2,
   },
   formContainer: {
     width: '90%',
@@ -57,6 +73,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#222',
     marginBottom: 16,
+    textAlign:I18nManager.isRTL? "right":"left"
   },
   inputError: {
     borderColor: '#FF3B30',
@@ -84,6 +101,7 @@ export const styles = StyleSheet.create({
     color: '#222',
     paddingVertical: 14,
     paddingHorizontal: 18,
+    textAlign:I18nManager.isRTL? "right":"left"
   },
   eyeIcon: {
     padding: 8,
@@ -138,7 +156,7 @@ export const styles = StyleSheet.create({
     marginBottom: 32,
   },
   socialIcon: {
-    width: "45%",
+    width:Platform.OS=="ios"?"45%":"100%",
     height: 64,
     borderRadius: 16,
     backgroundColor: '#F7F8F9',

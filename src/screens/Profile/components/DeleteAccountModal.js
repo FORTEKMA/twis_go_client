@@ -5,7 +5,7 @@ import { styles } from '../styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch } from 'react-redux';
 import { logOut } from '../../../store/userSlice/userSlice';
-import OneSignal from 'react-native-onesignal';
+import {OneSignal} from 'react-native-onesignal';
 import { useNavigation } from '@react-navigation/native';
 
 const DeleteAccountModal = ({ isVisible, onClose }) => {

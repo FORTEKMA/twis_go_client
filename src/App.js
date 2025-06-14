@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-
+ 
 import {
   StyleSheet,
   Text,
@@ -33,25 +33,13 @@ import i18n from "./local";
 import CheckConnection from './components/CheckConnection';
 Sentry.init({
   dsn: 'https://06ca632b0190704d22beae416f99b03e@o4509329011572736.ingest.de.sentry.io/4509329041588304',
-
-  // Adds more context data to events (IP address, cookies, user, etc.)
-  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
-  sendDefaultPii: true,
-
-  // Configure Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1,
-  integrations: [
-    Sentry.mobileReplayIntegration(),
-    Sentry.feedbackIntegration(),
-  ],
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
+  release: "com.fortekma.tawsilet", // Must match Gradle
+  dist: "1.4.1", // Must match Gradle
+  enableNative: true,
 });
 
 let persistor = persistStore(store);
-export default Sentry.wrap(function App() {
+const App=()=> {
   useKeepAwake()
 
 
@@ -71,15 +59,19 @@ export default Sentry.wrap(function App() {
   
   useEffect(() => {
      
-      SplashScreen.hide();
 
-      OneSignal.initialize(ONESIGNAL_APP_ID);
-      OneSignal.Notifications.requestPermission(true)
+    OneSignal.initialize(ONESIGNAL_APP_ID);
+    OneSignal.Notifications.requestPermission(true)
         
 
-       setupLanguage()
+    setupLanguage()
        
   }, []);
+
+  onReady=()=>{
+    SplashScreen.hide();
+  }
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
 
@@ -92,7 +84,7 @@ export default Sentry.wrap(function App() {
             <View style={styles.container}>
               <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
-                  <MainNavigator />
+                  <MainNavigator  onReady={onReady} />
                   <CheckConnection />
                   {isModalVisible && (
                     <PopOver
@@ -110,10 +102,12 @@ export default Sentry.wrap(function App() {
       </Provider>
     </SafeAreaProvider>
   );
-});
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
 });
+
+export default Sentry.wrap(App)

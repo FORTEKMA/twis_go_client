@@ -54,7 +54,12 @@ const PersonalInfo = () => {
    return (
     <View style={styles.sectionContainer}>
       <Header title={t('profile.personal_info.title')} />
-      <ScrollView style={{padding:20}}>
+       <ScrollView style={{flex:1}}>
+        <View style={{width:"100%",padding:20,}}>
+
+        
+
+       
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>{t('profile.personal_info.first_name')}</Text>
           <TextInput
@@ -119,7 +124,9 @@ const PersonalInfo = () => {
             </Text>
           )}
         </TouchableOpacity>
+        </View>
       </ScrollView>
+      
     </View>
   );
 };

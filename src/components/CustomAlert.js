@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   confirmButtonText: {
-    color: '#333',
+    color: '#fff',
   },
 });
 

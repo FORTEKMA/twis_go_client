@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Alert, useWindowDimensions ,SafeAreaView,Image,View, TouchableOpacity, Text, TextInput, Animated, Easing, ActivityIndicator,Platform} from 'react-native';
+import { Alert, useWindowDimensions ,SafeAreaView,Image,View, TouchableOpacity, Text, TextInput, Animated, Easing, ActivityIndicator,Platform, I18nManager, Keyboard,TouchableWithoutFeedback} from 'react-native';
 import { useDispatch } from 'react-redux';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
@@ -13,18 +13,25 @@ import { useTranslation } from 'react-i18next';
 import { OneSignal } from "react-native-onesignal";
   
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { googleSignIn,facebookSignIn } from '../../services/socialAuth';
+import { googleSignIn, appleSignIn } from '../../services/socialAuth';
+import LanguageModal from '../Profile/components/LanguageModal';
+import LanguageConfirmationModal from '../Profile/components/LanguageConfirmationModal';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { changeLanguage } from '../../local';
 
 const Login = ({ navigation }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
    const dispatch = useDispatch();
  
   const [number, setNumber] = useState('');
+  const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
+  const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
  
   const { width } = useWindowDimensions();
   const [loginMethod, setLoginMethod] = useState('email'); 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   // Add animation values
   const slideAnim = useRef(new Animated.Value(0)).current;
   const switchWidth = width  - 40; // 90% of screen width minus margins
@@ -37,7 +44,7 @@ const Login = ({ navigation }) => {
   });
 
   const handleSwitch = (method) => {
-    const toValue = method === 'email' ? 0 : 1;
+    const toValue = method === 'email' ?  0 : 1;
     setLoginMethod(method);
     
     Animated.timing(slideAnim, {
@@ -53,45 +60,96 @@ const Login = ({ navigation }) => {
     slideAnim.setValue(loginMethod === 'email' ? 0 : 1);
   }, []);
 
+  const handleLanguageSelect = (language, needsConfirmation) => {
+    if (needsConfirmation) {
+      setSelectedLanguage(language);
+      setIsConfirmationModalVisible(true);
+    } else {
+      changeLanguage(language);
+    }
+  };
+
+  const handleLanguageConfirm = () => {
+    if (selectedLanguage) {
+      changeLanguage(selectedLanguage);
+      setIsConfirmationModalVisible(false);
+      setSelectedLanguage(null);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
       const result = await googleSignIn();
-       
-      dispatch(userRegister(result));
+      
+      OneSignal.login(String(result.user.id));
+
+      
+      if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
+   navigation.navigate('Register',{result})
+  
+ else dispatch(userRegister(result));
       
     } catch (error) {
+   
       console.log(error, 'error')
     } finally {
       setIsGoogleLoading(false);
     }
   };
 
-  const handleFacebookLogin = async () => {
+  const handleAppleLogin = async () => {
     try {
-      setIsFacebookLoading(true);
-      const result = await facebookSignIn();
-    
-      dispatch(userRegister(result));
-    
+      setIsAppleLoading(true);
+      const result = await appleSignIn();
+      OneSignal.login(String(result.user.id));
+       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
+        navigation.navigate('Register',{result})
+      else dispatch(userRegister(result));
    
     } catch (error) {
-      console.log(error, 'error')
+      console.log(error, 'error');
     } finally {
-      setIsFacebookLoading(false);
+      setIsAppleLoading(false);
+    }
+  };
+
+  const getFlagSource = () => {
+    const currentLang = i18n.language;
+    switch(currentLang) {
+      case 'fr':
+        return { uri: 'https://flagcdn.com/w40/fr.png' };
+      case 'ar':
+        return { uri: 'https://flagcdn.com/w40/sa.png' };
+      default:
+        return { uri: 'https://flagcdn.com/w40/us.png' };
     }
   };
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={{flex:1}}>
     <SafeAreaView  style={[styles.container, { width }]}> 
- 
    
+ 
+
+  
+ <TouchableOpacity 
+          style={styles.languageButton}
+          onPress={() => setIsLanguageModalVisible(true)}
+        >
+          <Image 
+            source={getFlagSource()}
+            style={styles.flagImage}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
+        
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('login.welcomeBack')}</Text>
+     
       </View>
       {/* Segmented Switch */}
-      <View style={[styles.switchContainer, { width: switchWidth }]}>
+      <View style={[styles.switchContainer, { width: switchWidth,flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row' }]}>
         <Animated.View 
           style={[
             styles.switchIndicator,
@@ -123,19 +181,23 @@ const Login = ({ navigation }) => {
       ) : (
         <EmailLoginForm/>
       )}
-      {/* <View style={styles.dividerContainer}>
+   <View style={styles.dividerContainer}>
         <View style={styles.divider} />
         <Text style={styles.dividerText}>{t('login.orLoginWith')}</Text>
         <View style={styles.divider} />
-      </View> */}
-      {/* <View style={styles.socialLoginContainer}>
-        <TouchableOpacity style={styles.socialIcon} onPress={handleFacebookLogin}>
-          {isFacebookLoading ? (
-            <ActivityIndicator size="small" color="#4267B2" />
+      </View> 
+    <View style={styles.socialLoginContainer}>
+      {Platform.OS=="ios"&&(  <TouchableOpacity 
+          style={styles.socialIcon} 
+          onPress={handleAppleLogin}
+          disabled={isAppleLoading}
+        >
+          {isAppleLoading ? (
+            <ActivityIndicator size="small" color="#000" />
           ) : (
-            <FontAwesome name="facebook" size={30} color="#4267B2" />
+            <FontAwesome name="apple" size={30} color="#000" />
           )}
-        </TouchableOpacity>
+        </TouchableOpacity>)}
         <TouchableOpacity 
           style={styles.socialIcon} 
           onPress={handleGoogleLogin}
@@ -148,7 +210,7 @@ const Login = ({ navigation }) => {
           )}
         </TouchableOpacity>
     
-      </View> */}
+      </View>  
       <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerLink}>
         <Text style={styles.registerText}>{t('login.noAccount')} <Text style={styles.registerNow}>{t('login.registerNow')}</Text></Text>
       </TouchableOpacity>
@@ -163,8 +225,25 @@ const Login = ({ navigation }) => {
       }))}>
         <Text style={styles.guestBtnText}>{t('login.enterAsGuest') || 'Enter as Guest'}</Text>
       </TouchableOpacity>
+      <LanguageModal
+      isVisible={isLanguageModalVisible}
+      onClose={() => setIsLanguageModalVisible(false)}
+      onLanguageSelect={handleLanguageSelect}
+    />
+    <LanguageConfirmationModal
+      isVisible={isConfirmationModalVisible}
+      onClose={() => {
+        setIsConfirmationModalVisible(false);
+        setSelectedLanguage(null);
+      }}
+      onConfirm={handleLanguageConfirm}
+      selectedLanguage={selectedLanguage}
+    />
    
     </SafeAreaView>
+ 
+      </TouchableWithoutFeedback>
+   
   );
 };
 

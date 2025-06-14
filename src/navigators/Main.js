@@ -6,19 +6,20 @@ import AuthStack from './AuthStack';
 import TabNavigator from './TabNavigator';
 import {createStackNavigator} from '@react-navigation/stack';
 import Onboarding from '../screens/Onboarding';
-
+import Rating from "../screens/Rating"
 const Stack = createStackNavigator();
 
-const MainNavigator = () => {
+const MainNavigator = ({onReady}) => {
   const userIsLoggedIn = useSelector(state => state.user.token);
   const dispatch = useDispatch();
   const isFirstTime = useSelector(state => state.user.isFirstTime);
+  const hasReview = useSelector(state => state.user.hasReview);
   useEffect(() => {
     dispatch(getCurrentUser());
   }, [dispatch, userIsLoggedIn]);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer onReady={onReady}>
         <Stack.Navigator
       screenOptions={{
         headerShown: false,
@@ -27,10 +28,9 @@ const MainNavigator = () => {
         headerTransparent: true,
       }}>
 
- 
       
     {isFirstTime==true&&(  <Stack.Screen name="onboarding" component={Onboarding} />)}
-      
+      {hasReview!=null&&(  <Stack.Screen options={{ gestureEnabled: false }}  initialParams={{ order:hasReview}}  name="Rating" component={Rating} />)}
       <Stack.Screen name="Main" component={userIsLoggedIn ? TabNavigator : AuthStack} />
  
       </Stack.Navigator>

@@ -140,7 +140,7 @@ const EmailLoginForm = ({onLoginSuccess, hideForgetPassword}) => {
         <Text style={[styles.errorText, {marginTop: 10}]}>{loginError}</Text>
       ) : null}
       {!hideForgetPassword && (
-        <TouchableOpacity onPress={onForgotPassword}>
+        <TouchableOpacity onPress={onForgotPassword} style={{width:140,alignSelf:"flex-start"}}>
           <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
         </TouchableOpacity>
       )}

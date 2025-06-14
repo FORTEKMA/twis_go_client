@@ -24,6 +24,7 @@
     "cancel_ride_warning": "Êtes-vous sûr de vouloir annuler cette course ? Votre score sera réduit.",
     "yes": "Oui",
     "no": "Non",
+    "verify": "Vérifier",
 
     "Home": "Accueil",
     "Historique": "Historique",
@@ -33,7 +34,37 @@
     "order_canceled_title": "Commande annulée",
     "order_canceled_message": "Le chauffeur a annulé votre commande. Nous nous excusons pour tout inconvénient causé.",
     "location_services": "Services de localisation",
-    "settings": "Paramètress"
+    "settings": "Paramètress",
+    "reservation_created_success": "Votre réservation a été créée avec succès",
+    "location_permission_error": "Impossible d'accéder à la localisation. Veuillez activer les services de localisation dans les paramètres de votre appareil.",
+    "location_permission_required": "L'autorisation de localisation est requise pour utiliser cette fonctionnalité"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signUp": "S'inscrire",
+    "welcomeBack": "Bienvenue ! Ravi de vous revoir !",
+    "enterEmail": "Entrez votre email",
+    "enterPassword": "Entrez votre mot de passe",
+    "emailRequired": "L'email est requis",
+    "invalidEmail": "Veuillez entrer un email valide",
+    "passwordRequired": "Le mot de passe est requis",
+    "passwordLength": "Le mot de passe doit contenir au moins 6 caractères",
+    "loginError": "Email ou mot de passe incorrect",
+    "generalError": "Une erreur s'est produite. Veuillez réessayer.",
+    "noAccount": "Vous n'avez pas de compte ?",
+    "registerNow": "S'inscrire maintenant",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "reset": "Réinitialiser",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+    "passwordResetSuccess": "Réinitialisation du mot de passe réussie",
+    "passwordResetSuccessMessage": "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    "goToLogin": "Aller à la connexion"
   },
   "onboarding": {
     "login": "Connexion",
@@ -100,8 +131,10 @@
     "phoneTaken": "Ce numéro de téléphone est déjà pris",
     "createAccount": "Créer un compte",
     "name": "Nom",
-    "namePlaceholder": "John Doe",
+    "namePlaceholder": "Nom et Prenom",
+    
     "nameRequired": "Le nom est requis",
+    "fullNameRequired": "Veuillez entrer votre prénom et nom",
     "phone": "Numéro de téléphone",
     "phonePlaceholder": "Numéro de téléphone",
     "phoneRequired": "Le numéro de téléphone est requis",
@@ -140,6 +173,9 @@
     "seconds": "secondes"
   },
   "history": {
+    "empty": {
+      "no_orders": "Aucune commande trouvée"
+    },
     "card": {
       "view_note": "View Note",
       "trip_id": "Trip id",
@@ -190,10 +226,10 @@
       "dispatched_to_partner": "Dispatched to Partner",
       "assigned_to_driver": "Assigned to Driver",
       "driver_on_route_to_pickup": "Driver on Route to Pickup",
-      "arrived_at_pickup": "Arrivé au point de départ",
+      "arrived_at_pickup": "point de départ",
       "picked_up": "En Cours",
       "on_route_to_delivery": "En Cours",
-      "arrived_at_delivery": "Arrivé au point d'arrivée",
+      "arrived_at_delivery": "point d'arrivée",
       "delivered": "Livré",
       "completed": "Terminé",
       "canceled_by_client": "Annulé",
@@ -298,7 +334,7 @@
     "language": {
       "title": "Langue",
       "french": "Français",
-      "arabic": "Arabe",
+      "arabic": "العربية",
       "english": "Anglais",
       "confirmation_title": "Changer de langue",
       "confirmation_message": "L'application va se recharger pour appliquer le changement de langue. Voulez-vous continuer ?"
@@ -396,7 +432,8 @@
       "searching_ride": "Recherche de course",
       "it_may_take_some_time": "Cela peut prendre un certain temps",
       "slide_to_cancel": ">> Glisser pour annuler",
-      "swipe_right_to_cancel": "Glissez vers la droite pour annuler"
+      "swipe_right_to_cancel": "Glissez vers la droite pour annuler",
+      "swipe_left_to_cancel" :"Glissez vers la ghoush pour annuler"
     },
     "step4": {
       "title": "Choisir un véhicule",
@@ -447,12 +484,13 @@
     "error": {
       "get_location": "Impossible d'obtenir votre position",
       "fetch_address": "Impossible d'obtenir l'adresse"
-    }
+    },
+    "outside_tunisia":"Cet emplacement est situé hors de Tunisie. Veuillez choisir un emplacement en Tunisie."
   },
   "Choose_location": "Choisir un lieu",
   "save": "Enregistrer",
   "search_placeholder": "Rechercher un lieu",
-  "eco_description": "Véhicule économique et écologique",
+  "eco_description": "Véhicule économique",
   "berline_description": "Véhicule confortable et spacieux",
   "van_description": "Véhicule de transport de personnes",
   "cancellation_reason_title": "Pourquoi annulez-vous ?",
@@ -486,7 +524,13 @@
       "package_handed_over_gently": "Colis remis en douceur",
       "talk_to_much": "Parle trop",
       "other": "Autre"
-    }
+    },
+    "very_bad": "Très mauvais",
+    "bad": "Mauvais",
+    "average": "Moyen",
+    "good": "Bon",
+    "excellent": "Excellent",
+    "default": "Comment évalueriez-vous votre expérience ?"
   },
   "ride": {
     "base_price": "Prix de base",
@@ -502,8 +546,11 @@
       "email_err": "Échec de l'envoi de l'email de récupération"
     },
     "code": {
-      "code_incomplete": "Veuillez remplir tous les chiffres.",
-      "code_invalid": "Le code est incorrect. Veuillez réessayer."
+      "verification": "Vérification du code",
+      "enterCode": "Entrez le code envoyé à votre email",
+      "code_incomplete": "Veuillez entrer le code complet",
+      "code_invalid": "Code invalide. Veuillez réessayer",
+      "reset_failed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer."
     },
     "reset_failed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer."
   },

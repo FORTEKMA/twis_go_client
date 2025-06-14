@@ -1,26 +1,25 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, KeyboardAvoidingView, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, KeyboardAvoidingView, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { OneSignal } from "react-native-onesignal";
 import { styles } from './styles';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/colors';
-import {sendVerify, verify,updateUser,getCurrentUser,userRegister} from '../../store/userSlice/userSlice';
+import { sendVerify, verify, updateUser, getCurrentUser, userRegister } from '../../store/userSlice/userSlice';
 import api from '../../utils/api';
+import { OtpInput } from "react-native-otp-entry";
 
 const Otp = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { number } = route.params;
-  const [otp, setOTP] = useState(['', '', '', '']);
+  const [otp, setOTP] = useState('');
   const [timer, setTimer] = useState(60);
   const [verificationSent, setVerificationSent] = useState(true);
   const [error, setError] = useState(false);
   const [error2, setError2] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
-  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
-  const [activeInput, setActiveInput] = useState(0);
 
   useEffect(() => {
     dispatch(sendVerify(number.replace(/\s/g, '')));
@@ -28,40 +27,92 @@ const Otp = ({ route, navigation }) => {
   }, []);
 
   const handleVerify = async () => {
+    if (otp.length !== 4) return;
+    
     setIsLoading(true);
     setError(false);
     try {
-const res=await api.post('verify-code',{phoneNumber: number.replace(/\s/g, ''), code: otp.join('')}) 
-console.log(res);
-if(res.data.status==false){
-  setError(t('otp.invalidCode'));
+      const res = await api.post('verify-code', {
+        phoneNumber: number.replace(/\s/g, ''),
+        code: otp
+      });
+     
+      if (res.data.status == false) {
+        setError(t('otp.invalidCode'));
+        setIsLoading(false);
+        return;
+      } else {
+        console.log("res.data.",res.data)
+
+        if(route?.params?.put==true){
+          api.put(`users/${route?.params?.data?.id}`,{ 
+
+phoneNumber:number,
+firstName: route?.params?.data?.firstName,
+lastName:route?.params?.data?.lastName,
+lastName:route?.params?.data?.email,
+},{headers:{Authorization:route?.params?.data?.Authorization}}).then(res=>{
+
+OneSignal.login(String(route?.params?.data?.id));
+let tempUser=route?.params?.data.user
+tempUser.email= route?.params?.data?.email;
+tempUser.phoneNumber=number
+tempUser.firstName=route?.params?.data?.firstName,
+tempUser.lastName=route?.params?.data?.lastName,
+dispatch(userRegister({jwt:route?.params?.data?.Authorization,user:tempUser}));
+setIsLoading(false);
+if(route?.params?.data?.handleLoginSucces)
+{ route?.params?.data?.handleLoginSuccess()
+navigation.pop(2)}
+setIsLoading(false);
+}).catch(err=>{
   setIsLoading(false);
-  return
-}
-else {
-  if(res.data.success==true){
-   
-   
- 
- OneSignal.login(String(res.data.id));
- 
-  let payload={
-    user:res.data,
-    jwt:res.data.authToken
-  }
-  dispatch(userRegister(payload));
+  
+  console.log(err)})
+          return
+        }
 
-   
-  }
-  else{
-    navigation.navigate('Register',{number:number});
-  }
+        if(route?.params?.add==true){
+          api
+          .post('register/client', {
+            username:  route?.params?.data?.username,
+            email:  route?.params?.data?.email,
+            phoneNumber: route?.params?.data?.phoneNumber,
+            password:  route?.params?.data?.password,
+            user_role: 'client',
+            firstName:  route?.params?.data?.firstName,
+            lastName:  route?.params?.data?.lastName,
+             
+          }).then(response=>{
+              OneSignal.login(String(response.data.user.id));
+        dispatch(userRegister(response.data));
+        if(route?.params?.data?.handleLoginSuccess){
+          route?.params?.data?.handleLoginSuccess()
+          navigation.pop(2)
+        }
+          }).catch(err=>{
+            console.log(error);
+            setError(true);
+          })
+          return
+        }
+        if (res.data.success == true) {
+          console.log("route?.params?.put",route?.params?.put)
+         
 
-
-}
  
+          OneSignal.login(String(res.data.id));
+          let payload = {
+            user: res.data,
+            jwt: res.data.authToken
+          };
+          dispatch(userRegister(payload));}
+         else {
+          navigation.navigate('Register', { number: number });
+        }
+      }
     } catch (error) {
-      console.log(error.response);
+      console.log(error);
       setError(true);
     } finally {
       setIsLoading(false);
@@ -76,7 +127,7 @@ else {
 
   useEffect(() => {
     // Auto submit when all fields are filled
-    if (otp.every(digit => digit !== '')) {
+    if (otp.length === 4) {
       handleVerify();
     }
   }, [otp]);
@@ -108,35 +159,34 @@ else {
       <View style={styles.titleContainer}>
         <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 8 }}>{t('otp.verify_phone')}</Text>
         <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
-          {t('otp.code_sent_to')} {number}
+          {t('otp.code_sent_to')} {'\u200E' + number}
         </Text>
       </View>
-      <View style={styles.otpContainer}>
-        {otp.map((digit, idx) => (
-          <TextInput
-            key={idx}
-            ref={inputRefs[idx]}
-            style={styles.otpInput}
-            keyboardType="number-pad"
-            maxLength={1}
-            value={digit}
-            onChangeText={value => {
-              const newOtp = [...otp];
-              newOtp[idx] = value;
-              setOTP(newOtp);
-              if (value && idx < 3) {
-                inputRefs[idx + 1].current.focus();
-              }
-            }}
-            onFocus={() => setActiveInput(idx)}
-            returnKeyType="next"
-            autoFocus={idx === 0}
-          />
-        ))}
-      </View>
+      <OtpInput
+        numberOfDigits={4}
+        onTextChange={(text) => setOTP(text)}
+        focusColor="#18365A"
+        focusStickBlinkingDuration={500}
+        theme={{
+          containerStyle: {
+            marginBottom: 32,
+          },
+          pinCodeContainerStyle: {
+            width: 60,
+            height: 60,
+            borderWidth: 1,
+            borderColor: '#18365A',
+            borderRadius: 8,
+          },
+          pinCodeTextStyle: {
+            fontSize: 24,
+            color: '#000',
+          },
+        }}
+      />
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <View style={styles.resendContainer}>
-        <Text style={styles.resendText}>{t('otp.didnt_get_otp')}</Text>
-        {timer > 0 ? (
+        {verificationSent ? (
           <View style={styles.timerContainer}>
             <Icon name="time-outline" size={16} color="#888" style={styles.timerIcon} />
             <Text style={styles.timerText}>
@@ -144,19 +194,16 @@ else {
             </Text>
           </View>
         ) : (
-          <TouchableOpacity onPress={handleResend} style={styles.resendButton}>
+          <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
             <Icon name="refresh-outline" size={16} color={colors.primary} style={styles.resendIcon} />
             <Text style={styles.resendButtonText}>{t('otp.resend_code')}</Text>
           </TouchableOpacity>
         )}
       </View>
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : null}
-      <TouchableOpacity 
-        style={[styles.btn, isLoading && styles.btnDisabled]} 
+      <TouchableOpacity
+        style={[styles.btn, isLoading && styles.btnDisabled]}
         onPress={handleVerify}
-        disabled={isLoading}
+        disabled={isLoading || otp.length !== 4}
       >
         {isLoading ? (
           <ActivityIndicator color="#fff" />

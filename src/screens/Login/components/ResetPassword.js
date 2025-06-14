@@ -1,168 +1,231 @@
-import React, {useState} from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   ActivityIndicator,
-} from 'react-native';
-import {Input} from 'native-base';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import styles from './styles';
-import {resetPassword} from '../../../store/userSlice/userSlice';
-import {useDispatch, useSelector} from 'react-redux';
-import {useNavigation} from '@react-navigation/native';
-import {useTranslation} from 'react-i18next';
+  SafeAreaView,
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
+  ScrollView,
+  TextInput,
+  Modal,
+} from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import styles from "../stylesForgetPassword";
+import {
+  resetPassword,
+} from "../../../store/userSlice/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 
-const ResetPassword = () => {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+const ResetPassword = ({route}) => {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [sent, setSent] = useState(true);
-  const {t} = useTranslation();
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const forgetpasswordCode = useSelector(state => state?.user?.forgetPsw);
-  const forgetpasswordEmail = useSelector(state => state?.user?.email);
-
-  const validPassword = () => {
+ 
+  const validatePassword = () => {
+    const newErrors = {};
     if (!password) {
-      return 'Le mot de passe est requis';
+      newErrors.password = t("auth.passwordRequired");
     } else if (password.length < 6) {
-      return 'Le mot de passe doit contenir au moins 6 caractères.';
+      newErrors.password = t("auth.passwordLength");
     }
-    return null;
-  };
-
-  const passwordsMatch = () => {
     if (password !== confirmPassword) {
-      return 'Les mots de passe ne correspondent pas.';
+      newErrors.confirmPassword = t("auth.passwordsDoNotMatch");
     }
-    return null;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleResetPassword = async () => {
-    const passwordError = validPassword();
-    const matchError = passwordsMatch();
+    if (!validatePassword()) return;
+    
     setLoading(true);
-    if (!passwordError && !matchError) {
-      try {
-        const res = await dispatch(
-          resetPassword({
-            email: forgetpasswordEmail,
-            code: forgetpasswordCode?.code,
-            newPassword: password,
-          }),
-        );
-        if (res) {
-          setSent(res);
-          setLoading(false);
-          navigation.navigate('Login');
-        }
-        setLoading(false);
-        return true;
-      } catch (error) {
-        console.error('Password reset failed:', error);
-        setSent(false);
-        setLoading(false);
+    try {
+     
+      const res = await dispatch(
+        resetPassword({
+          email: route.params.email,
+          code: route?.params?.code,
+          newPassword: password,
+
+           role:"user"
+        })
+      );
+      if (res) {
+        setSent(res);
+        setShowSuccessPopup(true);
       }
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      setSent(false);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    return false;
+  };
+
+  const handleGoToLogin = () => {
+    setShowSuccessPopup(false);
+    navigation.navigate("Login");
   };
 
   return (
-    <>
+    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
       <TouchableOpacity
-        style={{position: 'absolute', top: '5%', left: '5%', zIndex: 10}}
-        onPress={() => navigation.goBack()}>
-        <Ionicons name={'arrow-back-outline'} size={25} color={'black'} />
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back-outline" size={25} color="black" />
       </TouchableOpacity>
 
-      <View style={styles.recoveryContainer}>
-        <Image
-          style={styles.recoveryImage}
-          source={require('../../../assets/secure.png')}
-        />
-        <Text style={styles.recoveryTitle}>Réinitialiser le mot de passe</Text>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      //  keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <ScrollView 
+          contentContainerStyle={{ 
+            flexGrow: 1,
+            paddingBottom: Platform.OS === 'ios' ? 150 : 100
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ flex: 1 }}>
+            <View style={{ height: 400 }}>
+              <Image
+                style={{ width: "100%", height: "100%" }}
+                source={require("../../../assets/resetPass.png")}
+                resizeMode="contain"
+              />
+            </View>
 
-        {/* Password Input with Eye Toggle */}
-        <View style={{position: 'relative', width: '100%', marginBottom: 10}}>
-          <Input
-            onChangeText={setPassword}
-            value={password}
-            variant={'underlined'}
-            placeholder="Nouveau mot de passe"
-            secureTextEntry={!showPassword}
-            pr={10} // padding right to avoid text under icon
-          />
-          <TouchableOpacity
-            onPress={() => setShowPassword(!showPassword)}
-            style={{
-              position: 'absolute',
-              right: 10,
-              top: '15%',
-              height: '100%',
-              justifyContent: 'center',
-            }}>
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={22}
-              color="#8391A1"
-            />
-          </TouchableOpacity>
+            <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
+              <Text style={styles.title}>{t("auth.resetPassword")}</Text>
+ 
+
+              <View style={[styles.passwordContainer, errors.confirmPassword && styles.passwordContainerError, { marginTop: 15 }]}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder={t("auth.newPassword")}
+                    value={password}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      setErrors({ ...errors, password: null });
+                    }}
+                    placeholderTextColor="#ccc"
+                    secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity style={{height:"100%",width:60,alignItems:"center",justifyContent:"center"}} onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons
+                    name={!showPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color="gray"
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
+              <View style={[styles.passwordContainer, errors.confirmPassword && styles.passwordContainerError, { marginTop: 15 }]}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder={t("auth.confirmPassword")}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text);
+                    setErrors({ ...errors, confirmPassword: null });
+                  }}
+                  placeholderTextColor="#ccc"
+                  secureTextEntry={!showConfirmPassword}
+                />
+                <TouchableOpacity style={{height:"100%",width:60,alignItems:"center",justifyContent:"center"}} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <Ionicons
+                    name={!showConfirmPassword ? "eye-off" : "eye"}
+                    size={20}
+                    color="gray"
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.confirmPassword && (
+                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+              )}
+
+              <TouchableOpacity
+                style={[styles.loginButton, loading && styles.loginButtonDisabled, { marginTop: 40 }]}
+                onPress={handleResetPassword}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginText}>{t("auth.reset")}</Text>
+                )}
+              </TouchableOpacity>
+
+              {!sent && (
+                <Text style={[styles.sentMessage, { color: "#FF3B30" }]}>
+                  {t("email.reset_failed")}
+                </Text>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <Modal
+        visible={showSuccessPopup}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <View style={{
+            backgroundColor: 'white',
+            padding: 20,
+            borderRadius: 10,
+            width: '80%',
+            alignItems: 'center',
+          }}>
+            <Ionicons name="checkmark-circle" size={60} color="#4CAF50" style={{ marginBottom: 20 }} />
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }}>
+              {t("auth.passwordResetSuccess")}
+            </Text>
+            <Text style={{ fontSize: 14, color: '#666', marginBottom: 20, textAlign: 'center' }}>
+              {t("auth.passwordResetSuccessMessage")}
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#0c0c0c',
+                paddingVertical: 12,
+                paddingHorizontal: 30,
+                borderRadius: 8,
+              }}
+              onPress={handleGoToLogin}
+            >
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
+                {t("auth.goToLogin")}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        {validPassword() && (
-          <Text style={{color: 'red'}}>{validPassword()}</Text>
-        )}
-
-        {/* Confirm Password Input with Eye Toggle */}
-        <View style={{position: 'relative', width: '100%', marginBottom: 10}}>
-          <Input
-            onChangeText={setConfirmPassword}
-            value={confirmPassword}
-            variant={'underlined'}
-            placeholder="Confirmez le mot de passe"
-            secureTextEntry={!showConfirmPassword}
-            pr={10}
-          />
-          <TouchableOpacity
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            style={{
-              position: 'absolute',
-              right: 10,
-              top: '15%',
-              height: '100%',
-              justifyContent: 'center',
-            }}>
-            <Ionicons
-              name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={22}
-              color="#8391A1"
-            />
-          </TouchableOpacity>
-        </View>
-        {passwordsMatch() && (
-          <Text style={{color: 'red'}}>{passwordsMatch()}</Text>
-        )}
-
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={handleResetPassword}
-          disabled={loading}>
-          {loading ? (
-            <ActivityIndicator />
-          ) : (
-            <Text style={styles.btnText}>Réinitialiser</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-      {!sent && (
-        <Text style={styles.sentMessage}>{t('email.reset_failed')}</Text>
-      )}
-    </>
+      </Modal>
+    </SafeAreaView>
   );
 };
 

@@ -5,7 +5,7 @@ import ar from './locales/ar.json';
 import en from './locales/en.json'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { I18nManager } from 'react-native';
-import { reloadApp } from '../utils/reloadApp';
+ import RNRestart from 'react-native-restart'; // Import package from node modules
 
 i18n
   .use(initReactI18next)
@@ -37,7 +37,7 @@ export const changeLanguage = async (language: string) => {
     await AsyncStorage.setItem('language', language);
     i18n.changeLanguage(language);
     // Reload the app to apply RTL changes
-    reloadApp();
+    RNRestart.restart();
   } else {
     await AsyncStorage.setItem('language', language);
     i18n.changeLanguage(language);

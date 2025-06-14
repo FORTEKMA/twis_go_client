@@ -7,8 +7,7 @@
 
 #import <AuthenticationServices/AuthenticationServices.h>
 #import <SafariServices/SafariServices.h>
-#import <FBSDKCoreKit/FBSDKCoreKit-Swift.h>
-
+ 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -20,10 +19,21 @@
   [FIRApp configure];
   [GMSServices provideAPIKey:@"AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE"]; // add this line using the api key obtained from Google Console
 
- // [RNSplashScreen show];
-  [[FBSDKApplicationDelegate sharedInstance] application:application
-                        didFinishLaunchingWithOptions:launchOptions];
-  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  // Configure Apple Sign In
+  if (@available(iOS 13.0, *)) {
+    ASAuthorizationAppleIDProvider *provider = [[ASAuthorizationAppleIDProvider alloc] init];
+    [provider getCredentialStateForUserID:[[NSUserDefaults standardUserDefaults] stringForKey:@"appleUserID"]
+                              completion:^(ASAuthorizationAppleIDProviderCredentialState credentialState, NSError * _Nullable error) {
+      if (credentialState == ASAuthorizationAppleIDProviderCredentialRevoked) {
+        // Handle revoked credentials
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"appleUserID"];
+      }
+    }];
+  }
+
+  [super application:application didFinishLaunchingWithOptions:launchOptions];
+  [RNSplashScreen show];
+  return YES;
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge

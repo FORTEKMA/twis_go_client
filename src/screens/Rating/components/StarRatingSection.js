@@ -4,22 +4,25 @@ import StarRating from 'react-native-star-rating-widget';
 import {styles} from '../styles';
 import {colors} from '../../../utils/colors';
 import {Box, VStack} from 'native-base';
+import {useTranslation} from 'react-i18next';
 
 export const StarRatingSection = ({rating, setRating, existingRating}) => {
+  const {t} = useTranslation();
+
   const getRatingText = (rating) => {
     switch (rating) {
       case 1:
-        return 'Très mauvais';
+        return t('rating.very_bad');
       case 2:
-        return 'Mauvais';
+        return t('rating.bad');
       case 3:
-        return 'Moyen';
+        return t('rating.average');
       case 4:
-        return 'Bon';
+        return t('rating.good');
       case 5:
-        return 'Excellent';
+        return t('rating.excellent');
       default:
-        return 'Comment évalueriez-vous votre expérience ?';
+        return t('rating.default');
     }
   };
 

@@ -34,8 +34,9 @@ listener();
 
 api.interceptors.request.use(
   async config => {
+    
     const token = userData && userData.token&&userData.token!=-1 ? userData.token : null;
-    if (token) {
+    if (token&&!config?.headers?.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 

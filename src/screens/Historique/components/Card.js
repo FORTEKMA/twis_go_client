@@ -11,8 +11,7 @@ export const Card = ({ order ,refresh}) => {
   const scaleValue = new Animated.Value(1);
   const navigation = useNavigation();
   
-
-  console.log("order",order)
+ 
 
   const handlePressIn = () => {
     Animated.spring(scaleValue, {
@@ -33,7 +32,7 @@ export const Card = ({ order ,refresh}) => {
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case "pending":
-        return colors.warning;
+        return "#F1C40F";
       case "dispatched_to_partner":
         return "#4A90E2"; // Blue
       case "assigned_to_driver":
@@ -41,13 +40,13 @@ export const Card = ({ order ,refresh}) => {
       case "driver_on_route_to_pickup":
         return "#3498DB"; // Light Blue
       case "arrived_at_pickup":
-        return "#2ECC71"; // Green
+        return "#FFA500"; // Green
       case "picked_up":
-        return "#27AE60"; // Dark Green
+        return "#FFA500"; // Dark Green
       case "on_route_to_delivery":
-        return "#3498DB"; // Light Blue
+        return "#FFA500"; // Light Blue
       case "arrived_at_delivery":
-        return "#2ECC71"; // Green
+        return "#FFA500"; // Green
       case "delivered":
         return "#27AE60"; // Dark Green
       case "completed":
@@ -59,7 +58,7 @@ export const Card = ({ order ,refresh}) => {
       case "failed_delivery":
         return "#C0392B"; // Dark Red
       case "go_to_pickup":
-        return "#F1C40F"; // Yellow
+        return "#FFA500"; // Yellow
       default:
         return colors.gray;
     }
@@ -138,8 +137,9 @@ export const Card = ({ order ,refresh}) => {
         return t('history.status.unknown');
     }
   };
- 
-  return (
+
+  console.log("order.commandStatus",order.commandStatus)
+   return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
       <TouchableOpacity
         style={styles.card}
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp(2),
     borderRadius: hp(1.5),
     gap: wp(1),
-    width:100
+    width:110
   },
   statusIcon: {
     marginRight: wp(1),

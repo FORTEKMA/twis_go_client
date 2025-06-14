@@ -8,69 +8,96 @@ import {
   Text,
   Alert,
 } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
 import { useIsFocused } from "@react-navigation/native";
-import Geolocation from "@react-native-community/geolocation";
-import { getOrderById } from "../../store/commandeSlice/commandeSlice";
 import { colors } from "../../utils/colors";
 import { styles } from "./styles";
 import OrderMapView from "./components/MapView";
 import OrderBottomCard from "./components/OrderBottomCard";
 import { useNavigation } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import Header from "./components/Header";
 import CustomAlert from "./components/CustomAlert";
 import { useTranslation } from 'react-i18next';
-//import { updateReservation } from '../../store/slices/commandesSlice';
-import { OneSignal } from "react-native-onesignal";
+import database from '@react-native-firebase/database';
+import api from '../../utils/api';
+import { CommonActions } from '@react-navigation/native';
+
 const Order = ({ route }) => {
   const { t } = useTranslation();
   const { id } = route.params;
-  const order = useSelector((state) => state?.commandes?.OrderById);
-  const dispatch = useDispatch();
+  console.log(route.params)
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
   const isFocused = useIsFocused();
   const navigation = useNavigation();
   const refresh = route.params?.refresh;
   const [showAlert, setShowAlert] = useState(false);
- 
 
+  const fetchOrder = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(`commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture&populate[6]=review&populate[7]=driver.vehicule`);
+      setOrder(response.data.data);
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      Alert.alert('Error', 'Failed to fetch order details');
+    } finally {
+      setLoading(false);
+    }
+  };
+ 
   useEffect(() => {
     if (isFocused) {
-      dispatch(getOrderById({ id }));
+      fetchOrder();
     }
   }, [isFocused, id]);
 
- 
-
   useEffect(() => {
- 
-    OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
+    if (!order?.requestId) return;
+
+    const db = database();
+    const orderStatusRef = db.ref(`rideRequests/${order.requestId}/commandStatus`);
+    console.log("orderStatusRef",`rideRequests/${order.requestId}/commandStatus`)
+    const unsubscribe = orderStatusRef.on('value', (snapshot) => {
    
-      if(event?.notification?.additionalData?.type=="commande_status_updated"){
-        
-        if(event?.notification?.additionalData?.status=="Canceled_by_partner"){
-          setShowAlert(true);
-         return
-        }
-       
-        dispatch(getOrderById({ id }));
+      const status = snapshot.val();
+      console.log("snapshot.val()",snapshot.val())
+      setOrder({...order,commandStatus:status})
 
-        if(event?.notification?.additionalData?.status=="Completed"){
-          navigation.navigate('Rating', { order })
-          
-        }
-
-       
-        
-     }
+      if([ "Canceled_by_partner","Completed"].includes(status)){
       
+      if (status === "Canceled_by_partner") {
+        setShowAlert(true);
+        return;
+      }
 
-      });
-  return () => {
-    OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
-   }
-  }, []);
-  
+    
+
+      if (status === "Completed") {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'Rating',
+                params: {
+                  order
+                },
+              },
+            ],
+          })
+        );
+    
+      }
+      db.ref(`rideRequests/${order.requestId}`).remove()
+    }
+
+    //
+    });
+
+    return () => {
+      orderStatusRef.off('value', unsubscribe);
+    };
+  }, [order?.requestId]);
 
   const handleCallDriver = () => {
     if (order?.driver?.phoneNumber) {
@@ -85,7 +112,7 @@ const Order = ({ route }) => {
     navigation.navigate('Home');
   };
 
-  if (!order) {
+  if (loading || !order) {
     return <ActivityIndicator size="large" color={colors.secondary} />;
   }
 

@@ -1,8 +1,9 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
  import MainScreen from '../screens/MainScreen';
-import LocationMap from '../screens/MainScreen/LocationMap';
-import Rating from "../screens/Rating"
+ import Rating from "../screens/Rating"
+import Register from '../screens/Register';
+
 const Stack = createStackNavigator();
 
   const HomeStackNavigator = () => {
@@ -21,15 +22,7 @@ const Stack = createStackNavigator();
           headerShown: false,
         }}
       />
-      <Stack.Screen 
-        name="LocationMap" 
-        component={LocationMap}
-        options={{
-          headerShown: false,
-          
- 
-        }}
-      />
+    
       <Stack.Screen 
         name="Rating" 
         component={Rating}
@@ -37,6 +30,11 @@ const Stack = createStackNavigator();
           headerShown: false,
         }}
       />
+
+<Stack.Screen  options={{
+          headerShown: false,
+        }} name="Register" component={Register} />
+
     </Stack.Navigator>
   );
 }; 

@@ -42,7 +42,7 @@ const Historique = ({ navigation }) => {
  
 const mangeStatus = (status) => {
   if(status === null) return [];
-  if(status === "active") return ["Pending","Dispatched_to_partner", "Assigned_to_driver", "Driver_on_route_to_pickup", "Arrived_at_pickup", "Picked_up", "On_route_to_delivery",'Arrived_at_delivery'];
+  if(status === "active") return ["Pending","Dispatched_to_partner", "Assigned_to_driver", "Driver_on_route_to_pickup", "Arrived_at_pickup", "Picked_up", "On_route_to_delivery",'Arrived_at_delivery',"Go_to_pickup"];
   if(status === "completed") return ["Delivered", "Completed"];
   if(status === "cancelled") return ['Canceled_by_client',"Canceled_by_partner"];
 }

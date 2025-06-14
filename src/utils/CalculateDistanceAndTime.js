@@ -62,13 +62,25 @@ export const sendNotificationToDrivers = async (
     "external_id": [ String(driver.id) ]
   },
     "target_channel": "push",
-          headings: {en: 'New Ride'},
+          headings: {en: 'Nouveau trajet'},
           contents: {
-            en: 'You have a new ride request!',
+            en: 'Vous avez une nouvelle demande de course !',
             ar: 'لديك طلب رحلة جديد!',
           },
+          "mutable_content": true,
+"android_channel_id": 'ec037fdf-e9b4-4020-babd-181a1dd77ad4',
           priority: 10,
           data: rideInfo,
+          // buttons: [
+          //   {
+          //     id: "accept",
+          //     text: "Accepter"
+          //   },
+          //   {
+          //     id: "reject",
+          //     text: "Refuser"
+          //   }
+          // ],
         },
         {
           headers: {
@@ -94,7 +106,8 @@ export const calculatePrice = async (formData,driver=null) => {
       "lat": formData.dropAddress.latitude,
       "lng": formData.dropAddress.longitude
     },
-    "id":formData?.vehicleType?.id
+    "id":formData?.vehicleType?.id,
+    "selectedDate":formData?.selectedDate
   }
 
   if(driver){

@@ -53,9 +53,9 @@ export const styles = StyleSheet.create({
     marginRight: 10,
   },
   logoutText: {
+    marginLeft: 10,
     fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
+    color: '#000',
   },
   header: {
     backgroundColor: colors.general_1,
@@ -165,11 +165,14 @@ export const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 20,
+    
+    width:"100%"
   },
   inputLabel: {
     color: '#000',
     fontSize: hp(2),
     marginBottom: 8,
+    textAlign:"left"
 
   },
   input: {
@@ -268,7 +271,7 @@ export const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: hp(1.8),
     fontWeight: "600",
-    color: "#fff",
+    color: "#000",
   },
   modalButtonTextSecondary: {
     color: "#666666",
@@ -352,5 +355,16 @@ export const styles = StyleSheet.create({
      borderWidth:1,
     borderColor:'#E0E0E0',
     flexDirection:'row',
+  },
+  loaderContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 1000,
   },
 });

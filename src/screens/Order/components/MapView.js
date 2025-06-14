@@ -96,12 +96,14 @@ const OrderMapView = ({ order }) => {
           };
           setDriverPosition(updatedPos);
 
-          // Animate camera to driver's heading
+          // Center map on driver's position
           mapRef.current?.animateCamera({
             center: updatedPos,
             zoom: 17,
             heading: data.angle || 0,
             pitch: 0,
+            altitude: 1000,
+            duration: 1000
           });
         }
       });
@@ -109,8 +111,18 @@ const OrderMapView = ({ order }) => {
       return () => driverRef.off('value', unsubscribe);
     }
   }, [order?.driver?.documentId]);
-
- 
+console.log("driverPosition",driverPosition)
+  const getIconName = (type) => {
+    switch (type) {
+      case 1:
+        return require("../../../assets/eco.png")
+      case 2:
+        return require("../../../assets/van.png")
+      case 3:
+        return require("../../../assets/Berline.png")
+     
+    }
+  };
 
   // Choose colors based on dark/light mode
   const traveledColor = '#ccc'  
@@ -188,19 +200,21 @@ const OrderMapView = ({ order }) => {
         )}
 
         {driverPosition && (
-          <Marker coordinate={driverPosition} >
-            <DriverMarker type={driverPosition.type} angle={driverPosition.angle+180} />
-          </Marker>
+       <Marker flat rotation={driverPosition.angle} coordinate={driverPosition} >
+       <View style={{ width: 23, height: 47 }}>
+       <Image
+           source={getIconName(driverPosition.type)}
+           style={{ width: "100%", height: "100%" }}
+         />
+       </View>
+     
+     </Marker>
         )}
 
-        {/* Traveled Path */}
-        {pickup && driverPosition && (
-          <Polyline
-            coordinates={[pickup, driverPosition]}
-            strokeColor={traveledColor}
-            strokeWidth={6}
-          />
-        )}
+
+
+
+    
     
         {/* Remaining Path */}
         {driverPosition && dropoff && (

@@ -32,7 +32,10 @@
     "order_canceled_title": "Order Canceled",
     "order_canceled_message": "The driver canceled your order. We apologize for any inconvenience this may have caused.",
     "location_services": "Location Services",
-    "settings": "Settings"
+    "settings": "Settings",
+    "reservation_created_success": "Your reservation has been created successfully",
+    "location_permission_error": "Unable to access location. Please enable location services in your device settings.",
+    "location_permission_required": "Location permission is required to use this feature"
   },
   "onboarding": {
     "login": "Login",
@@ -137,6 +140,9 @@
     "seconds": "seconds"
   },
   "history": {
+    "empty": {
+      "no_orders": "No orders found"
+    },
     "card": {
       "view_note": "View note",
       "trip_id": "Trip ID",
@@ -390,7 +396,8 @@
       "searching_ride": "Searching for a ride",
       "it_may_take_some_time": "This may take some time",
       "slide_to_cancel": ">> Slide to cancel",
-      "swipe_right_to_cancel": "Swipe right to cancel"
+      "swipe_right_to_cancel": "Swipe right to cancel",
+      "swipe_left_to_cancel":"Swipe left to cancel"
     },
     "step4": {
       "title": "Choose Vehicle",
@@ -433,7 +440,7 @@
     },
     "where_are_you": "Where are you?",
     "where_to": "Where are you going?",
-    "pickUp": "Pickup Point",
+    "pickUp": "Pick up location",
     "dropOff": "Drop-off Point",
     "use_current_location": "Use my current location",
     "suggested_locations": "Suggested Locations",
@@ -441,7 +448,8 @@
     "error": {
       "get_location": "Could not get your location",
       "fetch_address": "Could not get address"
-    }
+    },
+    "outside_tunisia": "This location is outside of Tunisia. Please select a location within Tunisia."
   },
   "Choose_location": "Choose a location",
   "save": "Save",
@@ -479,7 +487,13 @@
       "arrive_on_time": "Arrived on time",
       "package_handed_over_gently": "Package handed over gently",
       "other": "Other"
-    }
+    },
+    "very_bad": "Very Bad",
+    "bad": "Bad",
+    "average": "Average",
+    "good": "Good",
+    "excellent": "Excellent",
+    "default": "How would you rate your experience?"
   },
   "ride": {
     "base_price": "Base price",
@@ -499,5 +513,10 @@
       "code_invalid": "The code is incorrect. Please try again."
     },
     "reset_failed": "Failed to reset the password. Please try again."
+  },
+  "auth": {
+    "passwordResetSuccess": "Password Reset Successful",
+    "passwordResetSuccessMessage": "Your password has been successfully reset. You can now login with your new password.",
+    "goToLogin": "Go to Login"
   }
 }

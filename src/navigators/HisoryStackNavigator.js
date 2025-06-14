@@ -36,6 +36,7 @@ const Stack = createStackNavigator();
         component={Rating}
         options={{
           headerShown: false,
+          gestureEnabled: false 
         }}
       />
     </Stack.Navigator>

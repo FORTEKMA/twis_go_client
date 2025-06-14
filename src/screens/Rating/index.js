@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   KeyboardAvoidingView,
   View,
@@ -7,6 +7,8 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import api from '../../utils/api';
 import {Toast} from "native-base"
@@ -22,7 +24,7 @@ import {useNavigation} from '@react-navigation/native';
 import {colors} from '../../utils/colors';
 import {Box, VStack} from 'native-base';
 import {useTranslation} from 'react-i18next';
-
+import {updateHasReview} from "../../store/userSlice/userSlice"
 const Rating = ({route}) => {
   const {t} = useTranslation();
   const [rating, setRating] = useState(0);
@@ -34,8 +36,13 @@ const Rating = ({route}) => {
   const currentUser = useSelector(state => state.user.currentUser);
   const {order} = route.params;
 
+useEffect(()=>{
+  dispatch(updateHasReview(order))
+ 
+},[])
+
   const handleSubmit = async () => {
-    console.log("order",order)
+   
     if (rating === 0) {
       // You might want to show an error message here
       return;
@@ -50,7 +57,7 @@ const Rating = ({route}) => {
         client: currentUser.id,}
       }) 
       
-      
+      dispatch(updateHasReview(null))
       navigation.reset({
         index: 0,
         routes: [{ name: 'Home' }],
@@ -72,31 +79,38 @@ const Rating = ({route}) => {
  
   return (
     <SafeAreaView style={[styles.safeArea, {backgroundColor: colors.primary, flex: 1}]}> 
-      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary}}>
-        <View style={{backgroundColor: 'white', borderRadius: 18, padding: 28, width: '92%', maxWidth: 400, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, elevation: 4}}>
-          <Text style={{fontSize: 22, fontWeight: '600', color: '#222', marginBottom: 18, textAlign: 'center'}}>{t('rating.title')}</Text>
-           <StarRatingSection
-            rating={rating}
-            setRating={setRating}
-            existingRating={order?.review?.data?.score}
-          />
-          <Text style={{fontSize: 16, color: colors.gray, marginTop: 10, marginBottom: 2, textAlign: 'center'}}>{t('rating.leave_feedback')}</Text>
-          <FeedbackTags selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
-          {selectedTags[0] === 'Other' && (
-            <CommentSection
-              messageText={messageText}
-              setMessageText={setMessageText}
-              existingMessage={order?.review?.data?.message}
-              placeholder={t('rating.type_comment')}
-            />
-          )}
-          <SubmitButton
-            onSubmit={handleSubmit}
-            isAlreadyRated={order?.review != undefined}
-            isLoading={isSubmitting}
-          />
-        </View>
-      </View>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{flex: 1}}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary}}>
+            <View style={{backgroundColor: 'white', borderRadius: 18, padding: 28, width: '92%', maxWidth: 400, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, elevation: 4}}>
+              <Text style={{fontSize: 22, fontWeight: '600', color: '#222', marginBottom: 18, textAlign: 'center'}}>{t('rating.title')}</Text>
+               <StarRatingSection
+                rating={rating}
+                setRating={setRating}
+                existingRating={order?.review?.data?.score}
+              />
+              <Text style={{fontSize: 16, color: colors.gray, marginTop: 10, marginBottom: 2, textAlign: 'center'}}>{t('rating.leave_feedback')}</Text>
+              <FeedbackTags selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
+              {selectedTags[0] === 'Other' && (
+                <CommentSection
+                  messageText={messageText}
+                  setMessageText={setMessageText}
+                  existingMessage={order?.review?.data?.message}
+                  placeholder={t('rating.type_comment')}
+                />
+              )}
+              <SubmitButton
+                onSubmit={handleSubmit}
+                isAlreadyRated={order?.review != undefined}
+                isLoading={isSubmitting}
+              />
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

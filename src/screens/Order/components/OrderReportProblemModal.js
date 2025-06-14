@@ -1,24 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../utils/colors';
 import api from '../../../utils/api';
 import { Toast } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
+import Modal from 'react-native-modal';
+import { useSelector} from 'react-redux';
 
 const OrderReportProblemModal = ({ visible, onClose, order }) => {
   const { t } = useTranslation();
   const [reportText, setReportText] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const navigation = useNavigation();
+  const currentUser = useSelector(state => state?.user?.currentUser);
 
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-       await api.put(`commands/${order.documentId}`, {
+      await api.put(`commands/${order.documentId}`, {
         data: { SpecificNote: reportText, }
       });
+     
+    const rep=await  api.post("tickets",{
+        data:{
+          description:reportText,
+          client:currentUser.id,
+          command:order.id,
+
+        }
+      })
+    
       onClose();
       Toast.show({
         title: t('history.card.report_success'),
@@ -38,16 +51,24 @@ const OrderReportProblemModal = ({ visible, onClose, order }) => {
     }
   };
 
- 
-
   return (
     <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      isVisible={visible}
+      onBackdropPress={() => {
+        Keyboard.dismiss();
+        onClose();
+      }}
+      onBackButtonPress={() => {
+        Keyboard.dismiss();
+        onClose();
+      }}
+      style={styles.modal}
+      backdropOpacity={0.5}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      avoidKeyboard
     >
-      <View style={styles.modalOverlay}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.reportModalContainer}>
           <View style={styles.reportModalHeader}>
             <Text style={styles.reportModalTitle}>{t('history.card.report_problem')}</Text>
@@ -75,18 +96,15 @@ const OrderReportProblemModal = ({ visible, onClose, order }) => {
               <Text style={styles.submitReportButtonText}>{t('history.card.submit_report')}</Text>
             )}
           </TouchableOpacity>
-
-         
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  modal: {
+    margin: 0,
     justifyContent: 'flex-end',
   },
   reportModalContainer: {

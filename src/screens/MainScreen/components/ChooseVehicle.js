@@ -1,13 +1,14 @@
 import React, { useState,useEffect, useRef } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Animated, Easing } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Animated, Easing,I18nManager } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
-import MapHeader from './MapHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {calculateDistanceAndTime} from '../../../utils/CalculateDistanceAndTime';
 import i18n from '../../../local';
+import ConfirmButton from './ConfirmButton';
+
 const vehicleOptions = [
   {
     key: 'eco',
@@ -177,7 +178,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
         style={{  backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
         onPress={goBack}
       >
-        <MaterialCommunityIcons name="arrow-left" size={28} color="#030303" />
+        <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right": "arrow-left"} size={28} color="#030303" />
       </TouchableOpacity>
       <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#030303', }}>{t('booking.step3.select_car')}</Text>
 
@@ -278,24 +279,14 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
             >
               <MaterialCommunityIcons name="clock-outline" size={24} color="#AAA" />
             </TouchableOpacity>
-            <TouchableOpacity
-            disabled={isLoading}
-              style={{
-                opacity: isLoading ? 0.5 : 1,
-                flex: 1,
-                backgroundColor: '#030303',
-                borderRadius: 12,
-                paddingVertical: 16,
-                alignItems: 'center',
-                shadowColor: '#030303',
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-              onPress={onConfirm}
-            >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: hp(2.2) }}>{t('booking.step3.book_now')}</Text>
-            </TouchableOpacity>
+           
+            <ConfirmButton
+           onPress={onConfirm}
+          text={t('booking.step3.book_now')}
+          disabled={isLoading}
+        />
+
+
           </View>
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
@@ -303,6 +294,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
             confirmTextIOS={t("confirm")}
             cancelTextIOS={t("cancel")}
             display="spinner"
+            minimumDate={new Date(Date.now() + 60 * 60 * 1000)}
             locale={i18n.language}
             onConfirm={handleDateConfirm}
             onCancel={hideDatePicker}

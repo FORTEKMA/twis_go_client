@@ -30,34 +30,7 @@ const OrderCancellationReasonSheet = ({
             cancelReason: selectedReason === 'Other' ? otherReason : selectedReason}
             
         }).then(async (res)=>{
-         const response = await axios.post(
-            'https://onesignal.com/api/v1/notifications',
-            {
-              app_id: ONESIGNAL_DRIVER_APP_ID,
-      
-              "include_aliases": {
-                "external_id": [ String(order.driver.id) ]
-              },
-                "target_channel": "push",
-              headings: {en:t("history.card.cancellation_reason_title") },
-              contents: {
-                en: t("history.card.cancellation_reason_title"),
-                ar: t("history.card.cancellation_reason_title"),
-              },
-              priority: 10,
-              data: {
-                status:"Canceled_by_client",
-                type:"commande_status_updated"
-              },
-            },
-            {
-              headers: {
-                Authorization: `Basic ${ONESIGNAL_DRIVER_APP_API_KEY}`,
-                'Content-Type': 'application/json',
-              },
-            },
-          );
-            onSubmit(selectedReason);
+         onSubmit(selectedReason);
         }).catch((err)=>{
         
             console.log(err.response)

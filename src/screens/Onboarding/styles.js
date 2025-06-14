@@ -37,14 +37,14 @@ export const styles = StyleSheet.create({
     fontSize: hp(3),
     fontWeight: 'bold',
     color: '#222',
-    textAlign: 'left',
+    textAlign: 'center',
     width: '100%',
     marginBottom: hp(1),
   },
   subtitle: {
     fontSize: hp(2),
     color: '#888',
-    textAlign: 'left',
+    textAlign: 'center',
     width: '100%',
     marginBottom: hp(3),
   },
@@ -66,9 +66,7 @@ export const styles = StyleSheet.create({
   skipButton: {
     flex: 1,
     backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: 14,
+   
     paddingVertical: hp(2),
     marginRight: wp(2),
     alignItems: 'center',
@@ -76,7 +74,7 @@ export const styles = StyleSheet.create({
   nextButton: {
     flex: 1,
     backgroundColor: '#030303',
-    borderRadius: 14,
+    borderRadius: 44,
     paddingVertical: hp(2),
     marginLeft: wp(2),
     alignItems: 'center',
@@ -88,8 +86,8 @@ export const styles = StyleSheet.create({
   },
   nextText: {
     color: '#fff',
-    fontSize: hp(2),
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   btnWrapper: {
     flex: 0.3,
@@ -124,5 +122,24 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 5,
     marginTop: 10,
+  },
+  // Styles for pagination dots
+  paginationDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  activeDot: {
+    backgroundColor: '#000',
+  },
+  inactiveDot: {
+    backgroundColor: '#ccc',
   },
 }); 

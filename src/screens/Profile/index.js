@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, TouchableOpacity, Image, Text, Alert, Linking, View, ScrollView, I18nManager  } from "react-native";
+import { SafeAreaView, TouchableOpacity, Image, Text, Alert, Linking, View, ScrollView, I18nManager, ActivityIndicator  } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { differenceInMonths, differenceInDays, parseISO } from "date-fns";
@@ -15,6 +15,11 @@ import ImagePickerModal from './components/ImagePickerModal';
 import LanguageModal from './components/LanguageModal';
 import LanguageConfirmationModal from './components/LanguageConfirmationModal';
 import DeleteAccountModal from './components/DeleteAccountModal';
+import api from "../../utils/api";
+
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+import {updateOffllineProfile}from "../../store/userSlice/userSlice"
 import {
   getCurrentUser,
   logOut,
@@ -36,16 +41,18 @@ const Profile = () => {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Check if the user is authenticated
-  useEffect(() => {
-    if (!isAuth) {
-  
-    }
-  }, [isAuth, dispatch]);
+ 
 
   // Handle logout action
   const handleLogout = () => {
+    try {
+      GoogleSignin.signOut();
+    } catch (error) {
+      console.log(error)
+    }
+  
     dispatch(logOut()).then(() => {
       OneSignal.logout();
       
@@ -55,34 +62,57 @@ const Profile = () => {
   // Handle image upload
   const uploadImage = async (type) => {
     try {
+      setIsUploading(true);
       const options = {
         storageOptions: {
           path: "image",
         },
       };
-
+ 
       const imagePicker =
         type === "gallery" ? launchImageLibrary : launchCamera;
 
+     setTimeout(()=>{
       imagePicker(options, async (res) => {
+         
         if (res.assets && res.assets[0]) {
-          const formData = new FormData();
-          formData.append("ref", "plugin::users-permissions.user");
-          formData.append("refId", user?.id);
-          formData.append("field", "profilePicture");
-          formData.append("files", {
+        
+           const formData = new FormData();
+          // formData.append("ref", "plugin::users-permissions.user");
+          // formData.append("refId", user?.id);
+          // formData.append("field", "profilePicture");
+          formData.append("files", {  
             uri: res.assets[0].uri,
             type: res.assets[0].type,
             name: res.assets[0].fileName,
           });
-
-          await dispatch(uplaodImage(formData)).then(() =>
-            dispatch(getCurrentUser())
-          );
+try {
+ 
+  const imageResp=await api.post("upload",formData,{headers: {  'Content-Type': 'multipart/form-data'},})
+ if(imageResp.data&&imageResp.data.length>0)
+ {
+  
+  
+ const afterUpdateRep=await api.put(`/users/${user.id}`, { profilePicture: imageResp.data[0].id });
+ dispatch(getCurrentUser())
+ 
+//find a way to update the userprofile 
+}
+} catch (error) {
+  console.log(error)
+} finally {
+  setIsUploading(false);
+}
+         
+        } else {
+          setIsUploading(false);
         }
       });
+     },200)
+    
     } catch (error) {
       console.error("Error uploading image:", error);
+      setIsUploading(false);
     }
   };
 
@@ -130,6 +160,7 @@ const Profile = () => {
         <ProfileHeader
           user={user}
           onImagePress={() => setGalleyModal(true)}
+          isUploading={isUploading}
         />
         
         <View style={styles.menuContainer}>
@@ -157,8 +188,8 @@ const Profile = () => {
           style={styles.logoutButton}
           onPress={() => setModalVisible(true)}
         >
-          <Ionicons name="log-out-outline" size={24} color={"#000"} />
-          <Text style={styles.logoutText}>{t('profile.logout.button')}</Text>
+          <Ionicons name="log-out-outline" size={24} color={"#fff"} />
+          <Text style={[styles.logoutText,{color:"#fff"}]}>{t('profile.logout.button')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

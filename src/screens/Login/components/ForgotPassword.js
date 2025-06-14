@@ -1,92 +1,178 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Image, ActivityIndicator } from "react-native";
-import { Input } from "native-base";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  SafeAreaView,
+  TextInput,
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
+  ScrollView,
+  Alert,
+} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import styles from "./styles";
-import { forgetPassword, setEmailForgetPassword } from "../../../store/userSlice/userSlice";
+import styles from "../stylesForgetPassword";
 import { useDispatch } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import api from "../../../utils/api"
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isEmailValid, setIsEmailValid] = useState(false);
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const validEmail = () => {
+
+  useEffect(() => {
+    validateEmail();
+  }, [email]);
+
+  const validateEmail = () => {
     if (!email) {
-      return "Email est requis";
+      setIsEmailValid(false);
+      return;
+    }
+    const emailRegex = /\S+@\S+\.\S+/;
+    setIsEmailValid(emailRegex.test(email) && email.length <= 254);
+  };
+
+  const validEmail = () => {
+    const newErrors = {};
+    if (!email) {
+      newErrors.email = t("auth.emailRequired");
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      return "Veuillez saisir une adresse e-mail valide.";
+      newErrors.email = t("auth.invalidEmail");
+    } else if (email.length > 254) {
+      newErrors.email = t("auth.emailTooLong");
     }
-    return null;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
+
   const handleForgetPassword = async () => {
-    const emailError = validEmail();
-    if (!emailError) {
-      setLoading(true);
-      try {
-        const res = await dispatch(forgetPassword(email));
-        setSent(res?.ok); 
-        dispatch(setEmailForgetPassword(email));
-        // setEmail;
-        navigation.navigate("ResetCodeScreen");
-        setLoading(false);
-        return true;
-      } catch (error) {
-        console.error("Password reset failed:", error);
-        setErr(error);
-        setLoading(false);
-      }
+    if (!validEmail()) {
+      return;
     }
-    return false;
+
+    setLoading(true);
+    setErr(false);
+    setSent(false);
+
+    try {
+      const response = await api.post("codes/forgot-password", { email });
+      setLoading(false);
+      
+      if (response.data.ok) {
+        setSent(true);
+        navigation.navigate("ResetCodeScreen", {...response.data,email});
+      } else {
+        setErr(true);
+        Alert.alert(
+          t("common.error"),
+          t("auth.forgotPasswordError"),
+          [{ text: t("common.ok") }]
+        );
+      }
+    } catch (error) {
+      setLoading(false);
+      setErr(true);
+      Alert.alert(
+        t("common.error"),
+        error.response?.data?.message || t("auth.genericError"),
+        [{ text: t("common.ok") }]
+      );
+    }
   };
+
   return (
-    <>
-      <TouchableOpacity
-        style={{ position: "absolute", top: "5%", left: "5%" }}
-        onPress={() => {
-          navigation.goBack();
-        }}
+    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        <Ionicons name={"arrow-back-outline"} size={25} color={"black"} />
-      </TouchableOpacity>
-
-      <View style={styles.recoveryContainer}>
-        <Image
-          style={styles.recoveryImage}
-          source={require("../../../assets/secure.png")}
-        />
-        <Text style={styles.recoveryTitle}>Email de Récupération</Text>
-        <Input
-          onChangeText={(text) => setEmail(text)}
-          variant={"underlined"}
-          placeholder="Email@example.com"
-        />
-        {validEmail() && <Text style={{ color: "red" }}>{validEmail()}</Text>}
-        <TouchableOpacity
-          style={styles.btn}
-          onPress={handleForgetPassword}
-          disabled={loading}
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
         >
-          {loading ? (
-            <ActivityIndicator />
-          ) : (
-            <Text style={styles.btnText}>Envoyer</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+          <View style={{ paddingTop: 40 }}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="arrow-back-outline" size={25} color="black" />
+            </TouchableOpacity>
 
-      {sent && !err && (
-        <Text style={styles.sentMessage}>{t("email.status.email_200")}</Text>
-      )}
-      {err &&  (
-        <Text style={styles.sentMessage}>{t("email.status.email_err")}</Text>
-      ) }
-    </>
+            <Image
+              style={{ width: "100%", height: "44%" }}
+              source={require("../../../assets/emailStep.png")}
+              resizeMode="contain"
+            />
+
+            <View style={{ paddingHorizontal: 24 }}>
+              <Text style={styles.title}>{t("auth.forgotPassword")}</Text>
+ 
+              <View>
+                <TextInput
+                  style={[styles.input, errors.email && styles.inputError]}
+                  placeholder={t("auth.enterEmail")}
+                  value={email}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    setErrors({ ...errors, email: null });
+                    setErr(false);
+                    setSent(false);
+                  }}
+                  placeholderTextColor="#ccc"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  editable={!loading}
+                />
+                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.loginButton, 
+                  (!isEmailValid || loading) && styles.loginButtonDisabled
+                ]}
+                onPress={handleForgetPassword}
+                disabled={!isEmailValid || loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={[
+                    styles.loginText,
+                    (!isEmailValid || loading) && styles.loginTextDisabled
+                  ]}>
+                    {t("common.confirm")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {sent && !err && (
+                <Text style={[styles.sentMessage, { color: "#4CAF50" }]}>
+                  {t("email.status.email_200")}
+                </Text>
+              )}
+              {err && (
+                <Text style={[styles.sentMessage, { color: "#FF3B30" }]}>
+                  {t("email.status.email_err")}
+                </Text>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

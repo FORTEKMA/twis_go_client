@@ -48,10 +48,10 @@ const LogoutModal = ({ isVisible, onClose, onLogout }) => {
               <Text style={[styles.modalButtonText, styles.modalButtonTextSecondary]}>{t('profile.logout.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.modalButton, styles.modalButtonPrimary]}
+              style={[styles.modalButton, styles.modalButtonPrimary,]}
               onPress={onLogout}
             >
-              <Text style={styles.modalButtonText}>{t('profile.logout.button')}</Text>
+              <Text style={[styles.modalButtonText,{color:"#fff"}]}>{t('profile.logout.button')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

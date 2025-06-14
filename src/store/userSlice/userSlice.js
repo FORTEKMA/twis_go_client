@@ -12,6 +12,8 @@ export const userRegister = createAsyncThunk('user/register', async user => {
     
 });
 
+ 
+
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
  
@@ -34,7 +36,7 @@ export const getCurrentUser = createAsyncThunk(
       const jwt = state.user.token; // Access the token from the 'user' slice
       
       if (jwt&&jwt!=-1) {
-        const response = await axios.get(`${API_URL}/api/users/me`, {
+        const response = await axios.get(`${API_URL}/api/users/me?populate=*`, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
@@ -97,7 +99,7 @@ export const uplaodImage = createAsyncThunk(
           Authorization: `Bearer ${jwt}`,
         },
       });
-
+      console.log(response.data)
       return response.data;
     } catch (error) {}
   },
@@ -172,10 +174,13 @@ export const resetPassword = createAsyncThunk(
   'user/resetPassword',
   async data => {
     try {
-      let response = axios.post(`${API_URL}/api/codes/reset-password`, data);
+      let response = await axios.post(`${API_URL}/api/codes/reset-password`, data);
 
       return response.data;
-    } catch (error) {}
+    } catch (error) {
+      console.log(error.response)
+      throw error
+    }
   },
 );
 export const setEmailForgetPassword = createAsyncThunk(
@@ -195,7 +200,8 @@ const initialState = {
   forgetPsw: null,
   refresh: false,
   isFirstTime: true,
-  email:null
+  email:null,
+  hasReview:null
 };
 
 
@@ -210,6 +216,15 @@ export const userSlice = createSlice({
     updateIsFirstTime: (state, action) => {
       state.isFirstTime = action.payload;
     },
+    updateOffllineProfile:(state,action)=>{
+   
+      state.user.user={...state.user.user,...action.payload}
+    },
+    updateHasReview:(state,action)=>{
+    
+      state.hasReview=action.payload
+    },
+
   },
   extraReducers: {
     [changePassword.pending]: state => {
@@ -260,6 +275,7 @@ export const userSlice = createSlice({
       state.status = 'pending';
       state.isLoading = true;
     },
+   
     [resetPassword.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
@@ -376,4 +392,4 @@ export const userSlice = createSlice({
 });
 
 export default userSlice.reducer;
-export const { setToken, updateIsFirstTime } = userSlice.actions;
+export const { setToken, updateIsFirstTime,updateOffllineProfile ,updateHasReview} = userSlice.actions;

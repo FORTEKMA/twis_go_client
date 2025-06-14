@@ -24,6 +24,7 @@
     "cancel_ride_warning": "هل أنت متأكد أنك تريد إلغاء هذه الرحلة؟ سيتم تخفيض رصيدك.",
     "yes": "نعم",
     "no": "لا",
+    "verify": "تحقق",
     "Home": "الرئيسية",
     "Historique": "السجل",
     "Notifications": "الإشعارات",
@@ -32,7 +33,10 @@
     "order_canceled_title": "تم إلغاء الطلب",
     "order_canceled_message": "قام السائق بإلغاء طلبك. نعتذر عن أي إزعاج قد يكون سببه ذلك.",
     "location_services": "خدمات الموقع",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "reservation_created_success": "تم إنشاء حجزك بنجاح",
+    "location_permission_error": "تعذر الوصول إلى الموقع. يرجى تفعيل خدمات الموقع في إعدادات جهازك.",
+    "location_permission_required": "مطلوب إذن الموقع لاستخدام هذه الميزة"
   },
   "onboarding": {
     "login": "تسجيل الدخول",
@@ -99,6 +103,7 @@
     "name": "الاسم",
     "namePlaceholder": "اسم المستخدم",
     "nameRequired": "الاسم مطلوب",
+    "fullNameRequired": "يرجى إدخال الاسم و اللقب",
     "phone": "رقم الهاتف",
     "phonePlaceholder": "رقم الهاتف",
     "phoneRequired": "رقم الهاتف مطلوب",
@@ -137,6 +142,9 @@
     "seconds": "ثواني"
   },
   "history": {
+    "empty": {
+      "no_orders": "لم يتم العثور على طلبات"
+    },
     "card": {
       "view_note": "عرض الملاحظة",
       "trip_id": "رقم الرحلة",
@@ -183,21 +191,21 @@
       "rate_trip": "تقييم الرحلة"
     },
     "status": {
-      "pending": "قيد الانتظار",
+      "pending": "نشطة",
       "dispatched_to_partner": "تم الإرسال إلى الشريك",
       "assigned_to_driver": "تم التعيين إلى السائق",
       "driver_on_route_to_pickup": "السائق في طريقه إلى نقطة الانطلاق",
       "arrived_at_pickup": "وصل إلى نقطة الانطلاق",
       "picked_up": "تم الانطلاق",
-      "on_route_to_delivery": "في طريقه إلى نقطة الوصول",
-      "arrived_at_delivery": "وصل إلى نقطة الوصول",
+      "on_route_to_delivery": "نشطة",
+      "arrived_at_delivery": "نشطة",
       "delivered": "تم التوصيل",
       "completed": "اكتمل",
       "canceled_by_client": "تم الإلغاء",
       "canceled_by_partner": "تم الإلغاء",
       "failed_pickup": "فشل الانطلاق",
       "failed_delivery": "فشل التوصيل",
-      "go_to_pickup": "الذهاب إلى نقطة الانطلاق",
+      "go_to_pickup": "نشطة",
       "unknown": "حالة غير معروفة"
     },
     "status_filter": {
@@ -293,9 +301,9 @@
     },
     "language": {
       "title": "اللغة",
-      "french": "الفرنسية",
+      "french": "Français",
       "arabic": "العربية",
-      "english": "الإنجليزية",
+      "english": "English",
       "confirmation_title": "تغيير اللغة",
       "confirmation_message": "سيتم إعادة تحميل التطبيق لتطبيق تغيير اللغة. هل تريد المتابعة؟"
     },
@@ -381,16 +389,17 @@
       "select_date": "يرجى تحديد تاريخ",
       "select_car": "حدد سيارة",
       "eco": "اقتصادي",
-      "berline": "سيدان",
-      "van": "فان",
-      "nearby": "قريبة",
+      "berline": "فخمة",
+      "van": "حجم كبير",
+      "nearby": "اشخاص",
       "distance": "{value}",
       "time": "{value}",
       "book_now": "احجز الآن",
       "searching_ride": "البحث عن رحلة",
       "it_may_take_some_time": "قد يستغرق ذلك بعض الوقت",
       "slide_to_cancel": ">> مرر للإلغاء",
-      "swipe_right_to_cancel": "مرر لليمين للإلغاء"
+      "swipe_right_to_cancel": "مرر لليمين للإلغاء",
+      "swipe_left_to_cancel":"مرر لليسار للإلغاء"
     },
     "step4": {
       "title": "اختر مركبة",
@@ -441,12 +450,13 @@
     "error": {
       "get_location": "تعذر الحصول على موقعك",
       "fetch_address": "تعذر الحصول على العنوان"
-    }
+    },
+    "outside_tunisia": "هذا الموقع خارج تونس. يرجى اختيار موقع داخل تونس."
   },
   "Choose_location": "اختر مكاناً",
   "save": "حفظ",
   "search_placeholder": "ابحث عن مكان",
-  "eco_description": "مركبة اقتصادية وصديقة للبيئة",
+  "eco_description": "مركبة اقتصادية",
   "berline_description": "مركبة مريحة وواسعة",
   "van_description": "مركبة لنقل الركاب",
   "cancellation_reason_title": "لماذا تلغي؟",
@@ -478,8 +488,15 @@
       "very_professional": "محترف جداً",
       "arrive_on_time": "وصل في الوقت المحدد",
       "package_handed_over_gently": "تم تسليم الطرد بلطف",
+      "talk_to_much": "يتحدث كثيرا",
       "other": "أخرى"
-    }
+    },
+    "very_bad": "سيء جداً",
+    "bad": "سيء",
+    "average": "متوسط",
+    "good": "جيد",
+    "excellent": "ممتاز",
+    "default": "كيف تقيم تجربتك؟"
   },
   "ride": {
     "base_price": "السعر الأساسي",
@@ -495,9 +512,39 @@
       "email_err": "فشل في إرسال بريد الاسترجاع"
     },
     "code": {
-      "code_incomplete": "يرجى إدخال جميع الأرقام.",
-      "code_invalid": "الرمز غير صحيح. يرجى المحاولة مرة أخرى."
+      "verification": "التحقق من الرمز",
+      "enterCode": "أدخل الرمز المرسل إلى بريدك الإلكتروني",
+      "code_incomplete": "يرجى إدخال الرمز كاملاً",
+      "code_invalid": "رمز غير صحيح. الرجاء المحاولة مرة أخرى",
+      "reset_failed": "فشل في إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى."
     },
     "reset_failed": "فشل في إعادة تعيين كلمة المرور. يرجى المحاولة مرة أخرى."
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "signUp": "تسجيل",
+    "welcomeBack": "مرحبًا بك! سعيد برؤيتك مجددًا!",
+    "enterEmail": "أدخل بريدك الإلكتروني",
+    "enterPassword": "أدخل كلمة المرور",
+    "emailRequired": "البريد الإلكتروني مطلوب",
+    "invalidEmail": "الرجاء إدخال بريد إلكتروني صالح",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "passwordLength": "يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل",
+    "loginError": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "generalError": "حدث خطأ. الرجاء المحاولة مرة أخرى.",
+    "noAccount": "ليس لديك حساب؟",
+    "registerNow": "سجل الآن",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "reset": "إعادة تعيين",
+    "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+    "passwordResetSuccess": "تم إعادة تعيين كلمة المرور بنجاح",
+    "passwordResetSuccessMessage": "تم إعادة تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.",
+    "goToLogin": "الذهاب إلى تسجيل الدخول"
   }
 }

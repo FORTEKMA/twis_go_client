@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator ,Image} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, I18nManager, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { styles } from '../styles';
+import api from "../../../utils/api"
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { calculatePrice } from '../../../utils/CalculateDistanceAndTime';
@@ -33,21 +34,87 @@ const vehicleOptions =
     description:'van_description'
   },
 };
-const Step3 = ({ goBack, formData, rideData, goNext }) => {
+const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
   const { t } = useTranslation();
   const user = useSelector(state => state.user.currentUser);
   const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const getData = async () => {
-      setLoading(true);
-      const response = await calculatePrice(formData)
-      setPrice(response.price);
-      setLoading(false);
+      try {
+        setLoading(true);
+      
+        const response = await calculatePrice(formData)
+        setPrice(response.price);
+        setLoading(false);
+      } catch (error) {
+        console.log(error)
+        goBack()
+        setLoading(false);
+      }
+    
     }
     getData();
   }, [rideData]);
+
+  const splitDateTime=(isoString)=> {
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const departDate = `${year}-${month}-${day}`;
+    
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    const departTime = `${hours}:${minutes}:${seconds}.${milliseconds}`;
+  
+    return { departDate, deparTime: departTime };
+  }
+
+  createReservation = async () => {
+    try {
+      setIsLoading(true);
+      const payload = {
+        payType: "Livraison",
+        commandStatus: "Pending",
+        totalPrice: price,
+        distance: formData.distance,
+        ...splitDateTime(formData.selectedDate),
+      
+        duration: formData.time,
+        isAccepted: false,
+        client: {
+          id: user.id
+        },
+  
+        pickUpAddress: {
+          Address: formData?.pickupAddress?.from || "Livraison",
+          coordonne: {
+            longitude: formData?.pickupAddress?.longitude || "17",
+            latitude: formData?.pickupAddress?.latitude || "17",
+          },
+        },
+        dropOfAddress: {
+          Address: formData?.dropAddress?.address || "Livraison",
+          coordonne: {
+            longitude: formData?.dropAddress?.longitude || "17",
+            latitude: formData?.dropAddress?.latitude || "17",
+          },
+        }
+      }
+      const res = await api.post("/commands", { data: payload });
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.log(error.response);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -65,7 +132,7 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
           style={{ backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
           onPress={goBack}
         >
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#030303" />
+          <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right":"arrow-left"} size={28} color="#030303" />
         </TouchableOpacity>
         <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#030303', }}>{t('booking.step4.confirm_ride')}</Text>
       </View>
@@ -83,29 +150,110 @@ const Step3 = ({ goBack, formData, rideData, goNext }) => {
 
       {/* Pickup & Dropoff */}
       <View style={localStyles.infoCard}>
-        <View style={localStyles.pickupDropRow}>
-          <MaterialCommunityIcons name="map-marker" size={22} color="#030303" style={{ marginRight: 8 }} />
-          <View>
-            <Text style={localStyles.label}>{t('pickup_point')}</Text>
-            <Text style={localStyles.boldText}>{formData?.pickupAddress?.address}</Text>
-          </View>
+      <View style={localStyles.pickupDropRow}>
+
+      <View style={{ 
+     
+      width: 20, 
+      height: 20, 
+      borderRadius: 10,
+      backgroundColor: '#030303',
+      borderWidth: 2,
+      borderColor: 'white',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginHorizontal:4
+ 
+    }}>
+      <View style={{
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: 'white'
+      }} />
+    </View>
+        <View>
+        <Text style={localStyles.label}>{t('pickup_point')}</Text>
+        <Text style={localStyles.boldText} numberOfLines={1} >{formData?.pickupAddress?.address}</Text>
         </View>
-        <View style={localStyles.verticalLine} />
-        <View style={localStyles.pickupDropRow}>
-          <MaterialCommunityIcons name="map-marker-outline" size={22} color="#BDBDBD" style={{ marginRight: 8 }} />
-          <View>
-            <Text style={localStyles.label}>{t('pick_off')}</Text>
-            <Text style={localStyles.boldText}>{formData?.dropAddress?.address}</Text>
-          </View>
-        </View>
+        
+      
+
       </View>
 
+      <View style={localStyles.verticalLine} />
+
+      <View style={[localStyles.pickupDropRow,{marginTop:30,}]}>
+
+      <View style={{ 
+    marginLeft:5,
+    marginRight:10,
+    width: 20, 
+    height: 20, 
+    backgroundColor: '#030303',
+    borderWidth: 2,
+    borderColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    //marginTop:20
+  }}>
+    <View style={{
+      width: 8,
+      height: 8,
+      backgroundColor: 'white'
+    }} />
+  </View>
+
+  <View>
+  <Text style={localStyles.label}>{t('pick_off')}</Text>
+    <Text style={localStyles.boldText} numberOfLines={1}>{formData?.dropAddress?.address}</Text>
+  </View>
+  
+
+
+</View>
+
+
+      </View>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+      >
+        <View style={localStyles.modalOverlay}>
+          <View style={localStyles.modalContent}>
+            <MaterialCommunityIcons name="check-circle" size={60} color="#4CAF50" />
+            <Text style={localStyles.modalTitle}>{t('success')}</Text>
+            <Text style={localStyles.modalText}>{t('common.reservation_created_success')}</Text>
+            <TouchableOpacity 
+              style={localStyles.modalButton}
+              onPress={() => {
+                setShowSuccessModal(false);
+                handleReset();
+              }}
+            >
+              <Text style={localStyles.modalButtonText}>{t('ok')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Next Button */}
-      <TouchableOpacity style={localStyles.nextButtonWrapper} onPress={() => goNext({ price })}>
-        
-          <Text style={localStyles.nextButtonPrice}>{parseFloat(price).toFixed(2)} DT</Text>
-          <Text style={localStyles.nextButtonText} >{t('confirm')}</Text>
-      
+      <TouchableOpacity 
+        style={[localStyles.nextButtonWrapper, isLoading && localStyles.disabledButton]} 
+        onPress={() => formData?.selectedDate != undefined ? createReservation() : goNext({ price })}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <>
+            <Text style={localStyles.nextButtonPrice}>{parseFloat(price).toFixed(2)} DT</Text>
+            <Text style={localStyles.nextButtonText}>{t('common.confirm')}</Text>
+          </>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -143,11 +291,14 @@ const localStyles = StyleSheet.create({
     fontWeight: '700',
     fontSize: hp(2.2),
     color: '#030303',
+    textAlign:I18nManager.isRTL?"left":"left",
   },
   carDescription: {
     color: '#BDBDBD',
     fontSize: hp(1.7),
     marginTop: 2,
+    textAlign:I18nManager.isRTL?"left":"left",
+
   },
   infoCard: {
     backgroundColor: '#fff',
@@ -162,25 +313,30 @@ const localStyles = StyleSheet.create({
   },
   pickupDropRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 10,
+    alignItems: 'flex-end',
+  //  marginBottom: 10,
   },
   label: {
     color: '#BDBDBD',
     fontSize: hp(1.5),
     fontWeight: '400',
+    textAlign:I18nManager.isRTL?"left":"left",
+     
   },
   boldText: {
     color: '#030303',
     fontWeight: '700',
     fontSize: hp(2),
+
   },
   verticalLine: {
     width: 2,
-    height: 18,
+    height: 54,
     backgroundColor: '#030303',
-    alignSelf: 'flex-start',
-    marginLeft: 10,
+      
+    position:"absolute",
+    top:55,
+    left:32,
     marginBottom: 10,
   },
   nextButtonWrapper: {
@@ -210,6 +366,53 @@ const localStyles = StyleSheet.create({
     fontWeight: '700',
     fontSize: hp(2.2),
     letterSpacing: 0.5,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    width: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: hp(2.5),
+    fontWeight: 'bold',
+    color: '#030303',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  modalText: {
+    fontSize: hp(1.8),
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: '#030303',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: hp(1.8),
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

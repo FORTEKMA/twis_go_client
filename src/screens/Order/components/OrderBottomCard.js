@@ -8,8 +8,10 @@ import OrderCancellationReasonSheet from './OrderCancellationReasonSheet';
 import OrderReportProblemModal from './OrderReportProblemModal';
 import { useNavigation } from '@react-navigation/native';
 import api from '../../../utils/api';
+import BackgroundTimer from 'react-native-background-timer';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.47;
+import database from '@react-native-firebase/database';
 
 const STATUS_COLORS = {
   Driver_on_route_to_pickup: '#3498db',
@@ -19,10 +21,11 @@ const STATUS_COLORS = {
   Arrived_at_delivery: '#2ecc71',
   Delivered: '#27ae60',
   Completed: '#27ae60',
-  default: '#E74C3C',
+  default: '#f1c40f',
 };
 
 const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
+   
   const { t } = useTranslation();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const translateY = useRef(new Animated.Value(0)).current;
@@ -34,7 +37,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   const [waitingTime, setWaitingTime] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [additionalCharges, setAdditionalCharges] = useState(order?.additionalCharges || 0);
-  const [lastChargeTime, setLastChargeTime] = useState(0);
+  const [lastChargeTime, setLastChargeTime] = useState(order?.lastChargeTime ? Math.floor((Date.now() - new Date(order.lastChargeTime).getTime()) / 1000) : 0);
   const [params, setParams] = useState({});
   const timerRef = useRef(null);
   const navigation = useNavigation();
@@ -54,10 +57,10 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   ];
   const [isExpanded, setIsExpanded] = useState(true);
   const MINIMUM_HEIGHT = CARD_HEIGHT * 0.4; // 20% of the card height
-
+console.log("commandStatus",order?.commandStatus )
   // Memoized values
-  const status = order?.commandStatus || 'Driver_on_route_to_pickup';
-  console.log("status",status)
+  const status = order?.commandStatus || 'pending';
+ 
   const statusColor = useMemo(() => STATUS_COLORS[status] || STATUS_COLORS.default, [status]);
   const statusText = useMemo(() =>  t(`history.status.${status.toLowerCase()}`), [status, t]);
 
@@ -100,8 +103,9 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
     }
   };
 
-  const handleSubmitCancellation = (reason) => {
-    
+  const handleSubmitCancellation = async (reason) => {
+    await database().ref(`rideRequests/${order.requestId}`).update({commandStatus: "Canceled_by_client",});
+
     setShowReasonSheet(false);
     setSelectedReason(null);
     setOtherReason('');
@@ -117,6 +121,11 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
       const getParams = async () => {
         const paramsRes = await api.get(`parameters`);
         setParams(paramsRes.data.data[0]);
+        // Initialize waiting time based on lastChargeTime if it exists
+        if (order?.lastChargeTime) {
+          const initialWaitingTime = Math.floor((Date.now() - new Date(order.lastChargeTime).getTime()) / 1000);
+          setWaitingTime(initialWaitingTime);
+        }
         setTimeout(() => {
           startTimer();
         }, 30);
@@ -128,25 +137,62 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
         stopTimer();
       }
     }
-  }, [order?.commandStatus]);
+  }, [order?.commandStatus, order?.lastChargeTime]);
+
+  // Calculate initial additional charges on mount
+  useEffect(() => {
+    const calculateInitialCharges = async () => {
+      if (order?.lastChargeTime && order?.commandStatus === "Arrived_at_pickup") {
+        const paramsRes = await api.get(`parameters`);
+        const currentParams = paramsRes.data.data[0];
+        setParams(currentParams);
+
+        const elapsedSeconds = Math.floor((Date.now() - new Date(order.lastChargeTime).getTime()) / 1000);
+        const startChargeAfterTimeInSeconds = currentParams.START_CHARGE_AFTERT_TIME * 60;
+        const gracePeriodInSeconds = currentParams.WAITING_TIME_GRACE_PERIOD * 60;
+
+        if (elapsedSeconds > startChargeAfterTimeInSeconds) {
+          const elapsedGracePeriods = Math.floor((elapsedSeconds - startChargeAfterTimeInSeconds) / gracePeriodInSeconds);
+          const initialCharges = elapsedGracePeriods * currentParams.WAITING_TIME_CHARGE;
+          setAdditionalCharges(initialCharges);
+          setWaitingTime(elapsedSeconds);
+          setLastChargeTime(elapsedSeconds - (elapsedSeconds % gracePeriodInSeconds));
+        }
+      }
+    };
+
+    calculateInitialCharges();
+  }, [order?.lastChargeTime, order?.commandStatus]);
 
   const startTimer = () => {
     setIsTimerRunning(true);
-    setLastChargeTime(0); // lastChargeTime is in seconds
-    timerRef.current = setInterval(() => {
-      setWaitingTime((prevTime) => {
-        const newTime = prevTime + 1; // newTime is in seconds
+    
+    // Calculate initial charges if there's already waiting time
+    if (waitingTime > 0) {
+      const startChargeAfterTimeInSeconds = params.START_CHARGE_AFTERT_TIME * 60;
+      const gracePeriodInSeconds = params.WAITING_TIME_GRACE_PERIOD * 60;
+      
+      if (waitingTime > startChargeAfterTimeInSeconds) {
+        const elapsedGracePeriods = Math.floor((waitingTime - startChargeAfterTimeInSeconds) / gracePeriodInSeconds);
+        const initialCharges = elapsedGracePeriods * params.WAITING_TIME_CHARGE;
+        setAdditionalCharges(initialCharges);
+        setLastChargeTime(waitingTime - (waitingTime % gracePeriodInSeconds));
+      }
+    }
 
-        const startChargeAfterTimeInSeconds =
-          params.START_CHARGE_AFTERT_TIME * 60;
+    timerRef.current = BackgroundTimer.setInterval(() => {
+      setWaitingTime((prevTime) => {
+        const newTime = prevTime + 1;
+
+        const startChargeAfterTimeInSeconds = params.START_CHARGE_AFTERT_TIME * 60;
         const gracePeriodInSeconds = params.WAITING_TIME_GRACE_PERIOD * 60;
 
         if (newTime > startChargeAfterTimeInSeconds) {
           const timeSinceLastCharge = newTime - lastChargeTime;
          
-          if (timeSinceLastCharge % gracePeriodInSeconds == 0) {
+          if (timeSinceLastCharge % gracePeriodInSeconds === 0) {
             setAdditionalCharges((prev) => prev + params.WAITING_TIME_CHARGE);
-            setLastChargeTime(newTime); // update last charge time
+            setLastChargeTime(newTime);
           }
         }
 
@@ -158,7 +204,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
 
   const stopTimer = () => {
     if (timerRef.current) {
-      clearInterval(timerRef.current);
+      BackgroundTimer.clearInterval(timerRef.current);
       setIsTimerRunning(false);
     }
   };
@@ -182,14 +228,14 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
       },
       onPanResponderMove: (_, gestureState) => {
         // Only allow downward movement and limit the maximum distance
-        const newTranslateY = Math.max(0, Math.min(gestureState.dy, CARD_HEIGHT - MINIMUM_HEIGHT));
+        const newTranslateY = Math.max(0, Math.min(gestureState.dy, MINIMUM_HEIGHT));
         translateY.setValue(newTranslateY);
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 100) {
           // Slide down to minimum height
           Animated.spring(translateY, {
-            toValue: CARD_HEIGHT - MINIMUM_HEIGHT,
+            toValue:  MINIMUM_HEIGHT,
             useNativeDriver: true,
             tension: 50,
             friction: 7,
@@ -221,7 +267,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
       translateY.removeListener(listener);
     };
   }, [translateY]);
-
+ 
   return (
     <Animated.View 
       style={[
@@ -247,7 +293,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
               <Text style={styles.statusText}>{statusText}</Text>
             </View>
 
-            <View style={styles.driverSection}>
+            {driverName&&(<View style={styles.driverSection}>
               <View style={styles.driverRow}>
                 <Image source={{ uri: driverAvatar }} style={styles.avatar} />
                 <View style={styles.driverInfo}>
@@ -284,7 +330,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
                   </View>
                 </View>
               </View>
-            </View>
+            </View>)}
 
             <View style={styles.addressContainer}>
               <View style={styles.addressLine} />
@@ -352,39 +398,39 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
                       </View>
                     </View>)}
 
-            {order?.commandStatus === "Completed" && (<View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,flex:1,width:"100%"}}>
+           <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,flex:1,width:"100%"}}>
              
-              <TouchableOpacity 
+            {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&&(  <TouchableOpacity 
                 style={styles.reportButton}
                 onPress={() => setShowReportModal(true)}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
               >
                 <Text style={styles.reportButtonText}>{t('history.card.report_problem')}</Text>
-              </TouchableOpacity>
+              </TouchableOpacity>)}
         
 
 
-                <TouchableOpacity 
+              {order?.commandStatus === "Completed" &&(  <TouchableOpacity 
                   disabled={order?.review}
                   style={[styles.submitReportButton, styles.rateButton,{opacity:!order?.review?1:0.2}]}
                   onPress={()=>  navigation.navigate('Rating', { order })}
                 >
                   <Text style={styles.submitReportButtonText}>{t('history.card.rate_trip')}</Text>
-                </TouchableOpacity>
+                </TouchableOpacity>)}
             
-            </View>  )}
+            </View>  
 
-            {"Pending" ==order?.commandStatus && (
-              <TouchableOpacity 
+        
+             {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&&( <TouchableOpacity 
                 style={styles.cancelButton}
                 onPress={handleCancelPress}
                 onPressIn={handlePressIn}
                 onPressOut={handlePressOut}
               >
                 <Text style={styles.cancelButtonText}>{t('history.card.cancel_order')}</Text>
-              </TouchableOpacity>
-            )}
+              </TouchableOpacity>)}
+     
           </>
         ) : (
           <View style={styles.collapsedContent}>
@@ -511,7 +557,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    height: CARD_HEIGHT,
+    //height: CARD_HEIGHT,
   },
   cardContainer: {
     flex: 1,
@@ -572,6 +618,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#222',
     flex: 1,
+    textAlign:"left"
   },
   callButtonCircle: {
     width: 40,
@@ -699,7 +746,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primary,
     marginBottom: 12,
-    height:50,
+    height:56,
 
     flex:1,
   },
