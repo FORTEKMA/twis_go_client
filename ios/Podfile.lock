@@ -1,4 +1,6 @@
 PODS:
+  - amplitude-react-native (1.4.13):
+    - React-Core
   - AppAuth (1.7.6):
     - AppAuth/Core (= 1.7.6)
     - AppAuth/ExternalUserAgent (= 1.7.6)
@@ -475,6 +477,9 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-splash-screen (3.3.0):
     - React-Core
+  - react-native-stallion (2.2.0):
+    - React-Core
+    - ZIPFoundation
   - React-NativeModulesApple (0.72.5):
     - hermes-engine
     - React-callinvoker
@@ -659,8 +664,10 @@ PODS:
   - Sentry/HybridSDK (8.52.1)
   - SocketRocket (0.6.1)
   - Yoga (1.14.0)
+  - ZIPFoundation (0.9.19)
 
 DEPENDENCIES:
+  - "amplitude-react-native (from `../node_modules/@amplitude/analytics-react-native`)"
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -702,6 +709,7 @@ DEPENDENCIES:
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
+  - react-native-stallion (from `../node_modules/react-native-stallion`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -759,8 +767,11 @@ SPEC REPOS:
     - OneSignalXCFramework
     - Sentry
     - SocketRocket
+    - ZIPFoundation
 
 EXTERNAL SOURCES:
+  amplitude-react-native:
+    :path: "../node_modules/@amplitude/analytics-react-native"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -839,6 +850,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-splash-screen:
     :path: "../node_modules/react-native-splash-screen"
+  react-native-stallion:
+    :path: "../node_modules/react-native-stallion"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-perflogger:
@@ -914,6 +927,7 @@ CHECKOUT OPTIONS:
     :git: https://github.com/Simon-TechForm/google-maps-ios-utils.git
 
 SPEC CHECKSUMS:
+  amplitude-react-native: ee5dc7fd064fc4456d662eb483b02afa27e3dbae
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 7dcd2de282d72e344012f7d6564d024930a6a440
@@ -970,6 +984,7 @@ SPEC CHECKSUMS:
   react-native-restart: 7595693413fe3ca15893702f2c8306c62a708162
   react-native-safe-area-context: 36cc67648134e89465663b8172336a19eeda493d
   react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
+  react-native-stallion: b41cdff28a2a5a7d6a0912bbbcb2ffb177f81aa6
   React-NativeModulesApple: 797bc6078d566eef3fb3f74127e6e1d2e945a15f
   React-perflogger: cd8886513f68e1c135a1e79d20575c6489641597
   React-RCTActionSheet: 726d2615ca62a77ce3e2c13d87f65379cdc73498
@@ -1006,6 +1021,7 @@ SPEC CHECKSUMS:
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: 86fed2e4d425ee4c6eab3813ba1791101ee153c6
+  ZIPFoundation: b8c29ea7ae353b309bc810586181fd073cb3312c
 
 PODFILE CHECKSUM: 2b65e6c90871d0e3e483279de6cec4cdbef1cf2b
 

@@ -7,6 +7,10 @@ import { getNotification } from '../../store/notificationSlice/notificationSlice
 import { colors } from '../../utils/colors';
 import { styles } from './styles';
 import NotificationGroup from './components/NotificationGroup';
+import { 
+  trackScreenView, 
+  trackNotificationReceived 
+} from '../../utils/analytics';
 
 // Fake data for testing
 const fakeNotifications = [
@@ -57,11 +61,28 @@ const Notifications = () => {
   const notifications = useSelector((state) => state?.notifications?.notifications);
   const dispatch = useDispatch();
 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('Notifications');
+  }, []);
+
   useEffect(() => {
     if (currentId) {
       dispatch(getNotification({ id: currentId }));
     }
   }, []);
+
+  // Track notifications received
+  useEffect(() => {
+    if (notifications && notifications.length > 0) {
+      notifications.forEach(notification => {
+        trackNotificationReceived(notification.type, {
+          notification_id: notification.id,
+          created_at: notification.createdAt
+        });
+      });
+    }
+  }, [notifications]);
 
   // Use fake data for testing
   const displayNotifications =notifications;

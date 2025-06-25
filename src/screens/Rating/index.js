@@ -25,6 +25,12 @@ import {colors} from '../../utils/colors';
 import {Box, VStack} from 'native-base';
 import {useTranslation} from 'react-i18next';
 import {updateHasReview} from "../../store/userSlice/userSlice"
+import { 
+  trackScreenView, 
+  trackRatingSubmitted, 
+  trackRatingSkipped 
+} from '../../utils/analytics';
+
 const Rating = ({route}) => {
   const {t} = useTranslation();
   const [rating, setRating] = useState(0);
@@ -36,6 +42,14 @@ const Rating = ({route}) => {
   const currentUser = useSelector(state => state.user.currentUser);
   const {order} = route.params;
 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('Rating', { 
+      order_id: order?.id,
+      has_existing_review: !!order?.review
+    });
+  }, []);
+
 useEffect(()=>{
   dispatch(updateHasReview(order))
  
@@ -44,6 +58,8 @@ useEffect(()=>{
   const handleSubmit = async () => {
    
     if (rating === 0) {
+      // Track rating skipped
+      trackRatingSkipped(order?.id);
       // You might want to show an error message here
       return;
     }
@@ -56,6 +72,13 @@ useEffect(()=>{
         driver: order?.driver?.id,
         client: currentUser.id,}
       }) 
+      
+      // Track successful rating submission
+      trackRatingSubmitted(rating, order?.id, {
+        feedback_tag: selectedTags[0],
+        has_custom_comment: selectedTags[0] === 'Other',
+        driver_id: order?.driver?.id
+      });
       
       dispatch(updateHasReview(null))
       navigation.reset({

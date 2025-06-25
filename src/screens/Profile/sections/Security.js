@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, SafeAreaView, StatusBar, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { styles } from '../styles';
 import { changePassword } from '../../../store/userSlice/userSlice';
@@ -23,8 +23,6 @@ const Security = () => {
     password: '',
     passwordConfirmation: '',
   });
-
- 
 
   const validatePassword = (password) => {
     const errors = [];
@@ -107,124 +105,112 @@ const Security = () => {
     }
   };
 
-  return (
-    <View style={styles.sectionContainer}>
-      <Header title={t('profile.security.title')} />
-      <ScrollView style={{padding:20}}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>{t('profile.security.current_password')}</Text>
-          <View style={styles.passwordInputContainer}>
-            <TextInput
-              style={[styles.input, errors.currentPassword && styles.inputError]}
-              value={passwordData.currentPassword}
-              placeholder={t('profile.security.current_password')}
-              placeholderTextColor={"#ccc"}
-              onChangeText={(text) => {
-                setPasswordData({ ...passwordData, currentPassword: text });
-                if (errors.currentPassword) {
-                  setErrors({ ...errors, currentPassword: null });
-                }
-              }}
-              secureTextEntry={!showCurrentPassword}
+  const renderInput = (label, field, placeholder, secureTextEntry = false) => (
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>{t(label)}</Text>
+      {secureTextEntry ? (
+        <View style={[styles.passwordContainer, errors[field] && styles.passwordContainerError]}>
+          <TextInput
+            style={styles.passwordInput}
+            placeholder={t(placeholder)}
+            placeholderTextColor="#ccc"
+            value={passwordData[field]}
+            onChangeText={(text) => {
+              setPasswordData({ ...passwordData, [field]: text });
+              if (errors[field]) {
+                setErrors({ ...errors, [field]: null });
+              }
+            }}
+            secureTextEntry={!showCurrentPassword}
+          />
+          <TouchableOpacity 
+            style={styles.eyeIcon}
+            onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+          >
+            <Icon
+              name={showCurrentPassword ? 'eye' : 'eye-off'}
+              size={24}
+              color="#000"
             />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-            >
-              <Icon
-                name={showCurrentPassword ? 'eye' : 'eye-off'}
-                size={24}
-                color="#000"
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.currentPassword && (
-            <Text style={styles.errorText}>{errors.currentPassword}</Text>
-          )}
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>{t('profile.security.new_password')}</Text>
-          <View style={styles.passwordInputContainer}>
-            <TextInput
-             placeholderTextColor={"#ccc"}
-             placeholder={t('profile.security.new_password')}
-              style={[styles.input, errors.password && styles.inputError]}
-              value={passwordData.password}
-              onChangeText={(text) => {
-                setPasswordData({ ...passwordData, password: text });
-                if (errors.password) {
-                  setErrors({ ...errors, password: null });
-                }
-              }}
-              secureTextEntry={!showNewPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowNewPassword(!showNewPassword)}
-            >
-              <Icon
-                name={showNewPassword ? 'eye' : 'eye-off'}
-                size={24}
-                color="#000"
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.password && (
-            <View>
-              {errors.password.map((error, index) => (
-                <Text key={index} style={styles.errorText}>{error}</Text>
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>{t('profile.security.confirm_password')}</Text>
-          <View style={styles.passwordInputContainer}>
-            <TextInput
-             placeholder={t('profile.security.confirm_password')}
-             placeholderTextColor={"#ccc"}
-              style={[styles.input, errors.passwordConfirmation && styles.inputError]}
-              value={passwordData.passwordConfirmation}
-              onChangeText={(text) => {
-                setPasswordData({ ...passwordData, passwordConfirmation: text });
-                if (errors.passwordConfirmation) {
-                  setErrors({ ...errors, passwordConfirmation: null });
-                }
-              }}
-              secureTextEntry={!showConfirmPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              <Icon
-                name={showConfirmPassword ? 'eye' : 'eye-off'}
-                size={24}
-                color="#000"
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.passwordConfirmation && (
-            <Text style={styles.errorText}>{errors.passwordConfirmation}</Text>
-          )}
-        </View>
-
-        <TouchableOpacity
-          style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
-          onPress={handleUpdatePassword}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#01050D" />
-          ) : (
-            <Text style={styles.saveButtonText}>{t('profile.security.update_button')}</Text>
-          )}
-        </TouchableOpacity>
-        <View style={{height:100}}></View>
-      </ScrollView>
+      ) : (
+        <TextInput
+          style={[styles.input, errors[field] && styles.inputError]}
+          placeholder={t(placeholder)}
+          placeholderTextColor="#ccc"
+          value={passwordData[field]}
+          onChangeText={(text) => {
+            setPasswordData({ ...passwordData, [field]: text });
+            if (errors[field]) {
+              setErrors({ ...errors, [field]: null });
+            }
+          }}
+          secureTextEntry={secureTextEntry}
+        />
+      )}
+      {errors[field] && <Text style={styles.errorText}>{errors[field]}</Text>}
     </View>
+  );
+
+  return (
+    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.mainContainer}>
+            <Header style={{paddingTop:0}} title={t('profile.security.title')} />
+            <ScrollView
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={styles.stepContainer}>
+                <View style={styles.formContainer}>
+                  {renderInput(
+                    'profile.security.current_password',
+                    'currentPassword',
+                    'profile.security.current_password',
+                    true
+                  )}
+                  {renderInput(
+                    'profile.security.new_password',
+                    'password',
+                    'profile.security.new_password',
+                    true
+                  )}
+                  {renderInput(
+                    'profile.security.confirm_password',
+                    'passwordConfirmation',
+                    'profile.security.confirm_password',
+                    true
+                  )}
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </TouchableWithoutFeedback>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.nextButton, isLoading && styles.loginButtonDisabled]}
+            onPress={handleUpdatePassword}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.nextButtonText}>
+                {t('profile.security.update_button')}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

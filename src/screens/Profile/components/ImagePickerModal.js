@@ -15,7 +15,7 @@ const ImagePickerModal = ({ isVisible, onClose, onCameraPress, onGalleryPress })
     <Modal
       animationType="slide"
       transparent={true}
-      visible={isVisible}
+      visible={isVisible!=false}
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>

@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     color: '#8391A1',
     fontSize: 13,
-    marginBottom: 24,
+    //marginBottom: 24,
   },
   btn: {
     width: '100%',

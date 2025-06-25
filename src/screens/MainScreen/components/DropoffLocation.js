@@ -10,6 +10,12 @@ import { Spinner, Toast } from 'native-base';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { API_GOOGLE } from "@env";
+import { 
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackBookingStepBack,
+  trackDropoffLocationSelected
+} from '../../../utils/analytics';
 
 // Tunisia's approximate boundaries
 const TUNISIA_BOUNDS = {
@@ -34,6 +40,11 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
   const [isLocationValid, setIsLocationValid] = useState(true);
   const inputRef = useRef(null);
 
+  // Track step view
+  useEffect(() => {
+    trackBookingStepViewed(2, 'Dropoff Location');
+  }, []);
+
   useEffect(() => {
     if (formData?.dropAddress) {
       setDropoffAddress(formData.dropAddress);
@@ -43,11 +54,54 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
     }
   }, [formData]);
 
+  const handleLocationSelect = (data, details = null) => {
+    if (details) {
+      const newAddress = {
+        address: details.formatted_address,
+        latitude: details.geometry.location.lat,
+        longitude: details.geometry.location.lng,
+      };
+      const isValid = isInTunisia(details.geometry.location.lat, details.geometry.location.lng);
+      setIsLocationValid(isValid);
+      setDropoffAddress(newAddress);
+      
+      // Track location selection
+      trackDropoffLocationSelected(newAddress, {
+        source: 'google_places',
+        is_in_tunisia: isValid
+      });
+      
+      if (animateToRegion && isValid) {
+        animateToRegion({
+          latitude: details.geometry.location.lat,
+          longitude: details.geometry.location.lng,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        });
+      }
+    }
+  };
+
+  const handleContinue = () => {
+    trackBookingStepCompleted(2, 'Dropoff Location', {
+      address: dropoffAddress.address,
+      latitude: dropoffAddress.latitude,
+      longitude: dropoffAddress.longitude,
+      is_in_tunisia: isLocationValid
+    });
+    goNext({ dropAddress: dropoffAddress });
+  };
+
+  const handleBack = () => {
+    trackBookingStepBack(2, 'Dropoff Location');
+    onBack();
+  };
+
   if (!isLocationValid) {
     return (
       <View style={[styles.step1Wrapper, isMapDragging && { opacity: 0.5 }]}>
         <View style={localStyles.header}>
-          <TouchableOpacity onPress={onBack} style={localStyles.backButton}>
+          <TouchableOpacity onPress={handleBack} style={localStyles.backButton}>
             <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right": "arrow-left"} size={28} color="#030303" />
           </TouchableOpacity>
           <Text style={localStyles.headerTitle}>{t('location.where_to')}</Text>
@@ -68,7 +122,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
   return (
     <View style={[styles.step1Wrapper, isMapDragging && { opacity: 0.5 }]}>
       <View style={localStyles.header}>
-        <TouchableOpacity onPress={onBack} style={localStyles.backButton}>
+        <TouchableOpacity onPress={handleBack} style={localStyles.backButton}>
           <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right": "arrow-left"} size={28} color="#030303" />
         </TouchableOpacity>
         <Text style={localStyles.headerTitle}>{t('location.where_to')}</Text>
@@ -80,26 +134,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
           predefinedPlacesAlwaysVisible={false}
           placeholder={t('location.dropOff')}
           debounce={300}
-          onPress={(data, details = null) => {
-            if (details) {
-              const newAddress = {
-                address: details.formatted_address,
-                latitude: details.geometry.location.lat,
-                longitude: details.geometry.location.lng,
-              };
-              const isValid = isInTunisia(details.geometry.location.lat, details.geometry.location.lng);
-              setIsLocationValid(isValid);
-              setDropoffAddress(newAddress);
-              if (animateToRegion && isValid) {
-                animateToRegion({
-                  latitude: details.geometry.location.lat,
-                  longitude: details.geometry.location.lng,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                });
-              }
-            }
-          }}
+          onPress={handleLocationSelect}
           ref={inputRef}
           query={{
             key: API_GOOGLE,
@@ -150,7 +185,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
       </View>
 
       <ConfirmButton
-        onPress={() => goNext({ dropAddress: dropoffAddress })}
+        onPress={handleContinue}
         text={t('location.continue')}
         disabled={!dropoffAddress.latitude}
       />

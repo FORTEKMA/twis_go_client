@@ -1,22 +1,13 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import axios from 'axios';
-import {API_URL_ANDROID, API_URL_IOS} from '@env';
-import {Platform} from 'react-native';
-const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-export const getNotification = createAsyncThunk(
+import api from "../../utils/api"
+ 
+ export const getNotification = createAsyncThunk(
   'notification/get',
   async ({id}, thunkAPI) => {
     try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-      const response = await axios.get(
-        `${API_URL}/api/notifications?sort=createdAt:desc&filters[sendTo][contains]=${id}&populate=*`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }, 
-      );
+  
+      const response = await api.get(
+        `/notifications?sort=createdAt:desc&filters[sendTo][contains]=${id}&populate=*`);
       return response.data;
     } catch (error) {
       throw error;
@@ -28,21 +19,9 @@ export const isReadNotification = createAsyncThunk(
   'notification/read',
   async (id, thunkAPI) => {
     try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-      const response = await axios.put(
-        `${API_URL}/api/notifications/${id}`,
-        {
-          data: {
-            isRead: true,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+     
+      const response = await api.put(
+        `/notifications/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -53,14 +32,10 @@ export const sendNotification = createAsyncThunk(
   'notification/send',
   async (body, thunkAPI) => {
     try {
-      console.log('notif sent');
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-      const response = await axios.post(`${API_URL}/api/notify-user`, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+   
+      
+      
+      const response = await api.post(`/notify-user`, body);
       return response.data;
     } catch (error) {
       throw error;

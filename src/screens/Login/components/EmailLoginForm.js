@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,19 +14,23 @@ import {
   userLogin,
   updateUser,
   getCurrentUser,
+  setRememberMe,
 } from '../../../store/userSlice/userSlice';
 import {useTranslation} from 'react-i18next';
 import {OneSignal} from 'react-native-onesignal';
 import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EmailLoginForm = ({onLoginSuccess, hideForgetPassword}) => {
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [rememberMe, setRememberMeState] = useState(false);
   const {
     control,
     handleSubmit,
     formState: {errors},
+    setValue,
   } = useForm({
     defaultValues: {
       identifier: '',
@@ -37,13 +41,27 @@ const EmailLoginForm = ({onLoginSuccess, hideForgetPassword}) => {
   const dispatch = useDispatch();
   const {t} = useTranslation();
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const loadRememberedUser = async () => {
+      const remembered = await AsyncStorage.getItem('rememberMe');
+      const identifier = await AsyncStorage.getItem('rememberedIdentifier');
+      if (remembered === 'true' && identifier) {
+        setValue('identifier', identifier);
+        setRememberMeState(true);
+        dispatch(setRememberMe({remember: true, identifier}));
+      }
+    };
+    loadRememberedUser();
+  }, [dispatch, setValue]);
+
   const onSubmit = async data => {
     setIsLoading(true);
     setLoginError('');
+    dispatch(setRememberMe({remember: rememberMe, identifier: data.identifier}));
     try {
       const result = await dispatch(userLogin(data));
-      console.log(result, 'result');
-      if (result?.payload?.error) {
+       if (result?.payload?.error) {
         setLoginError(t('login.invalidCredentials'));
       } else {
         if (onLoginSuccess) {
@@ -139,11 +157,32 @@ const EmailLoginForm = ({onLoginSuccess, hideForgetPassword}) => {
       {loginError ? (
         <Text style={[styles.errorText, {marginTop: 10}]}>{loginError}</Text>
       ) : null}
-      {!hideForgetPassword && (
-        <TouchableOpacity onPress={onForgotPassword} style={{width:140,alignSelf:"flex-start"}}>
-          <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
+
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginBottom: 15,
+      }}>
+        <TouchableOpacity
+          style={{flexDirection: 'row', alignItems: 'center', gap: 6}}
+          onPress={() => setRememberMeState(!rememberMe)}>
+          <Ionicons
+            name={rememberMe ? 'checkbox' : 'square-outline'}
+            size={24}
+            color="#8391A1"
+          />
+          <Text style={{color: '#8391A1'}}>{t('login.rememberMe')}</Text>
         </TouchableOpacity>
-      )}
+
+        
+          <TouchableOpacity onPress={onForgotPassword}>
+            <Text style={styles.forgotPassword}>{t('login.forgotPassword')}</Text>
+          </TouchableOpacity>
+        
+      </View>
+
       <TouchableOpacity
         style={[styles.btn, isLoading && styles.btnDisabled]}
         onPress={handleSubmit(onSubmit)}

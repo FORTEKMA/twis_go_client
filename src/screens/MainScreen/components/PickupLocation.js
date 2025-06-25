@@ -9,6 +9,11 @@ import { getAddressFromCoordinates } from '../../../utils/helpers/mapUtils';
 import { Spinner, Toast } from 'native-base';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { API_GOOGLE } from "@env";
+import { 
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackPickupLocationSelected
+} from '../../../utils/analytics';
 
 const isInTunisia = (latitude, longitude) => {
   const TUNISIA_BOUNDS = {
@@ -30,6 +35,11 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
   const inputRef = useRef(null);
   const [isLocationInTunisia, setIsLocationInTunisia] = useState(true);
   
+  // Track step view
+  useEffect(() => {
+    trackBookingStepViewed(1, 'Pickup Location');
+  }, []);
+  
   useEffect(() => {
     if (formData?.pickupAddress) {
       setPickupAddress(formData.pickupAddress);
@@ -41,6 +51,46 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
       inputRef.current?.clear();
     }
   }, [formData]);
+
+  const handleLocationSelect = (data, details = null) => {
+    if (details) {
+      const newAddress = {
+        address: details.formatted_address,
+        latitude: details.geometry.location.lat,
+        longitude: details.geometry.location.lng,
+      };
+      setPickupAddress(newAddress);
+      setIsLocationInTunisia(isInTunisia(
+        details.geometry.location.lat,
+        details.geometry.location.lng
+      ));
+      
+      // Track location selection
+      trackPickupLocationSelected(newAddress, {
+        source: 'google_places',
+        is_in_tunisia: isInTunisia(details.geometry.location.lat, details.geometry.location.lng)
+      });
+      
+      if (animateToRegion) {
+        animateToRegion({
+          latitude: details.geometry.location.lat,
+          longitude: details.geometry.location.lng,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        });
+      }
+    }
+  };
+
+  const handleContinue = () => {
+    trackBookingStepCompleted(1, 'Pickup Location', {
+      address: pickupAddress.address,
+      latitude: pickupAddress.latitude,
+      longitude: pickupAddress.longitude,
+      is_in_tunisia: isLocationInTunisia
+    });
+    goNext({pickupAddress: pickupAddress});
+  };
 
   if (!isLocationInTunisia) {
     return (
@@ -73,28 +123,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
           predefinedPlacesAlwaysVisible={false}
           placeholder={t('location.pickUp')}
           debounce={300} 
-          onPress={(data, details = null) => {
-            if (details) {
-              const newAddress = {
-                address: details.formatted_address,
-                latitude: details.geometry.location.lat,
-                longitude: details.geometry.location.lng,
-              };
-              setPickupAddress(newAddress);
-              setIsLocationInTunisia(isInTunisia(
-                details.geometry.location.lat,
-                details.geometry.location.lng
-              ));
-              if (animateToRegion) {
-                animateToRegion({
-                  latitude: details.geometry.location.lat,
-                  longitude: details.geometry.location.lng,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                });
-              }
-            }
-          }}
+          onPress={handleLocationSelect}
           ref={inputRef}
           textInputProps={{
             placeholder: formData?.pickupAddress?.address ? formData?.pickupAddress?.address : "",
@@ -145,7 +174,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
       </View>
 
       <ConfirmButton
-        onPress={() => goNext({pickupAddress: pickupAddress})}
+        onPress={handleContinue}
         text={t('location.continue')}
         disabled={!pickupAddress.latitude}
       />

@@ -3,6 +3,7 @@ import { createStackNavigator } from "@react-navigation/stack";
  import MainScreen from '../screens/MainScreen';
  import Rating from "../screens/Rating"
 import Register from '../screens/Register';
+import Otp from '../screens/Otp/index';
 
 const Stack = createStackNavigator();
 
@@ -22,7 +23,10 @@ const Stack = createStackNavigator();
           headerShown: false,
         }}
       />
-    
+          <Stack.Screen name="confirmation"  options={{
+          headerShown: false,
+        }} component={Otp} />
+
       <Stack.Screen 
         name="Rating" 
         component={Rating}

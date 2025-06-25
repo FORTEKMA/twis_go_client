@@ -14,6 +14,13 @@ import database from '@react-native-firebase/database';
 const { width } = Dimensions.get('window');
 import Ring from './Ring';
 import Slider from 'react-native-slide-to-unlock';
+import { 
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackBookingStepBack,
+  trackRideCancelled,
+  trackDriverFound
+} from '../../../utils/analytics';
 
 const avatarUrls = [
   'https://randomuser.me/api/portraits/men/32.jpg',
@@ -33,6 +40,11 @@ const Step4 = ({ goBack, formData }) => {
   const stepRef = useRef(5);
   const isSearchingRef = useRef(true);
   const requestRef = useRef(null);
+
+  // Track step view
+  useEffect(() => {
+    trackBookingStepViewed(5, 'Searching Drivers');
+  }, []);
 
   const generateCenteredPositions = (avatarUrls) => {
     const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -54,6 +66,17 @@ const Step4 = ({ goBack, formData }) => {
       };
     });
   };
+
+  const handleCancel = () => {
+    trackBookingStepBack(5, 'Searching Drivers');
+    trackRideCancelled('user_cancelled', {
+      step: 5,
+      search_duration: Date.now() - searchStartTime.current
+    });
+    goBack();
+  };
+
+  const searchStartTime = useRef(Date.now());
 
   const searchDrivers = async () => {
     let radius = 1;
@@ -96,6 +119,13 @@ const Step4 = ({ goBack, formData }) => {
           stepRef.current = 0;
           unsubscribe();
           clearTimeout();
+         
+          // Track driver found
+          trackDriverFound(data.driverId, {
+            search_duration: Date.now() - searchStartTime.current,
+            radius: radius,
+            drivers_notified: Object.keys(data.notifiedDrivers || {}).length
+          });
          
           navigation.reset({
             index: 0,
@@ -158,6 +188,7 @@ const Step4 = ({ goBack, formData }) => {
                 });
               }
             } catch (notificationError) {
+              console.log("notificationError",notificationError.response)
               // Handle notification error silently
             }
 
@@ -193,6 +224,13 @@ const Step4 = ({ goBack, formData }) => {
           await requestRef.current.remove();
         }
         
+        // Track no driver found
+        trackRideCancelled('no_driver_found', {
+          search_duration: Date.now() - searchStartTime.current,
+          max_radius: radius,
+          drivers_notified: Object.keys(processedDrivers).length
+        });
+        
         toast.show({
           title: t('common.no_driver_accepted'),
           placement: "top",
@@ -208,6 +246,13 @@ const Step4 = ({ goBack, formData }) => {
       if (requestRef.current) {
         requestRef.current.off();
       }
+      
+      // Track search error
+      trackRideCancelled('search_error', {
+        error_message: error.message,
+        search_duration: Date.now() - searchStartTime.current
+      });
+      
       toast.show({
         title: t('common.error'),
         placement: "top",
@@ -289,9 +334,7 @@ const Step4 = ({ goBack, formData }) => {
 
 <Slider
  
-  onEndReached={() => {
-    goBack();
-  }}
+  onEndReached={handleCancel}
   containerStyle={{
     
     backgroundColor: '#ddd',

@@ -64,7 +64,10 @@
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
     "passwordResetSuccess": "Réinitialisation du mot de passe réussie",
     "passwordResetSuccessMessage": "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
-    "goToLogin": "Aller à la connexion"
+    "goToLogin": "Aller à la connexion",
+    "account_blocked": "Ce compte est bloqué. Vous ne pouvez pas vous connecter avec ce compte",
+    "account_not_for_app": "Ce compte n'est pas pour cette application",
+    "invalid_account": "Compte Invalide"
   },
   "onboarding": {
     "login": "Connexion",
@@ -109,6 +112,7 @@
     "orLoginWith": "Ou connectez-vous avec",
     "loginWithEmail": "Se connecter par E-mail",
     "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
     "search": "Rechercher...",
     "invalidCredentials": "Email ou mot de passe incorrect",
     "errorOccurred": "Une erreur s'est produite. Veuillez réessayer.",
@@ -366,7 +370,14 @@
       "phone": "Téléphone",
       "cin": "CIN",
       "update_success": "Informations mises à jour avec succès!",
-      "update_error": "Échec de la mise à jour"
+      "update_error": "Échec de la mise à jour",
+      "select_country": "Sélectionnez un pays",
+      "otp_send_error": "Échec de l'envoi du OTP. Veuillez réessayer.",
+      "otp_verify_error": "Échec de la vérification du OTP. Veuillez réessayer.",
+      "email_placeholder": "email@example.com",
+      "phone_placeholder": "Numéro de téléphone",
+      "otp_title": "Entrez le code OTP",
+      "otp_message": "Un code OTP a été envoyé à {{phoneNumber}}"
     },
 
     "first_name": "Prénom",
@@ -555,5 +566,52 @@
     "reset_failed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer."
   },
   "confirm":"Confirmer",
-  "cancel":"Annuler"
+  "cancel":"Annuler",
+  "tickets": {
+    "title": "Tickets de Support",
+    "new": "Nouveau Ticket",
+    "reason": "Raison",
+    "command": "Commande",
+    "description": "Description",
+    "command_placeholder": "Entrez le numéro de commande (optionnel)",
+    "description_placeholder": "Décrivez votre problème en détail...",
+    "attach_image": "Joindre une Image",
+    "submit": "Soumettre le Ticket",
+    "reply": "Réponse",
+    "status": {
+      "open": "Ouvert",
+      "inProgress": "En Cours",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    },
+    "reasons": {
+      "payment_issue": "Problème de Paiement",
+      "driver_behavior": "Comportement du Chauffeur",
+      "app_technical": "Problème Technique de l'Application",
+      "service_quality": "Qualité du Service",
+      "other": "Autre"
+    },
+    "empty_title": "Aucun Ticket",
+    "empty_text": "Vous n'avez pas encore créé de tickets de support. Appuyez sur le bouton ci-dessous pour créer votre premier ticket.",
+    "select_reason": "Sélectionner la Raison",
+    "clientMessage": "Votre Message",
+    "response": "Réponse du Support",
+    "attachment": "Pièce Jointe",
+    "attachmentFile": "Fichier Joint",
+    "description_required": "Veuillez fournir une description",
+    "command_required": "La référence de commande est requise pour cette raison",
+    "invalid_command": "Numéro de référence de commande invalide",
+    "attachment_upload_error": "Échec du téléchargement de la pièce jointe",
+    "submit_success": "Ticket soumis avec succès",
+    "submit_error": "Échec de la soumission du ticket",
+    "select_command": "Sélectionner la commande"
+  },
+  "signup": {
+    "step4": {
+      "errors": {
+        "invalid_phone": "Numéro de téléphone invalide.",
+        "phone_exists": "Ce numéro de téléphone est déjà utilisé."
+      }
+    }
+  }
 } 

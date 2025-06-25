@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
   I18nManager,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PhoneInput from 'react-native-phone-input';
@@ -21,10 +23,17 @@ import {styles as loginStyles} from '../Login/styles';
 import {useTranslation} from 'react-i18next';
 import api from '../../utils/api';
 import {OneSignal} from 'react-native-onesignal';
+import { 
+  trackScreenView, 
+  trackRegisterAttempt, 
+  trackRegisterSuccess, 
+  trackRegisterFailure 
+} from '../../utils/analytics';
 
 const PRIMARY_COLOR = '#030303';
 
 const Register = ({navigation, route}) => {
+ 
   const {t} = useTranslation();
   const dispatch = useDispatch();
   const {width} = useWindowDimensions();
@@ -33,8 +42,8 @@ const Register = ({navigation, route}) => {
   const [isLoading, setIsLoading] = useState(false);
    const [form, setForm] = useState({
     name:route?.params?.result?.user?.firstName?.length>0? route?.params?.result?.user?.firstName + " "+route?.params?.result?.user?.lastName:"",
-    phone: route.params?.phoneNumber || '',
-    email: route?.params?.result?.user?.email&&route?.params?.result?.user?.email.endsWith("@apple.com")?"":route?.params?.result?.user,
+    phone: route?.params?.phoneNumber || route?.params?.number||'',
+    email: route?.params?.result?.user?.email&&route?.params?.result?.user?.email.endsWith("@apple.com")?"":route?.params?.result?.user?.email,
     password: '',
   });
   const [errors, setErrors] = useState({});
@@ -46,10 +55,18 @@ const Register = ({navigation, route}) => {
     flag: '🇹🇳',
   });
 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('Register', { 
+      has_social_data: !!route?.params?.result,
+      social_provider: route?.params?.result?.user?.provider || 'none'
+    });
+  }, []);
 
   useEffect(()=>{
     if(route?.params?.number){
       setForm({...form,phone:route?.params?.number})
+      phoneInput.current.setValue(route?.params?.number)
     }
   },[])
 
@@ -69,6 +86,7 @@ const Register = ({navigation, route}) => {
   const validate = () => {
     let valid = true;
     let newErrors = {};
+    
     if (!form.name) {
       newErrors.name = t('register.nameRequired');
       valid = false;
@@ -82,6 +100,9 @@ const Register = ({navigation, route}) => {
     } else {
       const numericNumber = form.phone.replace(/\D/g, '');
       if (numericNumber.length < 7) {
+        newErrors.phone = t('register.invalidPhone');
+        valid = false;
+      } else if (phoneInput.current && !phoneInput.current.isValidNumber()) {
         newErrors.phone = t('register.invalidPhone');
         valid = false;
       }
@@ -105,14 +126,23 @@ const Register = ({navigation, route}) => {
         valid = false;
       }
     }
-    setErrors(newErrors);
+     setErrors(newErrors);
     return valid;
   };
 
   const handleSubmit = async () => {
+
     if (!validate()) return;
+   
     setIsLoading(true);
-//add validation olny is sucess , pass to otp
+    
+    // Track registration attempt
+    trackRegisterAttempt({
+      has_social_data: !!route?.params?.result,
+      social_provider: route?.params?.result?.user?.provider || 'none'
+    });
+    
+ 
     api
       .post('register/client', {
         username: form.name,
@@ -122,11 +152,12 @@ const Register = ({navigation, route}) => {
         user_role: 'client',
         firstName: form.name.split(' ')[0],
         lastName: form.name.split(' ')[1],
-        validaton:true
+        validaton:route?.params?.number?false:true
       })
       .then(async response => {
         setIsLoading(false);
         if(response?.data?.emailExists==true){
+          trackRegisterFailure('email_already_exists');
           setErrors({
             ...errors,
             email: t('register.emailTaken'),
@@ -134,6 +165,7 @@ const Register = ({navigation, route}) => {
           return
         }
         if(response?.data?.phoneExists==true){
+          trackRegisterFailure('phone_already_exists');
           setErrors({
             ...errors,
             phone: t('register.phoneTaken'),
@@ -141,6 +173,21 @@ const Register = ({navigation, route}) => {
           return
         }
 
+        trackRegisterSuccess({
+          has_social_data: !!route?.params?.result,
+          social_provider: route?.params?.result?.user?.provider || 'none'
+        });
+if(route?.params?.number){
+  OneSignal.login(String(response.data.user.id));
+              
+  dispatch(userRegister(response.data));
+ 
+  if(route?.params?.handleLoginSucces){
+    route?.params?.handleLoginSucces()
+    navigation.goBack()
+  }
+  return
+}
         navigation.navigate("confirmation",{add:true,
           number:form.phone.replace(/\s/g, ''),
           data:{
@@ -158,9 +205,10 @@ const Register = ({navigation, route}) => {
       })
 
       .catch(error => {
-        console.log(error.response?.data)
+     
         setIsLoading(false);
         if (error.response?.data?.error?.message === 'Email already exists') {
+          trackRegisterFailure('email_already_exists');
           setErrors({
             ...errors,
             email: t('register.emailTaken'),
@@ -168,22 +216,62 @@ const Register = ({navigation, route}) => {
         } else if (
           error.response?.data?.error?.message === 'Phone number already exists'
         ) {
+          trackRegisterFailure('phone_already_exists');
           setErrors({
             ...errors,
             phone: t('register.phoneTaken'),
           });
         } else if (error.response?.data?.status === 'error') {
+          trackRegisterFailure('general_error', error.response?.data?.error?.message);
           Alert.alert(t('common.error'), t('register.generalError'), [
             {text: t('common.ok')},
           ]);
+        } else {
+          trackRegisterFailure('network_error', error.message);
         }
         console.log('error', error);
       });
   };
 
-const handlerUpadte=()=>{
+const handlerUpadte=async()=>{
   if (!validate()) return;
  
+  const emailResponse = await api.get(
+    `/users?filters[email][$endsWithi]=${form.email.toLowerCase()}`
+  );
+ 
+
+   const phoneResponse = await api.get(
+    `/users?filters[phoneNumber][$endsWith]=${form.phone.replace(/\s/g, '').replace("+", "")}`
+  );
+ 
+
+  if(Array.isArray(emailResponse.data) && emailResponse.data.length > 1){
+    trackRegisterFailure('phone_already_exists');
+    setErrors({
+      ...errors,
+      email: t('register.emailTaken'),
+    });
+    return
+  }
+  
+  if(Array.isArray(phoneResponse.data) && phoneResponse.data.length > 0){
+    trackRegisterFailure('phone_already_exists');
+    setErrors({
+      ...errors,
+      phone: t('register.phoneTaken'),
+    });
+    return
+  }
+
+  
+  
+
+  
+
+  
+
+
   navigation.navigate("confirmation",{put:true,
     number:form.phone.replace(/\s/g, ''),
     data:{
@@ -204,194 +292,232 @@ const handlerUpadte=()=>{
   
   return (
     <SafeAreaView style={{flex: 1, backgroundColor: 'white'}}>
-      <View style={{flex: 1, backgroundColor: 'white'}}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{
-            alignSelf: 'flex-start',
-            marginLeft: 16,
-            marginTop: 16,
-            marginBottom: 8,
-          }}>
-          <Ionicons name={I18nManager.isRTL?"arrow-forward":"arrow-back"} size={28} color={PRIMARY_COLOR} />
-        </TouchableOpacity>
+      <KeyboardAvoidingView 
+        style={{flex: 1}} 
+        behavior={Platform.OS === 'ios' ? 'padding' : null}
+       // keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <View style={{flex: 1, backgroundColor: 'white'}}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={{
+              alignSelf: 'flex-start',
+              marginLeft: 16,
+              marginTop: 16,
+              marginBottom: 8,
+            }}>
+            <Ionicons name={I18nManager.isRTL?"arrow-forward":"arrow-back"} size={28} color={PRIMARY_COLOR} />
+          </TouchableOpacity>
 
-        <ScrollView style={{paddingHorizontal: 10, paddingBottom: 30}}>
-          <View style={loginStyles.header}>
-            <Text style={loginStyles.headerTitle}>
-              {t('register.createAccount')}
-            </Text>
-          </View>
-          <View style={loginStyles.formContainer}>
-            <View style={loginStyles.inputContainer}>
-              <Text
-                style={{
-                  fontWeight: '600',
-                  color: '#222',
-                  fontSize: 15,
-                  marginBottom: 6,
-                  textAlign:"left"
-                }}>
-                {t('register.namePlaceholder')}
+          <ScrollView style={{paddingHorizontal: 10, flex: 1}} contentContainerStyle={{paddingBottom: 20}}>
+            <View style={loginStyles.header}>
+              <Text style={loginStyles.headerTitle}>
+                {t('register.createAccount')}
               </Text>
-              <TextInput
-                style={[loginStyles.input, errors.name && loginStyles.inputError]}
-                placeholder={t('register.namePlaceholder')}
-                placeholderTextColor="#8391A1"
-                value={form.name}
-                onChangeText={v => handleChange('name', v)}
-                autoCapitalize="words"
-              />
-              {errors.name && (
-                <Text style={loginStyles.errorText}>{errors.name}</Text>
-              )}
             </View>
-            <View style={loginStyles.inputContainer}>
-              <Text
-                style={{
-                  fontWeight: '600',
-                  color: '#222',
-                  fontSize: 15,
-                    textAlign:"left",
-                  marginBottom: 6,
-                }}>
-                {t('register.phone')}
-              </Text>
-              <View
-                style={[
-                  loginStyles.passwordInputWrapper,
-                  errors.phone && loginStyles.inputError,
-                  {marginBottom: 0},
-                ]}>
-
-
-<PhoneInput
-                  autoFormat
-                  initialCountry="tn"
-                  onPressFlag={() =>   !route.params?.number && setIsFlagsVisible(true)}
-                  onChangePhoneNumber={v => handleChange('phone', v)}
-
+            <View style={loginStyles.formContainer}>
+              <View style={loginStyles.inputContainer}>
+                <Text
                   style={{
-                    flex: 1,
-                    fontSize: 16,
+                    fontWeight: '600',
                     color: '#222',
-                    paddingVertical: 5,
-                    paddingHorizontal: 18,
-                    height: 50,
-                  }}
-                  textComponent={TextInput}
-                  textProps={{
-                    placeholder: t('login.phoneNumber'),
-                    placeholderTextColor: '#8391A1',
-                    style: { color: '#222',flex:1 }
-                  }}
-                  ref={phoneInput}
-                  value={form.phone}
-                  disabled={!!route.params?.number}
-                />
-
-
-                
-              </View>
-              {errors.phone && (
-                <Text style={[loginStyles.errorText,{marginTop:5}]}>{errors.phone}</Text>
-              )}
-            </View>
-            <CountryPicker
-              withFilter
-              withFlag
-              withAlphaFilter
-              withCallingCode
-              placeholder=""
-              
-              onSelect={onSelectCountry}
-              visible={isFlagsVisible}
-              translation="fra"
-              filterProps={{placeholder: t('login.search')}}
-            />
-         {(!route?.params?.result?.user ||route?.params?.result?.user?.email?.endsWith("@apple.com"))&& (    <View style={loginStyles.inputContainer}>
-              <Text
-                style={{
-                  fontWeight: '600',
-                  color: '#222',
-                  fontSize: 15,
-                  marginBottom: 6,
+                    fontSize: 15,
+                    marginBottom: 6,
                     textAlign:"left"
-                }}>
-                {t('register.email')}
-              </Text>
-              <TextInput
-                style={[
-                  loginStyles.input,
-                  errors.email && loginStyles.inputError,
-                ]}
-                placeholder={t('register.emailPlaceholder')}
-                placeholderTextColor="#8391A1"
-                value={form.email}
-                onChangeText={v => handleChange('email', v)}
-                autoCapitalize="none"
-                keyboardType="email-address"
-               />
-              {errors.email && (
-                <Text style={loginStyles.errorText}>{errors.email}</Text>
-              )}
-            </View>)}
-            {!route?.params?.result?.user && ( <View style={loginStyles.inputContainer}>
-              <Text
-                style={{
-                  fontWeight: '600',
-                  color: '#222',
-                  fontSize: 15,
-                    textAlign:"left",
-                  marginBottom: 6,
-                }}>
-                {t('register.password')}
-              </Text>
-              
+                  }}>
+                  {t('register.namePlaceholder')}
+                </Text>
+                <TextInput
+                  style={[loginStyles.input, errors.name && loginStyles.inputError]}
+                  placeholder={t('register.namePlaceholder')}
+                  placeholderTextColor="#8391A1"
+                  value={form.name}
+                  onChangeText={v => handleChange('name', v)}
+                  autoCapitalize="words"
+                />
+                {errors.name && (
+                  <Text style={loginStyles.errorText}>{errors.name}</Text>
+                )}
+              </View>
+              <View style={loginStyles.inputContainer}>
+                <Text
+                  style={{
+                    fontWeight: '600',
+                    color: '#222',
+                    fontSize: 15,
+                      textAlign:"left",
+                    marginBottom: 6,
+                  }}>
+                  {t('register.phone')}
+                </Text>
                 <View
                   style={[
                     loginStyles.passwordInputWrapper,
-                    errors.password && loginStyles.inputError,
+                    errors.phone && loginStyles.inputError,
+                    {marginBottom: 0},
                   ]}>
-                  <TextInput
-                    style={loginStyles.passwordInput}
-                    placeholder={t('register.passwordPlaceholder')}
-                    placeholderTextColor="#8391A1"
-                    value={form.password}
-                    onChangeText={v => handleChange('password', v)}
-                    secureTextEntry={!show}
+
+
+<PhoneInput
+                    autoFormat
+                    initialCountry="tn"
+                    onPressFlag={() =>   !route.params?.number && setIsFlagsVisible(true)}
+                    onChangePhoneNumber={v => handleChange('phone', v)}
+
+                    style={{
+                      flex: 1,
+                      fontSize: 16,
+                      color: '#222',
+                      paddingVertical: 5,
+                      paddingHorizontal: 18,
+                      height: 50,
+                      flexDirection:I18nManager.isRTL? "row-reverse":"row",
+
+                    }}
+                    textComponent={TextInput}
+                    textProps={{
+                      placeholder: t('login.phoneNumber'),
+                      placeholderTextColor: '#8391A1',
+                      style: { color: '#222',flex:1,                    flexDirection:I18nManager.isRTL? "row-reverse":"row",
+                        paddingHorizontal:10
+   }
+                    }}
+                    ref={phoneInput}
+                    value={form.phone}
+                    disabled={!!route.params?.number}
                   />
-                  <TouchableOpacity
-                    onPress={() => setShow(!show)}
-                    style={loginStyles.eyeIcon}>
-                    <Ionicons
-                      name={show ? 'eye-off-outline' : 'eye-outline'}
-                      size={22}
-                      color="#8391A1"
-                    />
-                  </TouchableOpacity>
+
+
+                  
                 </View>
-             
-              {errors.password && (
-                <Text style={[loginStyles.errorText,{marginTop:5}]}>{errors.password}</Text>
-              )}
-            </View> )}
-            <Text
-              style={{
-                color: '#8391A1',
-                fontSize: 13,
-                marginTop: 8,
-                marginBottom: 16,
-                  textAlign:"left"
-              }}>
-              {t('register.terms1')}
+                {errors.phone && (
+                  <Text style={[loginStyles.errorText,{marginTop:5}]}>{errors.phone}</Text>
+                )}
+              </View>
+              <CountryPicker
+                withFilter
+                withFlag
+                withAlphaFilter
+                withCallingCode
+                placeholder=""
+                
+                onSelect={onSelectCountry}
+                visible={isFlagsVisible}
+                translation="fra"
+                filterProps={{placeholder: t('login.search')}}
+              />
+           {(!route?.params?.result?.user ||route?.params?.result?.user?.email?.endsWith("@apple.com"))&& (    <View style={loginStyles.inputContainer}>
+                <Text
+                  style={{
+                    fontWeight: '600',
+                    color: '#222',
+                    fontSize: 15,
+                    marginBottom: 6,
+                      textAlign:"left"
+                  }}>
+                  {t('register.email')}
+                </Text>
+                <TextInput
+                  style={[
+                    loginStyles.input,
+                    errors.email && loginStyles.inputError,
+                  ]}
+                  placeholder={t('register.emailPlaceholder')}
+                  placeholderTextColor="#8391A1"
+                  value={form.email}
+                  onChangeText={v => handleChange('email', v)}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                 />
+                {errors.email && (
+                  <Text style={loginStyles.errorText}>{errors.email}</Text>
+                )}
+              </View>)}
+              {!route?.params?.result?.user && ( <View style={loginStyles.inputContainer}>
+                <Text
+                  style={{
+                    fontWeight: '600',
+                    color: '#222',
+                    fontSize: 15,
+                      textAlign:"left",
+                    marginBottom: 6,
+                  }}>
+                  {t('register.password')}
+                </Text>
+                
+                  <View
+                    style={[
+                      loginStyles.passwordInputWrapper,
+                      errors.password && loginStyles.inputError,
+                    ]}>
+                    <TextInput
+                      style={loginStyles.passwordInput}
+                      placeholder={t('register.passwordPlaceholder')}
+                      placeholderTextColor="#8391A1"
+                      value={form.password}
+                      onChangeText={v => handleChange('password', v)}
+                      secureTextEntry={!show}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShow(!show)}
+                      style={loginStyles.eyeIcon}>
+                      <Ionicons
+                        name={show ? 'eye-off-outline' : 'eye-outline'}
+                        size={22}
+                        color="#8391A1"
+                      />
+                    </TouchableOpacity>
+                  </View>
+               
+                {errors.password && (
+                  <Text style={[loginStyles.errorText,{marginTop:5}]}>{errors.password}</Text>
+                )}
+              </View> )}
               <Text
-                style={{color: PRIMARY_COLOR}}
-                onPress={() => Linking.openURL('https://tawsilet.com/Conditions')}>
-                {t('register.termsOfService')}
+                style={{
+                  color: '#8391A1',
+                  fontSize: 13,
+                  marginTop: 8,
+                  marginBottom: 16,
+                    textAlign:"left"
+                }}>
+                {t('register.terms1')}
+                <Text
+                  style={{color: PRIMARY_COLOR}}
+                  onPress={() => Linking.openURL('https://tawsilet.com/Conditions')}>
+                  {t('register.termsOfService')}
+                </Text>
+                {t('register.terms2')}
               </Text>
-              {t('register.terms2')}
-            </Text>
+              
+              <View style={loginStyles.dividerContainer}>
+                <View style={loginStyles.divider} />
+                <Text style={loginStyles.dividerText}>{t('register.or')}</Text>
+                <View style={loginStyles.divider} />
+              </View>
+
+              <View style={{alignItems: 'center', marginTop: 24}}>
+                <Text style={{color: '#8391A1', fontSize: 14}}>
+                  {t('register.alreadyHaveAccount')}{' '}
+                  <Text
+                    style={{color: PRIMARY_COLOR, fontWeight: '700'}}
+                    onPress={() => navigation.navigate('login')}>
+                    {t('register.signInHere')}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+          
+          {/* Submit button at bottom */}
+          <View style={{
+            paddingHorizontal: 20,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 30,
+            paddingTop: 10,
+            backgroundColor: 'white',
+            borderTopWidth: 1,
+            borderTopColor: '#f0f0f0'
+          }}>
             <TouchableOpacity
               style={[
                 loginStyles.btn,
@@ -408,26 +534,9 @@ const handlerUpadte=()=>{
                 </Text>
               )}
             </TouchableOpacity>
-            <View style={loginStyles.dividerContainer}>
-              <View style={loginStyles.divider} />
-              <Text style={loginStyles.dividerText}>{t('register.or')}</Text>
-              <View style={loginStyles.divider} />
-            </View>
-
-            <View style={{alignItems: 'center', marginTop: 24}}>
-              <Text style={{color: '#8391A1', fontSize: 14}}>
-                {t('register.alreadyHaveAccount')}{' '}
-                <Text
-                  style={{color: PRIMARY_COLOR, fontWeight: '700'}}
-                  onPress={() => navigation.navigate('login')}>
-                  {t('register.signInHere')}
-                </Text>
-              </Text>
-            </View>
           </View>
-          <View style={{height: 100}}></View>
-        </ScrollView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

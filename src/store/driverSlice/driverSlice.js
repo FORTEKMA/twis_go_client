@@ -1,18 +1,13 @@
-// http://16.16.75.66:1337/api/drivers-in-radius?radius=1&latitude=36.8481&longitude=10.1793
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import axios from 'axios';
-import {API_URL_ANDROID, API_URL_IOS} from '@env';
-import {Platform} from 'react-native';
-const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
+
+ import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
+import api from "../../utils/api"
  
+  
 export const findDriver = createAsyncThunk(
   'driver/find',
   async ({radius, latitude, longitude}, thunkAPI) => {
     try {
-      const response = await axios.get(
-        `${API_URL}/api/drivers-in-radius?radius=${radius}&latitude=${latitude}&longitude=${longitude}`,
-      );
+      const response = await api.get(`/drivers-in-radius?radius=${radius}&latitude=${latitude}&longitude=${longitude}`);
       return response.data;
     } catch (error) {
       console.log(error);
@@ -26,8 +21,8 @@ export const calculatePriceAndDistance = createAsyncThunk(
   'driver/calculatePriceAndDistance',
   async ({driverLocation, pickupLocation, dropoffLocation}, thunkAPI) => {
     try {
-      console.log(`${API_URL}/api/calcul`);
-      const response = await axios.post(`${API_URL}/api/calcul`, {
+      
+      const response = await api.post(`/calcul`, {
         driverLocation: {
           lat: driverLocation.latitude,
           lng: driverLocation.longitude,

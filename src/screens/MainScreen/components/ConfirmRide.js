@@ -7,6 +7,13 @@ import api from "../../../utils/api"
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { calculatePrice } from '../../../utils/CalculateDistanceAndTime';
+import { 
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackBookingStepBack,
+  trackRideConfirmed
+} from '../../../utils/analytics';
+
 const vehicleOptions = 
 {
 1:  {
@@ -42,6 +49,11 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Track step view
+  useEffect(() => {
+    trackBookingStepViewed(4, 'Ride Confirmation');
+  }, []);
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -76,7 +88,23 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
     return { departDate, deparTime: departTime };
   }
 
-  createReservation = async () => {
+  const handleBack = () => {
+    trackBookingStepBack(4, 'Ride Confirmation');
+    goBack();
+  };
+
+  const handleConfirm = () => {
+    trackBookingStepCompleted(4, 'Ride Confirmation', {
+      price: price,
+      distance: formData.distance,
+      time: formData.time,
+      vehicle_type: formData?.vehicleType?.key,
+      has_scheduled_date: !!formData.selectedDate
+    });
+    goNext({ price });
+  };
+
+  const handleReservation = async () => {
     try {
       setIsLoading(true);
       const payload = {
@@ -91,9 +119,9 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
         client: {
           id: user.id
         },
-  
+        carType:formData?.vehicleType.id,
         pickUpAddress: {
-          Address: formData?.pickupAddress?.from || "Livraison",
+          Address: formData?.pickupAddress?.address || "Livraison",
           coordonne: {
             longitude: formData?.pickupAddress?.longitude || "17",
             latitude: formData?.pickupAddress?.latitude || "17",
@@ -108,9 +136,17 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
         }
       }
       const res = await api.post("/commands", { data: payload });
+      
+      // Track successful reservation
+      trackRideConfirmed({
+        ...formData,
+        price: price,
+        reservation_id: res.data?.id
+      });
+      
       setShowSuccessModal(true);
     } catch (error) {
-      console.log(error.response);
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +166,7 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
       <View style={{ gap: 10, marginBottom: 18, marginTop: 10, flexDirection: 'row', alignItems: 'center', width: "100%" }}>
         <TouchableOpacity
           style={{ backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
-          onPress={goBack}
+          onPress={handleBack}
         >
           <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right":"arrow-left"} size={28} color="#030303" />
         </TouchableOpacity>
@@ -243,7 +279,7 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
       {/* Next Button */}
       <TouchableOpacity 
         style={[localStyles.nextButtonWrapper, isLoading && localStyles.disabledButton]} 
-        onPress={() => formData?.selectedDate != undefined ? createReservation() : goNext({ price })}
+        onPress={() => formData?.selectedDate != undefined ? handleReservation() : handleConfirm()}
         disabled={isLoading}
       >
         {isLoading ? (

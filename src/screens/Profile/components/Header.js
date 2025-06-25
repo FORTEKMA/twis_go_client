@@ -20,14 +20,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+  //  paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 3,
     borderBottomColor: '#eee',
-    width:"90%",
+    width:"100%",
     alignSelf:"center",
-    paddingTop:Platform.OS=='ios'?hp(6):hp(2)
+    paddingTop:0,
+    paddingStart:10
   },
   backButton: {
     padding: 8,

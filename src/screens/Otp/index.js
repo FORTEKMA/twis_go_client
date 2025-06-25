@@ -3,12 +3,21 @@ import { View, KeyboardAvoidingView, Text, TouchableOpacity, ActivityIndicator }
 import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { OneSignal } from "react-native-onesignal";
+import { Toast } from 'native-base';
 import { styles } from './styles';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../utils/colors';
 import { sendVerify, verify, updateUser, getCurrentUser, userRegister } from '../../store/userSlice/userSlice';
 import api from '../../utils/api';
 import { OtpInput } from "react-native-otp-entry";
+import { 
+  trackScreenView, 
+  trackOtpVerification, 
+  trackLoginSuccess, 
+  trackLoginFailure,
+  trackRegisterSuccess,
+  trackRegisterFailure 
+} from '../../utils/analytics';
 
 const Otp = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -20,6 +29,14 @@ const Otp = ({ route, navigation }) => {
   const [error2, setError2] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
+
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('OTP', { 
+      action_type: route?.params?.put ? 'update_profile' : route?.params?.add ? 'new_registration' : 'login',
+      phone_number: number
+    });
+  }, []);
 
   useEffect(() => {
     dispatch(sendVerify(number.replace(/\s/g, '')));
@@ -38,11 +55,12 @@ const Otp = ({ route, navigation }) => {
       });
      
       if (res.data.status == false) {
+        trackOtpVerification(false, { error: 'invalid_code' });
         setError(t('otp.invalidCode'));
         setIsLoading(false);
         return;
       } else {
-        console.log("res.data.",res.data)
+   
 
         if(route?.params?.put==true){
           api.put(`users/${route?.params?.data?.id}`,{ 
@@ -50,7 +68,7 @@ const Otp = ({ route, navigation }) => {
 phoneNumber:number,
 firstName: route?.params?.data?.firstName,
 lastName:route?.params?.data?.lastName,
-lastName:route?.params?.data?.email,
+email:route?.params?.data?.email,
 },{headers:{Authorization:route?.params?.data?.Authorization}}).then(res=>{
 
 OneSignal.login(String(route?.params?.data?.id));
@@ -61,13 +79,14 @@ tempUser.firstName=route?.params?.data?.firstName,
 tempUser.lastName=route?.params?.data?.lastName,
 dispatch(userRegister({jwt:route?.params?.data?.Authorization,user:tempUser}));
 setIsLoading(false);
+trackOtpVerification(true, { action: 'profile_update' });
 if(route?.params?.data?.handleLoginSucces)
 { route?.params?.data?.handleLoginSuccess()
 navigation.pop(2)}
 setIsLoading(false);
 }).catch(err=>{
   setIsLoading(false);
-  
+  trackOtpVerification(false, { error: 'profile_update_failed' });
   console.log(err)})
           return
         }
@@ -84,21 +103,40 @@ setIsLoading(false);
             lastName:  route?.params?.data?.lastName,
              
           }).then(response=>{
+            
               OneSignal.login(String(response.data.user.id));
-        dispatch(userRegister(response.data));
-        if(route?.params?.data?.handleLoginSuccess){
-          route?.params?.data?.handleLoginSuccess()
-          navigation.pop(2)
-        }
-          }).catch(err=>{
-            console.log(error);
-            setError(true);
-          })
+              
+              dispatch(userRegister(response.data));
+              trackOtpVerification(true, { action: 'registration' });
+              trackRegisterSuccess({ phone_verified: true });
+              if(route?.params?.data?.handleLoginSuccess){
+                route?.params?.data?.handleLoginSuccess()
+                navigation.pop(2)
+              }
+            }).catch(err=>{
+              console.log(error);
+              setError(true);
+              trackOtpVerification(false, { error: 'registration_failed' });
+              trackRegisterFailure('registration_failed', err.message);
+            })
           return
         }
         if (res.data.success == true) {
-          console.log("route?.params?.put",route?.params?.put)
-         
+           
+          if (res.data.blocked) {
+            trackOtpVerification(false, { error: 'account_blocked' });
+            trackLoginFailure('phone', 'account_blocked');
+          
+            Toast.show({
+              title: t('common.error'),
+              description: t('auth.account_blocked'),
+              placement: "top",
+              duration: 3000,
+              status: "error"
+            });
+            navigation.goBack();
+            return;
+          }
 
  
           OneSignal.login(String(res.data.id));
@@ -106,14 +144,18 @@ setIsLoading(false);
             user: res.data,
             jwt: res.data.authToken
           };
-          dispatch(userRegister(payload));}
-         else {
+          dispatch(userRegister(payload));
+          trackOtpVerification(true, { action: 'login' });
+          trackLoginSuccess('phone', { phone_verified: true });
+        } else {
+          trackOtpVerification(false, { error: 'user_not_found' });
           navigation.navigate('Register', { number: number });
         }
       }
     } catch (error) {
       console.log(error);
       setError(true);
+      trackOtpVerification(false, { error: 'network_error' });
     } finally {
       setIsLoading(false);
     }
@@ -122,6 +164,8 @@ setIsLoading(false);
   const handleResend = () => {
     setTimer(60);
     setVerificationSent(true);
+    // Track resend OTP
+    trackOtpVerification(false, { action: 'resend_requested' });
     // Add your resend logic here
   };
 

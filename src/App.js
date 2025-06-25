@@ -11,10 +11,12 @@ import {
   I18nManager
 } from 'react-native';
 import { useKeepAwake } from '@sayem314/react-native-keep-awake';
-
+import * as amplitude from '@amplitude/analytics-react-native';
 import {persistStore} from 'redux-persist';
 import {PersistGate} from 'redux-persist/integration/react';
 import 'react-native-gesture-handler';
+import { withStallion, useStallionUpdate, restart } from 'react-native-stallion';
+
 import store from './store';
 import {ONESIGNAL_APP_ID} from '@env';
 import {Provider} from 'react-redux';
@@ -31,19 +33,28 @@ import * as Sentry from '@sentry/react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "./local";
 import CheckConnection from './components/CheckConnection';
-Sentry.init({
-  dsn: 'https://06ca632b0190704d22beae416f99b03e@o4509329011572736.ingest.de.sentry.io/4509329041588304',
-  release: "com.fortekma.tawsilet", // Must match Gradle
-  dist: "1.4.1", // Must match Gradle
-  enableNative: true,
-});
 
+// Only initialize Sentry in production mode
+if (!__DEV__) {
+  Sentry.init({
+    dsn: 'https://06ca632b0190704d22beae416f99b03e@o4509329011572736.ingest.de.sentry.io/4509329041588304',
+    release: "1.4.1", // Must match versionName in build.gradle
+    dist: "5", // Must match versionCode in build.gradle
+    enableNative: true,
+    debug: false, // Disable debug mode in production
+    environment: 'production',
+  });
+}
+amplitude.init('d977e9d7ccb4617cd9e2a90ec1d95e27');
 let persistor = persistStore(store);
 const App=()=> {
-  useKeepAwake()
+  useKeepAwake();
+  const { isRestartRequired } = useStallionUpdate();
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [notificationBody, setNotificationBody] = useState('');
 
-
-    const setupLanguage = async () => {
+  const setupLanguage = async () => {
     try {
       const savedLanguage = await AsyncStorage.getItem("language");
       const language = savedLanguage || "fr";
@@ -56,13 +67,18 @@ const App=()=> {
     }
   };
 
-  
   useEffect(() => {
-     
+    if (isRestartRequired) {
+      setShowUpdateModal(true);
+    }
+  }, [isRestartRequired]);
 
+  useEffect(() => {
     OneSignal.initialize(ONESIGNAL_APP_ID);
+    OneSignal.User.setLanguage("fr");
+
     OneSignal.Notifications.requestPermission(true)
-        
+    
 
     setupLanguage()
        
@@ -72,32 +88,52 @@ const App=()=> {
     SplashScreen.hide();
   }
 
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [notificationBody, setNotificationBody] = useState('');
+  const handleRestart = () => {
+    setShowUpdateModal(false);
+    restart(); // Trigger Stallion restart
+  };
 
   return (
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <NativeBaseProvider>
-            {/* <DrawerNavigation /> */}
-            <View style={styles.container}>
-              <Provider store={store}>
-                <PersistGate loading={null} persistor={persistor}>
-                  <MainNavigator  onReady={onReady} />
-                  <CheckConnection />
-                  {isModalVisible && (
-                    <PopOver
-                      notificationBody={notificationBody}
-                      isModalVisible={isModalVisible}
-                      setModalVisible={setModalVisible}
-                    />
-                  )}
-                </PersistGate>
-              </Provider>
-            </View>
-            <ModalPortal />
-          </NativeBaseProvider>
+          <View style={styles.container}>
+            <NativeBaseProvider>
+              <MainNavigator onReady={onReady} />
+              <CheckConnection />
+              {isModalVisible && (
+                <PopOver
+                  notificationBody={notificationBody}
+                  isModalVisible={isModalVisible}
+                  setModalVisible={setModalVisible}
+                />
+              )}
+              
+              {/* Update Modal */}
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showUpdateModal}
+                onRequestClose={() => setShowUpdateModal(false)}
+              >
+                <View style={styles.modalContainer}>
+                  <View style={styles.modalContent}>
+                    <Text style={styles.updateTitle}>New Update Available</Text>
+                    <Text style={styles.updateText}>
+                      A new update was downloaded for your app. Restart the app to install the update.
+                    </Text>
+                    <Pressable
+                      style={styles.restartButton}
+                      onPress={handleRestart}
+                    >
+                      <Text style={styles.restartButtonText}>Restart App</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </Modal>
+            </NativeBaseProvider>
+          </View>
+          <ModalPortal />
         </PersistGate>
       </Provider>
     </SafeAreaProvider>
@@ -108,6 +144,43 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  updateTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  updateText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#666',
+  },
+  restartButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  restartButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
 
-export default Sentry.wrap(App)
+// Only wrap with Sentry in production mode
+export default __DEV__ ? withStallion(App) : withStallion(Sentry.wrap(App));

@@ -1,10 +1,96 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import axios from 'axios';
-import {API_URL_ANDROID, API_URL_IOS} from '@env';
-import {Platform} from 'react-native';
-const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
+import api from '../../utils/api';
 import { OneSignal } from "react-native-onesignal";
+import { Toast } from "native-base";
+import i18n from "../../local"
+import { identify, Identify, setUserId } from '@amplitude/analytics-react-native';
+
+// Utility function to update Amplitude user properties for profile updates
+const updateAmplitudeUserProfile = (user) => {
+  if (!user) return;
+  
+  try {
+    const identifyObj = new Identify();
+    
+    // Update profile-specific properties
+    identifyObj.set('first_name', user.firstName || '');
+    identifyObj.set('last_name', user.lastName || '');
+    identifyObj.set('email', user.email || '');
+    identifyObj.set('phone_number', user.phoneNumber || '');
+    identifyObj.set('username', user.username || '');
+    identifyObj.set('has_profile_picture', !!user.profilePicture);
+    identifyObj.set('profile_updated_at', new Date().toISOString());
+    
+    // Add to profile update counter
+    identifyObj.add('profile_update_count', 1);
+    
+    // Send the identify call
+    identify(identifyObj);
+    
+    console.log('Amplitude user profile updated successfully');
+  } catch (error) {
+    console.error('Error updating Amplitude user profile:', error);
+  }
+};
+
+// Utility function to set Amplitude user properties
+const setAmplitudeUserProperties = (user) => {
+  if (!user) return;
+  
+  try {
+    // Set user ID
+     
+    if(!user?.documentId) return
+    console.log(user?.documentId,"ddd")
+    setUserId(String(user.documentId));
+
+    
+    // Create identify object for user properties
+    const identifyObj = new Identify();
+    // Set user properties
+    identifyObj.set('user_id', user.documentId);
+    identifyObj.set('email', user.email || '');
+    identifyObj.set('phone_number', user.phoneNumber || '');
+    identifyObj.set('first_name', user.firstName || '');
+    identifyObj.set('last_name', user.lastName || '');
+    identifyObj.set('username', user.username || '');
+    identifyObj.set('user_role', user.user_role || '');
+    identifyObj.set('is_blocked', user.blocked || false);
+    identifyObj.set('has_profile_picture', !!user.profilePicture);
+    identifyObj.set('registration_date', user.createdAt || '');
+    identifyObj.set('last_login', new Date().toISOString());
+    identifyObj.set('is_guest', user?.id==undefined);
+    identifyObj.set('provider', user.provider || 'email');
+    
+    
+    // Add to counters
+    identifyObj.add('login_count', 1);
+    identifyObj.add('total_sessions', 1);
+    
+    // Add to arrays for tracking
+    if (user.provider) {
+      identifyObj.append('login_methods_used', user.provider);
+    }
+    
+    // Send the identify call
+    identify(identifyObj);
+    
+   } catch (error) {
+    console.error('Error setting Amplitude user properties:', error);
+  }
+};
+
+// Utility function to clear Amplitude user properties on logout
+const clearAmplitudeUserProperties = () => {
+  try {
+    setUserId(null);
+    console.log('Amplitude user properties cleared successfully');
+  } catch (error) {
+    console.error('Error clearing Amplitude user properties:', error);
+  }
+};
+
 export const userRegister = createAsyncThunk('user/register', async user => {
    
     
@@ -16,13 +102,15 @@ export const userRegister = createAsyncThunk('user/register', async user => {
 
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
- 
-    let response = await axios.post(`${API_URL}/api/auth/local`, login);
-    OneSignal.login(String(response.data.user.id));
+   
+    let response = await api.post(`/auth/local`, login);
     
+    OneSignal.login(String(response.data.user.id));
+
     return response.data
     
   } catch (error) {
+    console.log("error",error.response)
     return {error:true};
   }
 });
@@ -36,11 +124,7 @@ export const getCurrentUser = createAsyncThunk(
       const jwt = state.user.token; // Access the token from the 'user' slice
       
       if (jwt&&jwt!=-1) {
-        const response = await axios.get(`${API_URL}/api/users/me?populate=*`, {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        });
+        const response = await api.get(`/users/me?populate=*`);
         return response.data;
       }
     } catch (error) {
@@ -61,7 +145,7 @@ export const sendVerify = createAsyncThunk(
   async (phoneNumber, code) => {
   
     try {
-      let response = await axios.post(`${API_URL}/api/send-OTP`, {
+      let response = await api.post(`/send-OTP`, {
         phoneNumber: phoneNumber,
       });
      
@@ -76,7 +160,7 @@ export const verify = createAsyncThunk(
   'user/verify',
   async ({phoneNumber, code}) => {
     try {
-      let response = await axios.post(`${API_URL}/api/verify-code`, {
+      let response = await api.post(`/verify-code`, {
         phoneNumber: phoneNumber,
         code: code,
       });
@@ -94,12 +178,8 @@ export const uplaodImage = createAsyncThunk(
     try {
       const state = thunkAPI.getState();
       const jwt = state.user.token;
-      let response = await axios.post(`${API_URL}/api/upload`, data, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
-      console.log(response.data)
+      let response = await api.post(`/upload`, data);
+     
       return response.data;
     } catch (error) {}
   },
@@ -110,15 +190,9 @@ export const updateUser = createAsyncThunk(
     try {
       const state = thunkAPI.getState();
       const jwt = state.user.token;
-      let response = await axios.put(
-        `${API_URL}/api/users/${newUser.id}`,
-        newUser,
-        {
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
-        },
-      );
+      let response = await api.put(
+        `/users/${newUser.id}`,
+        newUser);
     
       return await response.data;
     } catch (error) {
@@ -135,15 +209,9 @@ export const changePassword = createAsyncThunk(
  
 
     try {
-      const response = await axios.post(
-        `${API_URL}/api/auth/change-password`,
-        credentials,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await api.post(
+        `/auth/change-password`,
+        credentials );
  
       return response.data;
     } catch (error) {
@@ -157,8 +225,8 @@ export const forgetPassword = createAsyncThunk(
   'user/forgetPassword',
   async email => {
     try {
-      const response = await axios.post(
-        `${API_URL}/api/codes/forgot-password`,
+      const response = await api.post(
+        `/codes/forgot-password`,
         {
           email: email,
         },
@@ -174,7 +242,7 @@ export const resetPassword = createAsyncThunk(
   'user/resetPassword',
   async data => {
     try {
-      let response = await axios.post(`${API_URL}/api/codes/reset-password`, data);
+      let response = await api.post(`/codes/reset-password`, data);
 
       return response.data;
     } catch (error) {
@@ -201,7 +269,9 @@ const initialState = {
   refresh: false,
   isFirstTime: true,
   email:null,
-  hasReview:null
+  hasReview:null,
+  rememberMe: false,
+  rememberedIdentifier: null,
 };
 
 
@@ -210,6 +280,10 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
+    setRememberMe: (state, action) => {
+      state.rememberMe = action.payload.remember;
+      state.rememberedIdentifier = action.payload.identifier;
+    },
     setToken: (state, action) => {
       state.user.token = action.payload;
     },
@@ -291,10 +365,48 @@ export const userSlice = createSlice({
     [userRegister.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
- 
+      
       if (action.payload.jwt && action?.payload?.user?.user_role === 'client') {
+        if (action?.payload?.user?.blocked) {
+          state.status = 'fail';
+          state.message = 'This account is blocked. Please contact support.';
+          Toast.show({
+            title: i18n.t('auth.invalid_account'),
+            description: i18n.t('auth.account_blocked'),
+            placement: "top",
+            status: "error",
+            duration: 3000
+          });
+          return;
+        }
         state.token = action.payload.jwt;
         state.currentUser = action.payload.user;
+        
+        // Set Amplitude user properties after successful registration
+        setAmplitudeUserProperties(action.payload.user);
+      } else if (action.payload.jwt === -1 && action?.payload?.user?.user_role === 'client') {
+        // Handle guest user
+        state.token = action.payload.jwt;
+        state.currentUser = action.payload.user;
+        
+        // Set Amplitude user properties for guest user
+        const guestUser = {
+          ...action.payload.user,
+          id: 'guest',
+          documentId: 'guest',
+          is_guest: true
+        };
+        setAmplitudeUserProperties(guestUser);
+      } else if (action?.payload?.user?.user_role !== 'client') {
+        state.status = 'fail';
+        state.message = 'This account is not for this app.';
+        Toast.show({
+          title: i18n.t('auth.invalid_account'),
+          description: i18n.t('auth.account_not_for_app'),
+          placement: "top",
+          status: "error",
+          duration: 3000
+        });
       }
     },
     [userRegister.rejected]: state => {
@@ -308,6 +420,11 @@ export const userSlice = createSlice({
     [updateUser.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
+      
+      // Update Amplitude user properties when user profile is updated
+      if (action.payload) {
+        updateAmplitudeUserProfile(action.payload);
+      }
     },
     [updateUser.rejected]: state => {
       state.status = 'fail';
@@ -321,8 +438,41 @@ export const userSlice = createSlice({
       state.status = 'success';
       state.isLoading = false;
       if (action?.payload?.user?.user_role === 'client') {
-        state.token = action.payload.jwt;
-      }
+        if (action?.payload?.user?.blocked) {
+          state.status = 'fail';
+          state.message = 'This account is blocked. Please contact support.';
+          Toast.show({
+            title: i18n.t('auth.invalid_account'),
+            description: i18n.t('auth.account_blocked'),
+            placement: "top",
+            status: "error",
+            duration: 3000
+          });
+          return;
+        }
+      state.token = action.payload.jwt;
+       state.currentUser = action.payload.user;
+       if (state.rememberMe) {
+        AsyncStorage.setItem('rememberedIdentifier', action.payload.user.email);
+        AsyncStorage.setItem('rememberMe', 'true');
+       } else {
+        AsyncStorage.removeItem('rememberedIdentifier');
+        AsyncStorage.removeItem('rememberMe');
+       }
+        
+         setAmplitudeUserProperties(action.payload.user);
+}
+         else if (action?.payload?.user?.user_role !==undefined && action?.payload?.user?.user_role !== 'client') {
+        state.status = 'fail';
+        state.message = 'This account is not for this app.';
+        Toast.show({
+          title: i18n.t('auth.invalid_account'),
+          description: i18n.t('auth.account_not_for_app'),
+          placement: "top",
+          status: "error",
+          duration: 3000
+        });
+    }
     },
     [userLogin.rejected]: state => {
       state.status = 'fail';
@@ -339,8 +489,34 @@ export const userSlice = createSlice({
       state.user = action.payload.user;
 
       if (action.payload.authToken && action?.payload?.user_role === 'client') {
+        if (action?.payload?.user?.blocked) {
+          state.status = 'fail';
+          state.message = 'This account is blocked. Please contact support.';
+          Toast.show({
+            title: i18n.t('auth.invalid_account'),
+            description: i18n.t('auth.account_blocked'),
+            placement: "top",
+            status: "error",
+            duration: 3000
+          });
+          return;
+        }
         state.token = action.payload.authToken;
         state.user = action.payload;
+        state.currentUser = action.payload.user;
+        
+        // Set Amplitude user properties after successful OTP verification
+        setAmplitudeUserProperties(action.payload.user);
+      } else if (action?.payload?.user_role !== 'client') {
+        state.status = 'fail';
+        state.message = 'This account is not for this app.';
+        Toast.show({
+          title: i18n.t('auth.invalid_account'),
+          description: i18n.t('auth.account_not_for_app'),
+          placement: "top",
+          status: "error",
+          duration: 3000
+        });
       }
       state.status = action.payload.status;
     },
@@ -369,6 +545,9 @@ export const userSlice = createSlice({
       state.status = 'success';
       state.isLoading = false;
       state.currentUser = action.payload;
+      
+      // Set Amplitude user properties when current user is fetched
+      setAmplitudeUserProperties(action.payload);
     },
     [getCurrentUser.rejected]: state => {
       state.status = 'fail';
@@ -383,6 +562,9 @@ export const userSlice = createSlice({
       state.isLoading = false;
       state.currentUser = null;
       state.token = null;
+      state.user = null
+       // Clear Amplitude user properties on logout
+    clearAmplitudeUserProperties();
     },
     [logOut.rejected]: state => {
       state.status = 'fail';
@@ -392,4 +574,10 @@ export const userSlice = createSlice({
 });
 
 export default userSlice.reducer;
-export const { setToken, updateIsFirstTime,updateOffllineProfile ,updateHasReview} = userSlice.actions;
+export const {
+  setToken,
+  updateIsFirstTime,
+  updateOffllineProfile,
+  updateHasReview,
+  setRememberMe
+} = userSlice.actions;

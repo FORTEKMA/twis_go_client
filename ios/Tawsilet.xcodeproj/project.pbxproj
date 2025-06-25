@@ -650,7 +650,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Tawsilet/Tawsilet.entitlements;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FK9X3BLG35;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Tawsilet/Info.plist;
@@ -659,7 +659,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -681,7 +681,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Tawsilet/Tawsilet.entitlements;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FK9X3BLG35;
 				INFOPLIST_FILE = Tawsilet/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Tawsilet;
@@ -689,7 +689,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.4;
+				MARKETING_VERSION = 1.0.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

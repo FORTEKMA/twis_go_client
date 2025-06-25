@@ -79,6 +79,7 @@
     "orLoginWith": "أو سجل الدخول باستخدام",
     "loginWithEmail": "تسجيل الدخول بالبريد الإلكتروني",
     "forgotPassword": "هل نسيت كلمة المرور؟",
+    "rememberMe": "تذكرنى",
     "search": "بحث...",
     "invalidCredentials": "بريد إلكتروني أو كلمة مرور غير صحيحة",
     "errorOccurred": "حدث خطأ. يرجى المحاولة مرة أخرى.",
@@ -195,7 +196,7 @@
       "dispatched_to_partner": "تم الإرسال إلى الشريك",
       "assigned_to_driver": "تم التعيين إلى السائق",
       "driver_on_route_to_pickup": "السائق في طريقه إلى نقطة الانطلاق",
-      "arrived_at_pickup": "وصل إلى نقطة الانطلاق",
+      "arrived_at_pickup": "نشطة",
       "picked_up": "تم الانطلاق",
       "on_route_to_delivery": "نشطة",
       "arrived_at_delivery": "نشطة",
@@ -334,7 +335,14 @@
       "phone": "الهاتف",
       "cin": "رقم البطاقة الوطنية",
       "update_success": "تم تحديث المعلومات بنجاح!",
-      "update_error": "فشل التحديث"
+      "update_error": "فشل التحديث",
+      "select_country": "اختر دولة",
+      "otp_send_error": "فشل إرسال رمز التحقق. يرجى المحاولة مرة أخرى.",
+      "otp_verify_error": "فشل التحقق من الرمز. يرجى المحاولة مرة أخرى.",
+      "email_placeholder": "email@example.com",
+      "phone_placeholder": "رقم الهاتف",
+      "otp_title": "أدخل رمز التحقق",
+      "otp_message": "تم إرسال رمز التحقق إلى {{phoneNumber}}"
     },
     "first_name": "الاسم الأول",
     "last_name": "اسم العائلة",
@@ -545,6 +553,56 @@
     "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
     "passwordResetSuccess": "تم إعادة تعيين كلمة المرور بنجاح",
     "passwordResetSuccessMessage": "تم إعادة تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.",
-    "goToLogin": "الذهاب إلى تسجيل الدخول"
+    "goToLogin": "الذهاب إلى تسجيل الدخول",
+    "account_blocked": "هذا الحساب محظور. لا يمكنك تسجيل الدخول باستخدام هذا الحساب",
+    "account_not_for_app": "هذا الحساب ليس لهذا التطبيق",
+    "invalid_account": "حساب غير صالح"
+  },
+  "tickets": {
+    "title": "اطلب المساعدة",
+    "new": "تذكرة جديدة",
+    "reason": "السبب",
+    "command": "الطلب",
+    "description": "الوصف",
+    "command_placeholder": "أدخل رقم الطلب (اختياري)",
+    "description_placeholder": "صف مشكلتك بالتفصيل...",
+    "attach_image": "إرفاق صورة",
+    "submit": "إرسال التذكرة",
+    "reply": "الرد",
+    "status": {
+      "open": "مفتوح",
+      "inProgress": "قيد المعالجة",
+      "resolved": "تم الحل",
+      "closed": "مغلق"
+    },
+    "reasons": {
+      "payment_issue": "مشكلة في الدفع",
+      "driver_behavior": "سلوك السائق",
+      "app_technical": "مشكلة تقنية في التطبيق",
+      "service_quality": "جودة الخدمة",
+      "other": "أخرى"
+    },
+    "empty_title": "لا توجد تذاكر",
+    "empty_text": "لم تقم بإنشاء أي تذاكر دعم حتى الآن. انقر على الزر أدناه لإنشاء تذكرتك الأولى.",
+    "select_reason": "اختر السبب",
+    "clientMessage": "رسالتك",
+    "response": "رد الدعم",
+    "attachment": "المرفق",
+    "attachmentFile": "الملف المرفق",
+    "description_required": "يرجى تقديم وصف",
+    "command_required": "مرجع الطلب مطلوب لهذا السبب",
+    "invalid_command": "رقم مرجع الطلب غير صالح",
+    "attachment_upload_error": "فشل في تحميل المرفق",
+    "submit_success": "تم إرسال التذكرة بنجاح",
+    "submit_error": "فشل في إرسال التذكرة",
+    "select_command": "اختر الطلب"
+  },
+  "signup": {
+    "step4": {
+      "errors": {
+        "invalid_phone": "رقم هاتف غير صالح.",
+        "phone_exists": "رقم الهاتف هذا مستخدم بالفعل."
+      }
+    }
   }
 }

@@ -31,8 +31,7 @@ export const sendNotificationToDrivers = async (
   currentUser,}
  
 ) => {
-  
-    // Prepare ride info
+     // Prepare ride info
     const rideInfo = {
       type: "new_command",
       from: formData.pickupAddress.address,
@@ -47,11 +46,23 @@ export const sendNotificationToDrivers = async (
       to: formData.dropAddress.address,
       time: formData.time||Date.now(),
       price: formData.price,
-      currentUser: currentUser,
+      currentUser: {
+        "id": currentUser.id,
+"documentId": currentUser.documentId,
+ 
+ 
+"phoneNumber": currentUser.phoneNumber,
+"firstName":currentUser.firstName,
+"lastName": currentUser.lastName,
+ 
+"rating": currentUser.rating,
+ 
+      },
       distanceBetweenPickupAndDropoff: formData.distance,
       driverPosition: '',
     };
 
+ 
 
    return axios.post(
         'https://onesignal.com/api/v1/notifications',

@@ -4,6 +4,12 @@ import {useTranslation} from 'react-i18next';
 import {styles} from './styles';
 import { updateIsFirstTime } from '../../store/userSlice/userSlice';
 import { useDispatch } from 'react-redux';
+import { 
+  trackScreenView, 
+  trackOnboardingStarted,
+  trackOnboardingCompleted,
+  trackOnboardingSkipped 
+} from '../../utils/analytics';
 
 const slides = [
   {
@@ -32,6 +38,13 @@ const OnboardingScreen = ({navigation}) => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(0)).current;
   const dispatch = useDispatch();
+  
+  // Track onboarding started on mount
+  useEffect(() => {
+    trackScreenView('Onboarding');
+    trackOnboardingStarted();
+  }, []);
+  
   useEffect(() => {
     // Reset animation values
     fadeAnim.setValue(0);
@@ -56,12 +69,17 @@ const OnboardingScreen = ({navigation}) => {
     if (currentIndex < slides.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
+      trackOnboardingCompleted({ total_slides: slides.length });
       dispatch(updateIsFirstTime(false));
       navigation.replace('Main');
     }
   };
 
   const handleSkip = () => {
+    trackOnboardingSkipped({ 
+      current_slide: currentIndex + 1,
+      total_slides: slides.length 
+    });
     dispatch(updateIsFirstTime(false));
     navigation.replace('Main');
   };

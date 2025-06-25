@@ -26,6 +26,13 @@ import {
   uplaodImage,
 } from "../../store/userSlice/userSlice";
 import { changeLanguage } from '../../local';
+import { 
+  trackScreenView, 
+  trackProfileViewed, 
+  trackProfileUpdated, 
+  trackLanguageChanged, 
+  trackLogout 
+} from '../../utils/analytics';
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -43,12 +50,18 @@ const Profile = () => {
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
- 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('Profile');
+    trackProfileViewed();
+    dispatch(getCurrentUser())
+  }, []);
 
   // Handle logout action
   const handleLogout = () => {
+    trackLogout();
     try {
-      GoogleSignin.signOut();
+       GoogleSignin.signOut();
     } catch (error) {
       console.log(error)
     }
@@ -95,7 +108,7 @@ try {
   
  const afterUpdateRep=await api.put(`/users/${user.id}`, { profilePicture: imageResp.data[0].id });
  dispatch(getCurrentUser())
- 
+ trackProfileUpdated('profile_picture');
 //find a way to update the userprofile 
 }
 } catch (error) {
@@ -138,12 +151,14 @@ try {
       setShowConfirmationModal(true);
     } else {
       changeLanguage(language);
+      trackLanguageChanged(language);
     }
   };
 
   const handleConfirmLanguageChange = () => {
     if (selectedLanguage) {
       changeLanguage(selectedLanguage);
+      trackLanguageChanged(selectedLanguage);
       setSelectedLanguage(null);
     }
     setShowConfirmationModal(false);

@@ -8,6 +8,12 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {calculateDistanceAndTime} from '../../../utils/CalculateDistanceAndTime';
 import i18n from '../../../local';
 import ConfirmButton from './ConfirmButton';
+import { 
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackBookingStepBack,
+  trackVehicleSelected
+} from '../../../utils/analytics';
 
 const vehicleOptions = [
   {
@@ -40,6 +46,11 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const [selectedDate, setSelectedDate] = useState(formData.selectedDate);
   const [tripDetails, setTripDetails] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Track step view
+  useEffect(() => {
+    trackBookingStepViewed(3, 'Vehicle Selection');
+  }, []);
   
   // New animation system
   const animations = useRef(
@@ -156,15 +167,37 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
    
   };
 
+  const handleVehicleSelect = (option, index) => {
+    setSelected(option);
+    animateSelection(index);
+    
+    // Track vehicle selection
+    trackVehicleSelected(option, {
+      vehicle_type: option.key,
+      vehicle_id: option.id,
+      step: 3
+    });
+  };
 
-  const onConfirm = () => {
+  const handleBack = () => {
+    trackBookingStepBack(3, 'Vehicle Selection');
+    goBack();
+  };
+
+  const handleConfirm = () => {
+    trackBookingStepCompleted(3, 'Vehicle Selection', {
+      vehicle_type: selected.key,
+      vehicle_id: selected.id,
+      has_scheduled_date: !!selectedDate,
+      distance: tripDetails?.distance,
+      time: tripDetails?.time
+    });
+    
     goNext({
       vehicleType: selected,
       selectedDate: selectedDate,
     });
   };
-
-
 
   return (
      
@@ -176,7 +209,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
           <View style={{gap:10, marginBottom: 18, marginTop: 10 ,flexDirection: 'row', alignItems: 'center',width:"100%" }}>
           <TouchableOpacity
         style={{  backgroundColor: '#fff', borderRadius: 20, padding: 6, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }}
-        onPress={goBack}
+        onPress={handleBack}
       >
         <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right": "arrow-left"} size={28} color="#030303" />
       </TouchableOpacity>
@@ -214,10 +247,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                       borderWidth: selected.id === option.id ? 3 : 1,
                       borderColor: selected.id === option.id ? '#030303' : '#E0E0E0',
                     }}
-                    onPress={() => {
-                      setSelected(option);
-                      animateSelection(index);
-                    }}
+                    onPress={() => handleVehicleSelect(option, index)}
                   >
                     <Animated.View
                       style={{
@@ -281,7 +311,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
             </TouchableOpacity>
            
             <ConfirmButton
-           onPress={onConfirm}
+           onPress={handleConfirm}
           text={t('booking.step3.book_now')}
           disabled={isLoading}
         />

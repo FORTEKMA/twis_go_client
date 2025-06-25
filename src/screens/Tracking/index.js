@@ -5,6 +5,10 @@ import MapControls from './components/MapControls';
 import TimerOverlay from './components/TimerOverlay';
 import TrackingMap from './components/TrackingMap';
 import {styles} from './styles';
+import { 
+  trackScreenView, 
+  trackRideStarted 
+} from '../../utils/analytics';
 
 const Tracking = ({order, timer}) => {
   const mapRef = useRef(null);
@@ -20,8 +24,25 @@ const Tracking = ({order, timer}) => {
     longitudeDelta: 0.04,
   });
 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('Tracking', { 
+      order_id: order?.id,
+      has_driver: !!order?.driver_id
+    });
+  }, []);
+
   useEffect(() => {
     if (order) {
+      // Track ride started when order is loaded
+      if (order?.id) {
+        trackRideStarted(order.id, {
+          driver_id: order?.driver_id?.id,
+          pickup_address: order?.attributes?.pickUpAddress?.address,
+          dropoff_address: order?.attributes?.dropOfAddress?.address
+        });
+      }
+      
       setDriverPosition([
         order?.driver_id?.location?.latitude,
         order?.driver_id?.location?.longitude,

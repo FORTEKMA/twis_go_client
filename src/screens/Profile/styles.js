@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { I18nManager, StyleSheet } from 'react-native';
 import { colors } from "../../utils/colors";
 import {
   widthPercentageToDP as wp,
@@ -9,6 +9,96 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  mainContainer: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  stepContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  formContainer: {
+    flex: 1,
+    paddingTop: 20,
+    gap: 20,
+  },
+  inputContainer: {
+    width: '100%',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0c0c0c',
+    marginBottom: 8,
+  },
+  input: {
+    height: 64,
+    borderWidth: 1,
+    borderColor: '#E8ECF4',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginBottom: 5,
+    backgroundColor: '#F7F8F9',
+    color: '#000',
+  },
+  passwordContainer: {
+    height: 64,
+    borderWidth: 1,
+    borderColor: '#E8ECF4',
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginBottom: 10,
+    backgroundColor: '#F7F8F9',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  passwordContainerError: {
+    borderColor: '#FF3B30',
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    height: '100%',
+    color: '#000',
+    textAlign:I18nManager.isRTL? "right":"left"
+  },
+  inputError: {
+    borderColor: '#FF3B30',
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 12,
+    marginTop: -5,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E8ECF4',
+    height: 120,
+    justifyContent: 'center',
+  },
+  nextButton: {
+    backgroundColor: '#0c0c0c',
+    height: 64,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#0c0c0c80',
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   menuContainer: {
     marginTop: 20,
@@ -53,9 +143,9 @@ export const styles = StyleSheet.create({
     marginRight: 10,
   },
   logoutText: {
-    marginLeft: 10,
     fontSize: 16,
-    color: '#000',
+    fontWeight: '500',
+    color: '#fff',
   },
   header: {
     backgroundColor: colors.general_1,
@@ -104,16 +194,16 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F8F8F8',
     borderRadius: 20,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderWidth: 3,
+    borderColor: '#ccc',
     marginHorizontal: 20,
   
   },
   statItem: {
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 15,
-    minWidth: 90,
+  //  alignItems: "center",
+  //  padding: 10,
+  //  borderRadius: 15,
+   // minWidth: 90,
   },
   statIcon: {
     width: 45,
@@ -136,7 +226,7 @@ export const styles = StyleSheet.create({
   },
   // Tab Navigation Styles
   tabBar: {
-    backgroundColor: "#fff",
+    backgroundColor: "#19191C",
     elevation: 0,
     shadowOpacity: 0,
     borderBottomWidth: 1,
@@ -165,20 +255,16 @@ export const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 20,
-    
-    width:"100%"
   },
   inputLabel: {
     color: '#000',
-    fontSize: hp(2),
+    fontSize: hp(1.8),
     marginBottom: 8,
-    textAlign:"left"
-
   },
   input: {
    // backgroundColor: '#2A2A2A',
-    borderWidth: 3,
-    borderColor: '#ccc',
+    borderWidth: 1,
+    borderColor: '#000',
     borderRadius: 10,
     padding: 15,
     color: '#000',
@@ -230,7 +316,7 @@ export const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(240, 200, 119, 0.1)',
+    backgroundColor: "#0c0c0c20",
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -271,7 +357,7 @@ export const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: hp(1.8),
     fontWeight: "600",
-    color: "#000",
+    color: "#01050D",
   },
   modalButtonTextSecondary: {
     color: "#666666",
@@ -290,18 +376,23 @@ export const styles = StyleSheet.create({
   helpOption: {
     flexDirection: 'row',
     alignItems: 'center',
-
-   borderWidth:1,
-   borderColor:'#E0E0E0',
+    justifyContent: 'center',
+    backgroundColor: '#0c0c0c',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderRightWidth: 3,
+    borderBottomWidth: 3,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
   },
   helpOptionText: {
-    color: '#000',
+    color: '#fff',
     fontSize: hp(1.8),
     marginLeft: 15,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   faqContainer: {
    // marginTop: 20,
@@ -337,10 +428,14 @@ export const styles = StyleSheet.create({
     flex:1
   },
   eyeIcon: {
-    position: 'absolute',
+    
     marginStart: 15,
-    top: 15,
-    right:10
+     
+    
+    height:"100%",
+    width:60,
+    alignItems:"center",
+    justifyContent:"center"
   },
   languageButtons: {
     width: '100%',
@@ -355,16 +450,5 @@ export const styles = StyleSheet.create({
      borderWidth:1,
     borderColor:'#E0E0E0',
     flexDirection:'row',
-  },
-  loaderContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    zIndex: 1000,
   },
 });

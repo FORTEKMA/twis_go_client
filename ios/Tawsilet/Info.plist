@@ -41,6 +41,12 @@
 			</array>
 		</dict>
 	</array>
+  <key>StallionProjectId</key>
+      <string>6853cc1038678eded8802d71</string>
+      <!-- make sure app token starts with spb_... and is 46 characters long -->
+      <key>StallionAppToken</key>
+      <string>spb_yN6FqM0H-MzKdbmddpXT0SEbIb51vtHRbTahvoP1Jo</string>
+      
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FacebookAppID</key>

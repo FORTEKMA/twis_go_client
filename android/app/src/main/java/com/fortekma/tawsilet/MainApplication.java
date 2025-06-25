@@ -9,6 +9,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
 import com.facebook.react.defaults.DefaultReactNativeHost;
 import com.facebook.soloader.SoLoader;
 import java.util.List;
+import com.stallion.Stallion;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -33,6 +34,12 @@ public class MainApplication extends Application implements ReactApplication {
           return "index";
         }
 
+          @Override
+  protected String getJSBundleFile() {
+      return Stallion.getJSBundleFile(getApplicationContext());
+  }
+  
+
         @Override
         protected boolean isNewArchEnabled() {
           return BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
@@ -49,6 +56,7 @@ public class MainApplication extends Application implements ReactApplication {
     return mReactNativeHost;
   }
 
+  
   @Override
   public void onCreate() {
     super.onCreate();
@@ -58,4 +66,6 @@ public class MainApplication extends Application implements ReactApplication {
       DefaultNewArchitectureEntryPoint.load();
     }
    }
+
+  
 }

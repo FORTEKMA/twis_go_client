@@ -18,7 +18,7 @@ import {
     logOut,
  
   } from "../store/userSlice/userSlice";
-  const screenHideTabs = ["Register","OrderDetails","Rating","PersonalInfo","Security","Help"];
+  const screenHideTabs = ["NewTicketScreen","TicketScreen","Register","OrderDetails","Rating","PersonalInfo","Security","Help"];
 
 const CustomTabBar = ({state, descriptors, navigation}) => {
 

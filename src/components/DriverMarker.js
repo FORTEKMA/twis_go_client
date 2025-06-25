@@ -8,9 +8,9 @@ const DriverMarker = ({ angle = 0, type = 1 }) => {
     switch (type) {
       case 1:
         return require("../assets/eco.png")
-      case 2:
-        return require("../assets/van.png")
       case 3:
+        return require("../assets/van.png")
+      case 2:
         return require("../assets/Berline.png")
      
     }

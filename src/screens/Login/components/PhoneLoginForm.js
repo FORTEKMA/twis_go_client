@@ -1,18 +1,22 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, I18nManager, Image } from 'react-native';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker from 'react-native-country-picker-modal';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
+import api from '../../../utils/api';
+import { Toast } from 'native-base';
+import { ActivityIndicator } from 'react-native';
+
 const PhoneLoginForm = React.memo(() => {
   const { t } = useTranslation();
   const phoneInput = useRef(null);
   const [isFlagsVisible, setIsFlagsVisible] = useState(false);
   const navigation = useNavigation();
   const [number, setNumber] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const [country, setCountry] = useState({
     cca2: 'tn',
@@ -42,12 +46,47 @@ const PhoneLoginForm = React.memo(() => {
     return true;
   }, [number, t]);
 
-  const handleContinue = useCallback(() => {
-    if (isPhoneNumberValid()) {
- 
-      navigation.navigate('confirmation', {number});
+  const handleContinue = useCallback(async () => {
+    if (!isPhoneNumberValid()) return;
+    setLoading(true);
+    try {
+      // Remove spaces and non-numeric characters for consistency
+      console.log(`/users?filters[phoneNumber][$eq]=${"+"+number.replace(/\D/g, '')}`)
+      // Query Strapi for user with this phone number
+      const res = await api.get(`/users?filters[phoneNumber][$endsWith]=${number.replace(/\D/g, '')}`);
+      console.log("rse",res.data)
+      const users = res.data;
+      if(users.length>0){
+        const user = users[0];
+        if (user.blocked) {
+          Toast.show({
+            title: t('common.error'),
+              description: t('auth.account_blocked'),
+            placement: 'top',
+            status: 'error',
+            duration: 3000
+          });
+          setLoading(false);
+          return;
+        }
+        
+      }  
+   navigation.navigate('confirmation', { number });
+    } catch (error) {
+      Toast.show({
+        title: t('common.error'),
+        description: t('login.apiError'),
+        placement: 'top',
+        status: 'error',
+        duration: 3000
+      });
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
-  }, [number, isPhoneNumberValid]);
+  }, [number, isPhoneNumberValid, t, navigation]);
+
+  
 
   return (
      
@@ -67,15 +106,23 @@ const PhoneLoginForm = React.memo(() => {
                     paddingVertical: 5,
                     paddingHorizontal: 18,
                     height: 50,
+                    flexDirection:I18nManager.isRTL? "row-reverse":"row",
+                    textAlign: I18nManager.isRTL ? 'right' : 'left',
                   }}
                   textComponent={TextInput}
                   textProps={{
                     placeholder: t('login.phoneNumber'),
                     placeholderTextColor: '#8391A1',
-                    style: { color: '#222',flex:1 }
+                    style: { 
+                      color: '#222',
+                      flex: 1,
+                      flexDirection:"row",
+                      paddingHorizontal:10
+                         }
                   }}
                   ref={phoneInput}
                   value={number}
+                 
                 />
               </View>
             </View>
@@ -98,8 +145,14 @@ const PhoneLoginForm = React.memo(() => {
           
             <TouchableOpacity
               style={styles.btn}
-              onPress={handleContinue}>
-              <Text style={styles.btnText}>{t('login.continue')}</Text>
+              onPress={handleContinue}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#222" />
+              ) : (
+                <Text style={styles.btnText}>{t('login.continue')}</Text>
+              )}
             </TouchableOpacity>
          
         </View>

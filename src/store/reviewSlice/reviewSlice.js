@@ -1,30 +1,14 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import axios from 'axios';
-import {API_URL_ANDROID, API_URL_IOS} from '@env';
-import {Platform} from 'react-native';
-const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-// getreviewbyDriver                    $$=> Dash
-// getreviewbyClient                    $$=> Dash
-// checkcommandReviewExisting       *****
-// getreviewByCommandId             *****
-// createReview                     *****       then -> update driver rating
-// updateExistingReview             *****       then -> update driver rating
-// pagination[pageSize]=99999
-
+import api from '../../utils/api';
+ 
+  
 export const getRviewByCommandId = createAsyncThunk(
   'review/command/get',
   async ({id}, thunkAPI) => {
-    const state = thunkAPI.getState();
-    const token = state.user.token;
+ 
     try {
-      const response = await axios.get(
-        `${API_URL}/api/reviews?filters[command][id][$eq]=${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await api.get(
+        `/reviews?filters[command][id][$eq]=${id}` );
 
       return response.data;
     } catch (error) {
@@ -36,15 +20,10 @@ export const getRviewByCommandId = createAsyncThunk(
 export const createReview = createAsyncThunk(
   'review/create',
   async ({id, body}, thunkAPI) => {
-    const state = thunkAPI.getState();
-    const token = state.user.token;
+ 
  
     try {
-      const response = await axios.post(`${API_URL}/api/reviews/${id}`, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.post(`/reviews/${id}`, body);
 
       return response.data;
     } catch (error) {
@@ -56,15 +35,10 @@ export const createReview = createAsyncThunk(
 export const updateReview = createAsyncThunk(
   'review/update',
   async ({id, body}, thunkAPI) => {
-    const state = thunkAPI.getState();
-    const token = state.user.token;
+   
 
     try {
-      const response = await axios.put(`${API_URL}/api/reviews/${id}`, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.put(`/reviews/${id}`, body);
 
       return response.data;
     } catch (error) {

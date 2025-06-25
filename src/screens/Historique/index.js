@@ -17,6 +17,11 @@ import { Card } from "./components/Card";
 import { Empty } from "./components/Empty";
 import { colors } from "../../utils/colors";
 import { useTranslation } from "react-i18next";
+import { 
+  trackScreenView, 
+  trackHistoryViewed 
+} from '../../utils/analytics';
+
 const Historique = ({ navigation }) => {
   const dispatch = useDispatch();
   const [statusFilter, setStatusFilter] = useState(null);
@@ -29,6 +34,13 @@ const Historique = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const isFocused = useIsFocused();
   const {t} = useTranslation();
+  
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('History');
+    trackHistoryViewed();
+  }, []);
+  
   useEffect(() => {
     getData(true);
   }, [statusFilter, filter]);

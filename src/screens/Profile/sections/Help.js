@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, Alert,SafeAreaView,StatusBar} from 'react-native';
 import { styles } from '../styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Header from '../components/Header';
@@ -37,33 +37,33 @@ const Help = () => {
   };
 
   return (
+    <SafeAreaView
+    style={[
+      styles.container,
+      { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
+    ]}
+  >
+
+
     <View style={styles.sectionContainer}>
+     
       <Header title={t('help.title')} />
-      <ScrollView style={{padding:20}}>
+      <ScrollView>
+        <View  style={{padding:20}}>
+
+       
+
         <View style={styles.helpOptionsContainer}>
           <TouchableOpacity
             style={styles.helpOption}
-            onPress={handleCall}
+            onPress={()=>navigation.navigate("TicketScreen")}
           >
-            <Icon name="phone" size={24} color="#0c0c0c" />
-            <Text style={styles.helpOptionText}>{t('help.call_support')}</Text>
+            <Icon name="help-circle-outline" size={24} color="#fff" />
+            <Text style={styles.helpOptionText}>{t('tickets.title')}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.helpOption}
-            onPress={handleEmail}
-          >
-            <Icon name="email" size={24} color="#0c0c0c" />
-            <Text style={styles.helpOptionText}>{t('help.send_email')}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.helpOption}
-            onPress={handleWhatsApp}
-          >
-            <Icon name="whatsapp" size={24} color="#0c0c0c" />
-            <Text style={styles.helpOptionText}>{t('help.whatsapp')}</Text>
-          </TouchableOpacity>
+       
+           
         </View>
 
         <View style={styles.faqContainer}>
@@ -83,8 +83,10 @@ const Help = () => {
          
         </View>
         <View style={{height:100}}></View>
+        </View>
       </ScrollView>
     </View>
+    </SafeAreaView>
   );
 };
 

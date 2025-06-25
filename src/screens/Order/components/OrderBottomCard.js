@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView, PanResponder, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView, PanResponder, Platform, AppState } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../utils/colors';
@@ -14,11 +14,11 @@ const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT
 import database from '@react-native-firebase/database';
 
 const STATUS_COLORS = {
-  Driver_on_route_to_pickup: '#3498db',
-  Arrived_at_pickup: '#2ecc71',
+  Driver_on_route_to_pickup: '#f1c40f',
+  Arrived_at_pickup: '#f1c40f',
   Picked_up: '#f1c40f',
-  On_route_to_delivery: '#3498db',
-  Arrived_at_delivery: '#2ecc71',
+  On_route_to_delivery: '#f1c40f',
+  Arrived_at_delivery: '#f1c40f',
   Delivered: '#27ae60',
   Completed: '#27ae60',
   default: '#f1c40f',
@@ -38,6 +38,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [additionalCharges, setAdditionalCharges] = useState(order?.additionalCharges || 0);
   const [lastChargeTime, setLastChargeTime] = useState(order?.lastChargeTime ? Math.floor((Date.now() - new Date(order.lastChargeTime).getTime()) / 1000) : 0);
+  const lastChargeTimeRef = useRef(lastChargeTime);
   const [params, setParams] = useState({});
   const timerRef = useRef(null);
   const navigation = useNavigation();
@@ -57,10 +58,9 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   ];
   const [isExpanded, setIsExpanded] = useState(true);
   const MINIMUM_HEIGHT = CARD_HEIGHT * 0.4; // 20% of the card height
-console.log("commandStatus",order?.commandStatus )
-  // Memoized values
+   // Memoized values
   const status = order?.commandStatus || 'pending';
- 
+ console.log("status",status)
   const statusColor = useMemo(() => STATUS_COLORS[status] || STATUS_COLORS.default, [status]);
   const statusText = useMemo(() =>  t(`history.status.${status.toLowerCase()}`), [status, t]);
 
@@ -116,42 +116,99 @@ console.log("commandStatus",order?.commandStatus )
 
   };
 
-  useEffect(() => {
-    if(order?.commandStatus == "Arrived_at_pickup"){
-      const getParams = async () => {
-        const paramsRes = await api.get(`parameters`);
-        setParams(paramsRes.data.data[0]);
-        // Initialize waiting time based on lastChargeTime if it exists
-        if (order?.lastChargeTime) {
-          const initialWaitingTime = Math.floor((Date.now() - new Date(order.lastChargeTime).getTime()) / 1000);
-          setWaitingTime(initialWaitingTime);
-        }
-        setTimeout(() => {
-          startTimer();
-        }, 30);
-      }
-      getParams();
+  const [appState, setAppState] = useState(AppState.currentState);
+  
+
+  useEffect(()=>{
+    const getParams=async ()=>{
+      const paramsRes = await api.get(`parameters`);
      
-    }else{
-      if(isTimerRunning){
-        stopTimer();
+      setParams(paramsRes.data.data[0]);
+    }
+    getParams()
+  },[])
+  // Handle initial status change and app coming to foreground
+  useEffect(() => {
+    const initializeTimer = async () => {
+      const paramsRes = await api.get(`parameters`);
+      
+      if (order?.lastChargeTime) {
+        // Calculate the exact time difference in seconds
+        const lastChargeTimeMs = new Date(order.lastChargeTime).getTime();
+        const currentTimeMs = Date.now();
+        const gracePeriodInSeconds = paramsRes.data.data[0].WAITING_TIME_GRACE_PERIOD * 60;
+        const initialWaitingTime = Math.floor((currentTimeMs - lastChargeTimeMs) / 1000)
+        
+        // Calculate the last charge time based on grace period
+
+        const lastChargeTimeValue = Math.floor(initialWaitingTime / gracePeriodInSeconds) * gracePeriodInSeconds;
+        
+        setWaitingTime(initialWaitingTime);
+        setLastChargeTime(lastChargeTimeValue);
+        
+        // Start timer immediately after setting initial time
+        if (order?.commandStatus === "Arrived_at_pickup") {
+          startTimer(initialWaitingTime, lastChargeTimeValue);
+        }
       }
+    };
+
+    if (order?.commandStatus === "Arrived_at_pickup") {
+      initializeTimer();
+    } else {
+      if (isTimerRunning) {
+        stopTimer();
+      } 
     }
   }, [order?.commandStatus, order?.lastChargeTime]);
 
+  // Handle app state changes
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active' && order?.commandStatus === "Arrived_at_pickup") {
+        // App has come to the foreground
+        const initializeTimer = async () => {
+          const paramsRes = await api.get(`parameters`);
+          setParams(paramsRes.data.data[0]);
+          
+          if (order?.lastChargeTime) {
+            const initialWaitingTime = Math.floor((Date.now() - new Date(order.lastChargeTime)) / 1000);
+            const initialWaitingTimeGracePeriod = paramsRes.data.data[0].WAITING_TIME_GRACE_PERIOD * 60;
+            const lastChargeTimeValue = initialWaitingTime - (initialWaitingTime % initialWaitingTimeGracePeriod);
+            
+            setWaitingTime(initialWaitingTime);
+            setLastChargeTime(lastChargeTimeValue);
+            setTimeout(() => {
+              startTimer(initialWaitingTime, lastChargeTimeValue);
+            }, 0);
+          }
+          
+        
+        };
+        initializeTimer();
+      }
+      setAppState(nextAppState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [appState, order?.commandStatus, order?.lastChargeTime]);
+
   // Calculate initial additional charges on mount
   useEffect(() => {
+    
     const calculateInitialCharges = async () => {
+
       if (order?.lastChargeTime && order?.commandStatus === "Arrived_at_pickup") {
         const paramsRes = await api.get(`parameters`);
         const currentParams = paramsRes.data.data[0];
         setParams(currentParams);
 
         const elapsedSeconds = Math.floor((Date.now() - new Date(order.lastChargeTime).getTime()) / 1000);
-        const startChargeAfterTimeInSeconds = currentParams.START_CHARGE_AFTERT_TIME * 60;
-        const gracePeriodInSeconds = currentParams.WAITING_TIME_GRACE_PERIOD * 60;
-
-        if (elapsedSeconds > startChargeAfterTimeInSeconds) {
+        const startChargeAfterTimeInSeconds = Number(currentParams.START_CHARGE_AFTERT_TIME) * 60;
+        const gracePeriodInSeconds = Number(currentParams.WAITING_TIME_GRACE_PERIOD) * 60;
+         if (elapsedSeconds > startChargeAfterTimeInSeconds) {
           const elapsedGracePeriods = Math.floor((elapsedSeconds - startChargeAfterTimeInSeconds) / gracePeriodInSeconds);
           const initialCharges = elapsedGracePeriods * currentParams.WAITING_TIME_CHARGE;
           setAdditionalCharges(initialCharges);
@@ -164,50 +221,78 @@ console.log("commandStatus",order?.commandStatus )
     calculateInitialCharges();
   }, [order?.lastChargeTime, order?.commandStatus]);
 
-  const startTimer = () => {
+  const startTimer =async (initialTime, lastChargeTimeValue) => {
+    if (isTimerRunning) {
+      stopTimer();
+    }
+    const paramsRes = await api.get(`parameters`);
+    const currentParams = paramsRes.data.data[0];
+
     setIsTimerRunning(true);
     
     // Calculate initial charges if there's already waiting time
-    if (waitingTime > 0) {
-      const startChargeAfterTimeInSeconds = params.START_CHARGE_AFTERT_TIME * 60;
-      const gracePeriodInSeconds = params.WAITING_TIME_GRACE_PERIOD * 60;
+    if (initialTime > 0) {
+      const startChargeAfterTimeInSeconds = currentParams.START_CHARGE_AFTERT_TIME * 60;
+      const gracePeriodInSeconds = currentParams.WAITING_TIME_GRACE_PERIOD * 60;
       
-      if (waitingTime > startChargeAfterTimeInSeconds) {
-        const elapsedGracePeriods = Math.floor((waitingTime - startChargeAfterTimeInSeconds) / gracePeriodInSeconds);
-        const initialCharges = elapsedGracePeriods * params.WAITING_TIME_CHARGE;
+      if (initialTime > startChargeAfterTimeInSeconds) {
+        const elapsedGracePeriods = Math.floor((initialTime - startChargeAfterTimeInSeconds) / gracePeriodInSeconds);
+        const initialCharges = elapsedGracePeriods * currentParams.WAITING_TIME_CHARGE;
         setAdditionalCharges(initialCharges);
-        setLastChargeTime(waitingTime - (waitingTime % gracePeriodInSeconds));
       }
     }
 
-    timerRef.current = BackgroundTimer.setInterval(() => {
-      setWaitingTime((prevTime) => {
-        const newTime = prevTime + 1;
+    // Store the start time and last tick
+    const startTime = Date.now();
+    const initialTimeMs = startTime - (initialTime * 1000); // Convert initial time to milliseconds
+    let lastTick = startTime;
+ 
 
-        const startChargeAfterTimeInSeconds = params.START_CHARGE_AFTERT_TIME * 60;
-        const gracePeriodInSeconds = params.WAITING_TIME_GRACE_PERIOD * 60;
+    lastChargeTimeRef.current = lastChargeTimeValue;
+    const expectedCharges =  currentParams.WAITING_TIME_CHARGE;
+     const startChargeAfterTimeInSeconds = Number(currentParams.START_CHARGE_AFTERT_TIME) * 60;
+    const gracePeriodInSeconds = Number(currentParams.WAITING_TIME_GRACE_PERIOD) * 60;
 
-        if (newTime > startChargeAfterTimeInSeconds) {
-          const timeSinceLastCharge = newTime - lastChargeTime;
-         
-          if (timeSinceLastCharge % gracePeriodInSeconds === 0) {
-            setAdditionalCharges((prev) => prev + params.WAITING_TIME_CHARGE);
-            setLastChargeTime(newTime);
+    timerRef.current = BackgroundTimer.runBackgroundTimer(() => {
+      const now = Date.now();
+      const delta = Math.floor((now - lastTick) / 1000); // Convert to seconds
+     
+      if (delta >= 1) { // Only update if at least 1 second has passed
+        lastTick = now;
+        const elapsedSeconds = Math.floor((now - initialTimeMs) / 1000);
+       
+      
+          // Calculate how many grace periods have passed since charging started
+           
+          // Calculate how many charges should have been added
+           // Only add charge if we haven't added it yet
+          if (elapsedSeconds >= startChargeAfterTimeInSeconds && (elapsedSeconds % gracePeriodInSeconds == 0)) {
+            setAdditionalCharges(additionalCharges+expectedCharges);
+            lastChargeTimeRef.current = elapsedSeconds;
+            setLastChargeTime(elapsedSeconds);
           }
-        }
+       
 
-        return newTime;
-      });
+        setWaitingTime(elapsedSeconds);
+      }
     }, 1000);
   };
 
-
   const stopTimer = () => {
+    BackgroundTimer.stopBackgroundTimer();
     if (timerRef.current) {
-      BackgroundTimer.clearInterval(timerRef.current);
+      BackgroundTimer.stopBackgroundTimer();
       setIsTimerRunning(false);
+      timerRef.current = null;
     }
   };
+
+  // Add cleanup effect
+  useEffect(() => {
+    return () => {
+      stopTimer();
+    };
+  }, []);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -267,8 +352,7 @@ console.log("commandStatus",order?.commandStatus )
       translateY.removeListener(listener);
     };
   }, [translateY]);
- 
-  return (
+   return (
     <Animated.View 
       style={[
         styles.container,
@@ -400,7 +484,7 @@ console.log("commandStatus",order?.commandStatus )
 
            <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:10,flex:1,width:"100%"}}>
              
-            {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&&(  <TouchableOpacity 
+            {!["Canceled_by_client", "Canceled_by_driver"].includes(order?.commandStatus)&&(  <TouchableOpacity 
                 style={styles.reportButton}
                 onPress={() => setShowReportModal(true)}
                 onPressIn={handlePressIn}
@@ -411,7 +495,7 @@ console.log("commandStatus",order?.commandStatus )
         
 
 
-              {order?.commandStatus === "Completed" &&(  <TouchableOpacity 
+              {order?.commandStatus === "Completed"&&order?.review==null &&(  <TouchableOpacity 
                   disabled={order?.review}
                   style={[styles.submitReportButton, styles.rateButton,{opacity:!order?.review?1:0.2}]}
                   onPress={()=>  navigation.navigate('Rating', { order })}
@@ -422,7 +506,7 @@ console.log("commandStatus",order?.commandStatus )
             </View>  
 
         
-             {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus)&&( <TouchableOpacity 
+             { ["Pending","Arrived_at_pickup","Go_to_pickup"].includes(order?.commandStatus)&&( <TouchableOpacity 
                 style={styles.cancelButton}
                 onPress={handleCancelPress}
                 onPressIn={handlePressIn}

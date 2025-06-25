@@ -6,7 +6,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
-  Platform
+  Platform,
+  I18nManager
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,14 @@ import { googleSignIn, appleSignIn } from '../../../services/socialAuth';
 import { userRegister } from '../../../store/userSlice/userSlice';
 import EmailLoginForm from '../../../screens/Login/components/EmailLoginForm';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { 
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackBookingStepBack,
+  trackLoginAttempt,
+  trackLoginSuccess,
+  trackLoginFailure
+} from '../../../utils/analytics';
 
 const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
   const { t } = useTranslation();
@@ -23,9 +32,15 @@ const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
 
+  // Track step view
+  React.useEffect(() => {
+    trackBookingStepViewed(4.5, 'Login Required');
+  }, []);
+
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
+      trackLoginAttempt('google', { context: 'booking_flow' });
       const result = await googleSignIn();
       OneSignal.login(String(result.user.id));
       console.log("resultresult",result)
@@ -35,9 +50,12 @@ const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
 else  
     {
       await dispatch(userRegister(result));
+      trackLoginSuccess('google', { context: 'booking_flow', complete_profile: true });
+      trackBookingStepCompleted(4.5, 'Login Required', { method: 'google' });
       onLoginSuccess();
     }
     } catch (error) {
+      trackLoginFailure('google', error.message || 'unknown_error', { context: 'booking_flow' });
       console.log(error, 'error');
     } finally {
       setIsGoogleLoading(false);
@@ -47,6 +65,7 @@ else
   const handleAppleLogin = async () => {
     try {
       setIsAppleLoading(true);
+      trackLoginAttempt('apple', { context: 'booking_flow' });
       const result = await appleSignIn();
       OneSignal.login(String(result.user.id));
       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
@@ -54,9 +73,11 @@ else
       onRegisterPress(result)
 else {    
       await dispatch(userRegister(result));
-
+      trackLoginSuccess('apple', { context: 'booking_flow', complete_profile: true });
+      trackBookingStepCompleted(4.5, 'Login Required', { method: 'apple' });
       onLoginSuccess();}
     } catch (error) {
+      trackLoginFailure('apple', error.message || 'unknown_error', { context: 'booking_flow' });
       console.log(error, 'error');
     } finally {
       setIsAppleLoading(false);
@@ -64,7 +85,19 @@ else {
   };
 
   const handleEmailLoginSuccess = () => {
+    trackLoginSuccess('email', { context: 'booking_flow' });
+    trackBookingStepCompleted(4.5, 'Login Required', { method: 'email' });
     onLoginSuccess();
+  };
+
+  const handleBack = () => {
+    trackBookingStepBack(4.5, 'Login Required');
+    onBack();
+  };
+
+  const handleRegisterPress = () => {
+    trackBookingStepBack(4.5, 'Login Required', { action: 'register_pressed' });
+    onRegisterPress();
   };
 
   return (
@@ -72,8 +105,8 @@ else {
       
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={28} color="#0c0c0c" />
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right":"arrow-left"} size={28} color="#0c0c0c" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('login.needToLogin')}</Text>
        
@@ -131,7 +164,7 @@ else {
 
       <TouchableOpacity 
         style={styles.registerButton}
-        onPress={onRegisterPress}
+        onPress={handleRegisterPress}
       >
         <Text style={styles.registerButtonText}>
           {t('login.registerNow')}

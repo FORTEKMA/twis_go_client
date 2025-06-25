@@ -1,21 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import axios from 'axios';
-import {API_URL_ANDROID, API_URL_IOS} from '@env';
-import {Platform} from 'react-native';
-const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-export const createOrder = createAsyncThunk(
+ 
+ 
+import api from "../../utils/api"
+ export const createOrder = createAsyncThunk(
   'commande/create',
   async (data, thunkAPI) => {
      try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-
-      let response = await axios.post(`${API_URL}/api/commands`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  
+      let response = await api.post(`/commands`, data);
      
       return response;
     } catch (error) {
@@ -28,13 +21,7 @@ export const updateReservation = createAsyncThunk(
   async ({id, body}, thunkAPI) => {
   
     try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-      const response = await axios.put(`${API_URL}/api/commands/${id}`, body, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        const response = await api.put(`/commands/${id}`, body);
 
       return response.data;
     } catch (error) {
@@ -66,16 +53,9 @@ export const getUserOrdersById = createAsyncThunk(
       : "";
 
     try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-       const response = await axios.get(
-        `${API_URL}/api/commands?filters[client][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+     
+       const response = await api.get(
+        `/commands?filters[client][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`);
        
       return { data: response.data.data, meta: response.data.meta };
     } catch (error) {
@@ -88,17 +68,10 @@ export const getOrderById = createAsyncThunk(
   'order/getById',
   async ({id}, thunkAPI) => {
     try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
+     
     
-       const response = await axios.get(
-        `${API_URL}/api/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture&populate[6]=review&populate[7]=driver.vehicule`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+       const response = await api.get(
+        `/commands/${id}?populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=driver.profilePicture&populate[6]=review&populate[7]=driver.vehicule`);
       ;
       return response.data;
     } catch (error) {
@@ -112,20 +85,13 @@ export const getOrdersById = createAsyncThunk(
   'order/get',
   async ({id, currentPage = 1, pageSize = 10, text = ''}, thunkAPI) => {
     try {
-      const state = thunkAPI.getState();
-      const token = state.user.token;
-      const response = await axios.get(
-        `${API_URL}api/commands?filters[client]=${id}&populate=*&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}${
+     
+      const response = await api.get(
+        `/commands?filters[client]=${id}&populate=*&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}${
           text !== ''
             ? `&filters[$or][0][pickUpAddress][Address][$contains]=${text}&filters[$or][1][dropOfAddress][Address][$contains]=${text}&filters[$or][2][id][$eq]=${text}&filters[$or][3][refNumber][$contains]=${text}&filters[$or][4][commandStatus][$contains]=${text}&filters[$or][5][departDate][$contains]=${text}`
             : ''
-        }`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+        }`);
  
       return response.data;
     } catch (error) {
@@ -136,19 +102,11 @@ export const getOrdersById = createAsyncThunk(
 export const getCurrentCommande = createAsyncThunk(
   'order/currentCommande',
   async (id, thunkAPI) => {
-    const state = thunkAPI.getState();
-    const token = state.user.token;
+   
 
     try {
-      const response = await axios.get(
-        `${API_URL}/api/commands?filters[driver][documentId]=${id}&populate[0]=driver&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client&populate[9]=items.item`,
-
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      const response = await api.get(
+        `/commands?filters[driver][documentId]=${id}&populate[0]=driver&populate[1]=items&populate[2]=pickUpAddress&populate[3]=dropOfAddress&populate[4]=dropAcces&populate[5]=pickUpAcces&populate[6]=pickUpAddress.coordonne&populate[7]=dropOfAddress.coordonne&populate[8]=client&populate[9]=items.item` );
 
   
       return response.data;

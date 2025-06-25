@@ -41,6 +41,23 @@ import {API_GOOGLE} from "@env"
 import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AnimatedPolyline from './components/AnimatedPolyline';
+import { 
+  trackScreenView, 
+  trackRideBookingStarted,
+  trackPickupLocationSelected,
+  trackDropoffLocationSelected,
+  trackVehicleSelected,
+  trackRideConfirmed,
+  trackRideCancelled,
+  trackDriverFound,
+  trackLocationPermissionRequested,
+  trackLocationPermissionGranted,
+  trackLocationPermissionDenied,
+  trackCurrentLocationUsed,
+  trackBookingStepViewed,
+  trackBookingStepCompleted,
+  trackBookingStepBack
+} from '../../utils/analytics';
 const { width: SCREEN_WIDTH,height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
@@ -90,6 +107,31 @@ const MainScreen = () => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
  
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('MainScreen');
+  }, []);
+
+  // Track step changes
+  useEffect(() => {
+    const stepNames = {
+      1: 'Pickup Location',
+      2: 'Dropoff Location', 
+      3: 'Vehicle Selection',
+      4: 'Ride Confirmation',
+      4.5: 'Login Required',
+      5: 'Searching Drivers'
+    };
+    
+    if (stepNames[step]) {
+      trackBookingStepViewed(step, stepNames[step], {
+        has_pickup: !!formData?.pickupAddress,
+        has_dropoff: !!formData?.dropAddress,
+        has_vehicle: !!formData?.vehicleType
+      });
+    }
+  }, [step]);
+
   // Memoized distance calculation
   const memoizedCalculateDistance = useMemo(() => {
     return (lat1, lon1, lat2, lon2) => {
@@ -213,13 +255,17 @@ const MainScreen = () => {
   }, [step, hasTouchedMap, routeCoords]);
 
   const requestLocationPermission = async () => {
+    trackLocationPermissionRequested();
+    
     if (Platform.OS === 'ios') {
       Geolocation.requestAuthorization();
       Geolocation.getCurrentPosition(
         (position) => {
+          trackLocationPermissionGranted();
           getCurrentLocation();
         },
         (error) => {
+          trackLocationPermissionDenied({ platform: 'ios', error: error.message });
           setLocationAlertMessage(t('common.enable_location_services'));
           setShowLocationAlert(true);
         },
@@ -230,15 +276,19 @@ const MainScreen = () => {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
+        console.log("granted",granted)
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          trackLocationPermissionGranted();
           getCurrentLocation();
         } else {
+          trackLocationPermissionDenied({ platform: 'android', reason: 'user_denied' });
           setLocationAlertMessage(t('common.location_permission_required'));
           setShowLocationAlert(true);
         }
       } catch (err) {
         console.warn(err);
-        setLocationAlertMessage(t('common.location_permission_error'));
+        trackLocationPermissionDenied({ platform: 'android', error: err.message });
+        setLocationAlertMessage(t('common.location_permission_error')); z
         setShowLocationAlert(true);
       }
     }
@@ -246,7 +296,10 @@ const MainScreen = () => {
 
   const getCurrentLocation = () => {
     try {
+
+      
       setLoadingCurrentLocation(true)
+      trackCurrentLocationUsed();
     Geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
@@ -268,8 +321,13 @@ const MainScreen = () => {
           }, 0);
         }
       },
-      (error) =>{ setShowLocationAlert(true); setLoadingCurrentLocation(false); console.log(error)},
-      { enableHighAccuracy: true, timeout: 50000, maximumAge: 1000 }
+      (error) =>{ 
+        setShowLocationAlert(true); 
+        setLoadingCurrentLocation(false); 
+        console.log(error)
+      },
+      {  enableHighAccuracy: false,
+        timeout: 10000, }
     );
        
   } catch (error) {
@@ -277,9 +335,7 @@ const MainScreen = () => {
   }
   };
 
-  useEffect(() => {
-    requestLocationPermission();
-  }, []);
+  
 
   useEffect(() => {
    
@@ -328,6 +384,9 @@ const MainScreen = () => {
     setAccepted(null)
     setDriversIdsNotAccepted([])
     setDrivers({})
+    setAnimatedCoords([])
+    setRouteCoords([])
+    clearInterval(backInterval.current);
   }
 
   const animateStepTransition = (newStep) => {
@@ -360,6 +419,44 @@ const MainScreen = () => {
   const goNext = async (data,handlerNext=true) => {
      try {
       setFormData({...formData,...data})
+      
+      // Track ride booking progress
+      if (step === 1 && data?.pickupAddress) {
+        trackPickupLocationSelected(data.pickupAddress);
+        trackRideBookingStarted();
+        trackBookingStepCompleted(1, 'Pickup Location', {
+          address: data.pickupAddress.address,
+          latitude: data.pickupAddress.latitude,
+          longitude: data.pickupAddress.longitude
+        });
+      }
+      if (step === 2 && data?.dropAddress) {
+        trackDropoffLocationSelected(data.dropAddress);
+        trackBookingStepCompleted(2, 'Dropoff Location', {
+          address: data.dropAddress.address,
+          latitude: data.dropAddress.latitude,
+          longitude: data.dropAddress.longitude
+        });
+      }
+      if (step === 3 && data?.vehicleType) {
+        trackVehicleSelected(data.vehicleType);
+        trackBookingStepCompleted(3, 'Vehicle Selection', {
+          vehicle_type: data.vehicleType.key,
+          vehicle_id: data.vehicleType.id
+        });
+      }
+      if (step === 4 && data?.confirmed) {
+        trackRideConfirmed({
+          ...formData,
+          ...data
+        });
+        trackBookingStepCompleted(4, 'Ride Confirmation', {
+          price: data.price,
+          distance: formData.distance,
+          time: formData.time
+        });
+      }
+      
       if(handlerNext){
         // Check if we need to show login step
         if (step === 4 && token === -1) {
@@ -400,6 +497,17 @@ const MainScreen = () => {
   };
 
   const goBack = () => {
+    const stepNames = {
+      1: 'Pickup Location',
+      2: 'Dropoff Location', 
+      3: 'Vehicle Selection',
+      4: 'Ride Confirmation',
+      4.5: 'Login Required',
+      5: 'Searching Drivers'
+    };
+
+    trackBookingStepBack(step, stepNames[step] || 'Unknown');
+
     if(step==4){
       //OneSignal.Notifications.removeEventListener('foregroundWillDisplay');
       console.log("cancel the job");
@@ -493,6 +601,7 @@ const MainScreen = () => {
   }
 
   useEffect(() => {
+    requestLocationPermission();
     const keyboardWillShow = Platform.OS === 'ios' 
       ? Keyboard.addListener('keyboardWillShow', handleKeyboardShow)
       : Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
@@ -537,7 +646,7 @@ const MainScreen = () => {
               { translateX },
               { translateY }
             ],
-            bottom: isKeyboardVisible ? keyboardHeight-100 : 0,
+            bottom: 0//isKeyboardVisible ? keyboardHeight-100 : 0,
           },
         ]}>
         <View style={localStyles.stepContent}>

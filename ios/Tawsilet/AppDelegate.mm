@@ -4,6 +4,7 @@
 #import <Firebase.h>
 #import "RNSplashScreen.h"  // here
 #import <GoogleMaps/GoogleMaps.h>
+#import "StallionModule.h"
 
 #import <AuthenticationServices/AuthenticationServices.h>
 #import <SafariServices/SafariServices.h>
@@ -36,13 +37,25 @@
   return YES;
 }
 
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+ 
+
+- (NSURL *)bundleURL
+  {
+    #if DEBUG
+      return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+    #else
+      return [StallionModule getBundleURL];
+    #endif
+  }
+
+  - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
 {
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+      return [StallionModule getBundleURL];
 #endif
 }
+
 
 @end

@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Alert, useWindowDimensions ,SafeAreaView,Image,View, TouchableOpacity, Text, TextInput, Animated, Easing, ActivityIndicator,Platform, I18nManager, Keyboard,TouchableWithoutFeedback} from 'react-native';
 import { useDispatch } from 'react-redux';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
+import {Toast} from "native-base"
 import * as Yup from 'yup';
  
 import EmailLoginForm from './components/EmailLoginForm';
@@ -11,13 +11,21 @@ import { styles } from './styles';
 import { updateUser,getCurrentUser,userRegister} from '../../store/userSlice/userSlice';
 import { useTranslation } from 'react-i18next';
 import { OneSignal } from "react-native-onesignal";
-  
+import { GoogleSignin as GoogleSigninService } from '@react-native-google-signin/google-signin';
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { googleSignIn, appleSignIn } from '../../services/socialAuth';
 import LanguageModal from '../Profile/components/LanguageModal';
 import LanguageConfirmationModal from '../Profile/components/LanguageConfirmationModal';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { changeLanguage } from '../../local';
+import { 
+  trackScreenView, 
+  trackLoginAttempt, 
+  trackLoginSuccess, 
+  trackLoginFailure, 
+  trackLanguageChanged 
+} from '../../utils/analytics';
 
 const Login = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -36,6 +44,11 @@ const Login = ({ navigation }) => {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const switchWidth = width  - 40; // 90% of screen width minus margins
 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreenView('Login');
+  }, []);
+
   // Create interpolated values for smoother transitions
   const translateX = slideAnim.interpolate({
     inputRange: [0, 1],
@@ -46,6 +59,9 @@ const Login = ({ navigation }) => {
   const handleSwitch = (method) => {
     const toValue = method === 'email' ?  0 : 1;
     setLoginMethod(method);
+    
+    // Track login method switch
+    trackLoginAttempt(method, { action: 'method_switch' });
     
     Animated.timing(slideAnim, {
       toValue,
@@ -66,12 +82,14 @@ const Login = ({ navigation }) => {
       setIsConfirmationModalVisible(true);
     } else {
       changeLanguage(language);
+      trackLanguageChanged(language);
     }
   };
 
   const handleLanguageConfirm = () => {
     if (selectedLanguage) {
       changeLanguage(selectedLanguage);
+      trackLanguageChanged(selectedLanguage);
       setIsConfirmationModalVisible(false);
       setSelectedLanguage(null);
     }
@@ -80,18 +98,39 @@ const Login = ({ navigation }) => {
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
+      trackLoginAttempt('google');
       const result = await googleSignIn();
       
-      OneSignal.login(String(result.user.id));
+      try {
+        GoogleSigninService.signOut();
+      } catch (error) {
+        console.log(error)
+      }
 
       
-      if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
-   navigation.navigate('Register',{result})
-  
- else dispatch(userRegister(result));
+      if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber) {
+        trackLoginSuccess('google', { incomplete_profile: true });
+        navigation.navigate('Register',{result})
+      } else {
+        if (result.user.blocked) {
+          trackLoginFailure('google', 'account_blocked');
+          Toast.show({
+            title: t('common.error'),
+            description: t('auth.account_blocked'),
+            placement: "top",
+            duration: 3000,
+            status: "error"
+          });
+         
+          return;
+        }
+        trackLoginSuccess('google', { complete_profile: true });
+        OneSignal.login(String(result.user.id));
+        dispatch(userRegister(result));
+      }
       
     } catch (error) {
-   
+      trackLoginFailure('google', error.message || 'unknown_error');
       console.log(error, 'error')
     } finally {
       setIsGoogleLoading(false);
@@ -101,13 +140,32 @@ const Login = ({ navigation }) => {
   const handleAppleLogin = async () => {
     try {
       setIsAppleLoading(true);
+      trackLoginAttempt('apple');
       const result = await appleSignIn();
-      OneSignal.login(String(result.user.id));
-       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
+    
+       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber) {
+        trackLoginSuccess('apple', { incomplete_profile: true });
         navigation.navigate('Register',{result})
-      else dispatch(userRegister(result));
+      } else {
+        if (result.user.blocked) {
+          trackLoginFailure('apple', 'account_blocked');
+          Toast.show({
+            title: t('common.error'),
+            description: t('auth.account_blocked'),
+            placement: "bottom",
+            duration: 3000,
+            status: "error"
+          });
+         
+          return;
+        }
+        trackLoginSuccess('apple', { complete_profile: true });
+        OneSignal.login(String(result.user.id));
+        dispatch(userRegister(result));
+      }
    
     } catch (error) {
+      trackLoginFailure('apple', error.message || 'unknown_error');
       console.log(error, 'error');
     } finally {
       setIsAppleLoading(false);
