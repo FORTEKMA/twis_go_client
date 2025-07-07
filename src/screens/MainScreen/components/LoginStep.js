@@ -42,6 +42,10 @@ const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
       setIsGoogleLoading(true);
       trackLoginAttempt('google', { context: 'booking_flow' });
       const result = await googleSignIn();
+      console.log("result",result)
+      if(result?.user?.user_role!="client"||result?.user?.blocked==true)
+        return
+     
       OneSignal.login(String(result.user.id));
       console.log("resultresult",result)
       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
@@ -67,6 +71,8 @@ else
       setIsAppleLoading(true);
       trackLoginAttempt('apple', { context: 'booking_flow' });
       const result = await appleSignIn();
+      if(result?.user?.user_role!="client"||result?.user?.blocked==true)
+        return
       OneSignal.login(String(result.user.id));
       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
          
@@ -181,9 +187,18 @@ const styles = StyleSheet.create({
 
 },
   container: {
-    flex: 1,
-    backgroundColor: 'white',
-    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 18,
+    margin: 16,
+    paddingTop:10,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+     width: '92%',
   },
   header: {
     flexDirection: 'row',
@@ -269,11 +284,14 @@ const styles = StyleSheet.create({
   registerButton: {
     backgroundColor: '#fff',
     padding: 16,
+
+    paddingTop:10,
     borderWidth:3,
     borderColor:"#0c0c0c",
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 0,
+    width:"100%"
   },
   registerButtonText: {
     color: '#0c0c0c',

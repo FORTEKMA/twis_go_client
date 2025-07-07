@@ -42,7 +42,7 @@ const setAmplitudeUserProperties = (user) => {
     // Set user ID
      
     if(!user?.documentId) return
-    console.log(user?.documentId,"ddd")
+    
     setUserId(String(user.documentId));
 
     
@@ -92,13 +92,36 @@ const clearAmplitudeUserProperties = () => {
 };
 
 export const userRegister = createAsyncThunk('user/register', async user => {
-   
+  try {
+    // Handle the user registration logic here
+    if (user?.user?.blocked) {
+      Toast.show({
+        title: i18n.t('auth.invalid_account'),
+        description: i18n.t('auth.account_blocked'),
+        placement: "top",
+        status: "error",
+        duration: 3000
+      });
+      return { error: 'blocked', user: user.user };
+    }
     
-      return user
+    if (user?.user?.user_role !== 'client') {
+      Toast.show({
+        title: i18n.t('auth.invalid_account'),
+        description: i18n.t('auth.account_not_for_app'),
+        placement: "top",
+        status: "error",
+        duration: 3000
+      });
+      return { error: 'invalid_role', user: user.user };
+    }
     
+    return user;
+  } catch (error) {
+    console.error('Registration error:', error);
+    return { error: 'unknown', message: error.message };
+  }
 });
-
- 
 
 export const userLogin = createAsyncThunk('user/login', async login => {
   try {
@@ -107,10 +130,33 @@ export const userLogin = createAsyncThunk('user/login', async login => {
     
     OneSignal.login(String(response.data.user.id));
 
-    return response.data
+    // Handle error cases in the async thunk
+    if (response.data?.user?.blocked) {
+      Toast.show({
+        title: i18n.t('auth.invalid_account'),
+        description: i18n.t('auth.account_blocked'),
+        placement: "top",
+        status: "error",
+        duration: 3000
+      });
+      return { error: 'blocked', user: response.data.user };
+    }
+    
+    if (response.data?.user?.user_role !== 'client') {
+      Toast.show({
+        title: i18n.t('auth.invalid_account'),
+        description: i18n.t('auth.account_not_for_app'),
+        placement: "top",
+        status: "error",
+        duration: 3000
+      });
+      return { error: 'invalid_role', user: response.data.user };
+    }
+
+    return response.data;
     
   } catch (error) {
-    console.log("error",error.response)
+    console.log("error",error)
     return {error:true};
   }
 });
@@ -142,16 +188,14 @@ export const logOut = createAsyncThunk('user/logout', async thunkApi => {
 });
 export const sendVerify = createAsyncThunk(
   'user/sendverify',
-  async (phoneNumber, code) => {
-  
+  async (data) => {
+  console.log("data",data)
     try {
-      let response = await api.post(`/send-OTP`, {
-        phoneNumber: phoneNumber,
-      });
-     
+      let response = await api.post(`/codes/send-OTP`, data);
+      console.log("response",response.data)
       return response.data;
     } catch (error) {
-      console.log(error.response, 'send');
+      console.log(error, 'send');
     }
   },
 );
@@ -165,9 +209,33 @@ export const verify = createAsyncThunk(
         code: code,
       });
 
+      // Handle error cases in the async thunk
+      if (response.data?.user?.blocked) {
+        Toast.show({
+          title: i18n.t('auth.invalid_account'),
+          description: i18n.t('auth.account_blocked'),
+          placement: "top",
+          status: "error",
+          duration: 3000
+        });
+        return { error: 'blocked', user: response.data.user };
+      }
+      
+      if (response.data?.user_role !== 'client') {
+        Toast.show({
+          title: i18n.t('auth.invalid_account'),
+          description: i18n.t('auth.account_not_for_app'),
+          placement: "top",
+          status: "error",
+          duration: 3000
+        });
+        return { error: 'invalid_role', user: response.data.user };
+      }
+
       return response.data;
     } catch (error) {
       console.log(error);
+      return { error: 'unknown', message: error.message };
     }
   },
 );
@@ -366,19 +434,21 @@ export const userSlice = createSlice({
       state.status = 'success';
       state.isLoading = false;
       
-      if (action.payload.jwt && action?.payload?.user?.user_role === 'client') {
-        if (action?.payload?.user?.blocked) {
-          state.status = 'fail';
+      // Handle error cases
+      if (action.payload.error) {
+        state.status = 'fail';
+        if (action.payload.error === 'blocked') {
           state.message = 'This account is blocked. Please contact support.';
-          Toast.show({
-            title: i18n.t('auth.invalid_account'),
-            description: i18n.t('auth.account_blocked'),
-            placement: "top",
-            status: "error",
-            duration: 3000
-          });
-          return;
+        } else if (action.payload.error === 'invalid_role') {
+          state.message = 'This account is not for this app.';
+        } else {
+          state.message = action.payload.message || 'Registration failed';
         }
+        return;
+      }
+      
+      // Handle successful registration
+      if (action.payload.jwt && action?.payload?.user?.user_role === 'client') {
         state.token = action.payload.jwt;
         state.currentUser = action.payload.user;
         
@@ -397,16 +467,6 @@ export const userSlice = createSlice({
           is_guest: true
         };
         setAmplitudeUserProperties(guestUser);
-      } else if (action?.payload?.user?.user_role !== 'client') {
-        state.status = 'fail';
-        state.message = 'This account is not for this app.';
-        Toast.show({
-          title: i18n.t('auth.invalid_account'),
-          description: i18n.t('auth.account_not_for_app'),
-          placement: "top",
-          status: "error",
-          duration: 3000
-        });
       }
     },
     [userRegister.rejected]: state => {
@@ -437,42 +497,34 @@ export const userSlice = createSlice({
     [userLogin.fulfilled]: (state, action) => {
       state.status = 'success';
       state.isLoading = false;
-      if (action?.payload?.user?.user_role === 'client') {
-        if (action?.payload?.user?.blocked) {
-          state.status = 'fail';
-          state.message = 'This account is blocked. Please contact support.';
-          Toast.show({
-            title: i18n.t('auth.invalid_account'),
-            description: i18n.t('auth.account_blocked'),
-            placement: "top",
-            status: "error",
-            duration: 3000
-          });
-          return;
-        }
-      state.token = action.payload.jwt;
-       state.currentUser = action.payload.user;
-       if (state.rememberMe) {
-        AsyncStorage.setItem('rememberedIdentifier', action.payload.user.email);
-        AsyncStorage.setItem('rememberMe', 'true');
-       } else {
-        AsyncStorage.removeItem('rememberedIdentifier');
-        AsyncStorage.removeItem('rememberMe');
-       }
-        
-         setAmplitudeUserProperties(action.payload.user);
-}
-         else if (action?.payload?.user?.user_role !==undefined && action?.payload?.user?.user_role !== 'client') {
+      
+      // Handle error cases
+      if (action.payload.error) {
         state.status = 'fail';
-        state.message = 'This account is not for this app.';
-        Toast.show({
-          title: i18n.t('auth.invalid_account'),
-          description: i18n.t('auth.account_not_for_app'),
-          placement: "top",
-          status: "error",
-          duration: 3000
-        });
-    }
+        if (action.payload.error === 'blocked') {
+          state.message = 'This account is blocked. Please contact support.';
+        } else if (action.payload.error === 'invalid_role') {
+          state.message = 'This account is not for this app.';
+        } else {
+          state.message = action.payload.message || 'Login failed';
+        }
+        return;
+      }
+      
+      // Handle successful login
+      if (action?.payload?.user?.user_role === 'client') {
+        state.token = action.payload.jwt;
+        state.currentUser = action.payload.user;
+        if (state.rememberMe) {
+          AsyncStorage.setItem('rememberedIdentifier', action.payload.user.email);
+          AsyncStorage.setItem('rememberMe', 'true');
+        } else {
+          AsyncStorage.removeItem('rememberedIdentifier');
+          AsyncStorage.removeItem('rememberMe');
+        }
+        
+        setAmplitudeUserProperties(action.payload.user);
+      }
     },
     [userLogin.rejected]: state => {
       state.status = 'fail';
@@ -486,37 +538,28 @@ export const userSlice = createSlice({
       state.status = 'success';
       state.isLoading = false;
 
+      // Handle error cases
+      if (action.payload.error) {
+        state.status = 'fail';
+        if (action.payload.error === 'blocked') {
+          state.message = 'This account is blocked. Please contact support.';
+        } else if (action.payload.error === 'invalid_role') {
+          state.message = 'This account is not for this app.';
+        } else {
+          state.message = action.payload.message || 'Verification failed';
+        }
+        return;
+      }
+
       state.user = action.payload.user;
 
       if (action.payload.authToken && action?.payload?.user_role === 'client') {
-        if (action?.payload?.user?.blocked) {
-          state.status = 'fail';
-          state.message = 'This account is blocked. Please contact support.';
-          Toast.show({
-            title: i18n.t('auth.invalid_account'),
-            description: i18n.t('auth.account_blocked'),
-            placement: "top",
-            status: "error",
-            duration: 3000
-          });
-          return;
-        }
         state.token = action.payload.authToken;
         state.user = action.payload;
         state.currentUser = action.payload.user;
         
         // Set Amplitude user properties after successful OTP verification
         setAmplitudeUserProperties(action.payload.user);
-      } else if (action?.payload?.user_role !== 'client') {
-        state.status = 'fail';
-        state.message = 'This account is not for this app.';
-        Toast.show({
-          title: i18n.t('auth.invalid_account'),
-          description: i18n.t('auth.account_not_for_app'),
-          placement: "top",
-          status: "error",
-          duration: 3000
-        });
       }
       state.status = action.payload.status;
     },

@@ -1,5 +1,5 @@
 import React, { useState,useEffect, useRef } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Animated, Easing,I18nManager } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Animated, Easing,I18nManager, ActivityIndicator } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
@@ -8,6 +8,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {calculateDistanceAndTime} from '../../../utils/CalculateDistanceAndTime';
 import i18n from '../../../local';
 import ConfirmButton from './ConfirmButton';
+import api from '../../../utils/api';
 import { 
   trackBookingStepViewed,
   trackBookingStepCompleted,
@@ -15,55 +16,116 @@ import {
   trackVehicleSelected
 } from '../../../utils/analytics';
 
-const vehicleOptions = [
-  {
-    key: 'eco',
-    label: 'Éco',
-    nearby: 4,
-    icon:require('../../../assets/TawsiletEcoCar.png'),
-    id:1
-  },
-  {
-    key: 'berline',
-    label: 'Berline',
-    nearby: 4,
-    icon:require('../../../assets/TawsiletBerlineCar.png'),
-    id:2
-  },
-  {
-    key: 'van',
-    label: 'Van',
-    nearby:7,
-    icon:require('../../../assets/TawsiletVanCar.png'),
-    id:3
-  },
-];
-
 const ChooseVehicle = ({ goNext, goBack, formData }) => {
-  const { t } = useTranslation();
-  const [selected, setSelected] = useState(formData.vehicleType||vehicleOptions[0]);
+  const { t, i18n: i18nInstance } = useTranslation();
+  const [vehicleOptions, setVehicleOptions] = useState([]);
+  const [selected, setSelected] = useState(null);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(formData.selectedDate);
   const [tripDetails, setTripDetails] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
+  const [error, setError] = useState(null);
   
   // Track step view
   useEffect(() => {
     trackBookingStepViewed(3, 'Vehicle Selection');
   }, []);
+
+  // Fetch vehicle options from API
+  const fetchVehicleOptions = async () => {
+    try {
+      setIsLoadingVehicles(true);
+      setError(null);
+      const response = await api.get('/settings?populate[0]=icon');
+   
+      if (response?.data?.data && Array.isArray(response?.data?.data)) {
+        // Filter out vehicles where show is false
+        const visibleVehicles = response?.data?.data.filter(vehicle => vehicle.show !== false);
+        
+        const processedOptions = visibleVehicles.map(vehicle => ({
+          id: vehicle.id,
+          key: vehicle.id,
+          label: getLocalizedName(vehicle),
+          nearby: vehicle.places_numbers || 4,
+          icon: { uri: vehicle.icon.url },
+          soon: vehicle.soon || false,
+          show: vehicle.show !== false
+        }));
+     
+        // Sort processedOptions based on id
+        const sortedOptions = processedOptions.sort((a, b) => a.id - b.id);
+        setVehicleOptions(sortedOptions);
+        
+        // Set default selected vehicle (only non-coming-soon vehicles)
+        const availableVehicles = sortedOptions.filter(vehicle => !vehicle.soon);
+        const defaultVehicle = formData.vehicleType || (availableVehicles.length > 0 ? availableVehicles[0] : null);
+        setSelected(defaultVehicle);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error fetching vehicle options:', error);
+      setError('Failed to load vehicle options. Please try again.');
+    } finally {
+      setIsLoadingVehicles(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVehicleOptions();
+  }, []);
+
+  // Get localized name based on current language
+  const getLocalizedName = (vehicle) => {
+    const currentLang = i18nInstance.language;
+    switch (currentLang) {
+      case 'ar':
+        return vehicle.name_ar || vehicle.name_en || 'Vehicle';
+      case 'fr':
+        return vehicle.name_fr || vehicle.name_en || 'Vehicle';
+      default:
+        return vehicle.name_en || 'Vehicle';
+    }
+  };
+
+  // Get default icon based on vehicle ID
+  const getDefaultIcon = (vehicleId) => {
+    switch (vehicleId) {
+      case 1:
+        return require('../../../assets/TawsiletEcoCar.png');
+      case 2:
+        return require('../../../assets/TawsiletBerlineCar.png');
+      case 3:
+        return require('../../../assets/TawsiletVanCar.png');
+      default:
+        return require('../../../assets/TawsiletEcoCar.png');
+    }
+  };
   
   // New animation system
-  const animations = useRef(
-    vehicleOptions.map(() => ({
-      slide: new Animated.Value(0),
-      fade: new Animated.Value(1),
-      pulse: new Animated.Value(1),
-      glow: new Animated.Value(0)
-    }))
-  ).current;
+  const animations = useRef([]).current;
+
+  // Update animations when vehicle options change
+  useEffect(() => {
+    // Clear existing animations
+    animations.length = 0;
+    
+    // Create new animations for each vehicle option
+    vehicleOptions.forEach(() => {
+      animations.push({
+        slide: new Animated.Value(0),
+        fade: new Animated.Value(1),
+        pulse: new Animated.Value(1),
+        glow: new Animated.Value(0)
+      });
+    });
+  }, [vehicleOptions]);
 
   // Pulse animation function
   const startPulseAnimation = (index) => {
+    if (!animations[index]) return;
+    
     Animated.loop(
       Animated.sequence([
         Animated.timing(animations[index].pulse, {
@@ -83,10 +145,14 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   };
 
   const animateSelection = (index) => {
+    if (!animations[index]) return;
+    
     // Stop all pulse animations
     animations.forEach(anim => {
-      anim.pulse.stopAnimation();
-      anim.pulse.setValue(1);
+      if (anim) {
+        anim.pulse.stopAnimation();
+        anim.pulse.setValue(1);
+      }
     });
 
     // Create new animations for each option
@@ -98,8 +164,6 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
         Animated.spring(animations[i].slide, {
           toValue: isSelected ? 0 : -10,
           useNativeDriver: true,
-        //  friction: 8,
-        //  tension: 40,
           speed: 12,
           bounciness: 8
         }),
@@ -131,22 +195,26 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
     
   };
 
-  // Initialize animations
+  // Initialize animations when selected vehicle changes
   useEffect(() => {
-    const initialIndex = vehicleOptions.findIndex(opt => opt.id === selected.id);
-    if (initialIndex !== -1) {
-      animateSelection(initialIndex);
+    if (selected && vehicleOptions.length > 0 && animations.length > 0) {
+      const initialIndex = vehicleOptions.findIndex(opt => opt.id === selected.id);
+      if (initialIndex !== -1) {
+        animateSelection(initialIndex);
+      }
     }
-  }, []);
+  }, [selected, vehicleOptions, animations.length]);
 
   useEffect(()=>{
-    setIsLoading(true);
-    calculateDistanceAndTime(formData.pickupAddress,formData.dropAddress).then(res=>{
-      setTripDetails(res);
-      goNext(res,false);
-      setIsLoading(false);
-    })
-  },[])
+    if (formData.pickupAddress && formData.dropAddress) {
+      setIsLoading(true);
+      calculateDistanceAndTime(formData.pickupAddress,formData.dropAddress).then(res=>{
+        setTripDetails(res);
+        goNext(res,false);
+        setIsLoading(false);
+      })
+    }
+  },[formData.pickupAddress, formData.dropAddress])
   
  
 
@@ -168,6 +236,11 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   };
 
   const handleVehicleSelect = (option, index) => {
+    // Don't allow selection of "coming soon" vehicles
+    if (option.soon) {
+      return;
+    }
+    
     setSelected(option);
     animateSelection(index);
     
@@ -185,6 +258,8 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   };
 
   const handleConfirm = () => {
+    if (!selected) return;
+    
     trackBookingStepCompleted(3, 'Vehicle Selection', {
       vehicle_type: selected.key,
       vehicle_id: selected.id,
@@ -199,6 +274,66 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
     });
   };
 
+  // Show loading state while fetching vehicles
+  if (isLoadingVehicles) {
+    return (
+      <View style={localStyles.container}>
+        <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
+          <ActivityIndicator size="large" color="#030303" />
+          <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15 }}>
+            {t('common.loading')}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Show error state if API fails
+  if (error) {
+    return (
+      <View style={localStyles.container}>
+        <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
+          <MaterialCommunityIcons name="alert-circle" size={48} color="#FF6B6B" />
+          <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+            {error}
+          </Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#030303',
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 8,
+              marginTop: 15
+            }}
+            onPress={() => {
+              setIsLoadingVehicles(true);
+              setError(null);
+              // Retry fetching vehicles
+              fetchVehicleOptions();
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: hp(1.6) }}>
+              {t('common.retry')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Don't render if no vehicles are available
+  if (vehicleOptions.length === 0) {
+    return (
+      <View style={localStyles.container}>
+        <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
+          <MaterialCommunityIcons name="car-off" size={48} color="#BDBDBD" />
+          <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+            No vehicles available
+          </Text>
+        </View>
+      </View>
+    );
+  }
   return (
      
       <View style={localStyles.container}>
@@ -220,6 +355,68 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 18 }}>
             {vehicleOptions.map((option, index) => {
+              // Safety check for animations - render without animations if not ready
+              if (!animations[index]) {
+                return (
+                  <View key={option.id} style={{ flex: 1, marginHorizontal: 6 }}>
+                    <TouchableOpacity
+                      style={{
+                        alignItems: 'center',
+                        backgroundColor: option.soon ? '#F0F0F0' : (selected?.id === option.id ? '#F6F6F6' : '#fff'),
+                        borderRadius: 14,
+                        paddingVertical: 12,
+                        borderWidth: selected?.id === option.id ? 3 : 1,
+                        borderColor: option.soon ? '#E0E0E0' : (selected?.id === option.id ? '#030303' : '#E0E0E0'),
+                        opacity: option.soon ? 0.6 : 1,
+                      }}
+                      onPress={() => handleVehicleSelect(option, index)}
+                      disabled={option.soon}
+                    >
+                      <View style={{ borderRadius: 12, padding: 8, marginBottom: 6 }}>
+                        <Image 
+                          source={option.icon} 
+                          style={{ 
+                            width: 72, 
+                            height: 72,
+                            resizeMode: "cover",
+                            opacity: option.soon ? 0.5 : 1,
+                          }} 
+                        />
+                      </View>
+                      <Text style={{ 
+                        fontWeight: '700', 
+                        color: option.soon ? '#999' : '#000', 
+                        fontSize: hp(1.8) 
+                      }}>
+                        {option.label}
+                      </Text>
+                      {option.soon ? (
+                        <View style={{ 
+                          backgroundColor: '#FFA500', 
+                          paddingHorizontal: 8, 
+                          paddingVertical: 2, 
+                          borderRadius: 8, 
+                          marginTop: 4 
+                        }}>
+                          <Text style={{ 
+                            color: '#fff', 
+                            fontSize: hp(1.2), 
+                            fontWeight: '600' 
+                          }}>
+                            {t('common.coming_soon')}
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                          <MaterialCommunityIcons name="account" size={14} color="#BDBDBD" style={{ marginRight: 4 }} />
+                          <Text style={{ color: '#BDBDBD', fontSize: hp(1.4) }}>{option.nearby} {t('booking.step3.nearby')}</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                );
+              }
+
               const glowColor = animations[index].glow.interpolate({
                 inputRange: [0, 1],
                 outputRange: ['rgba(3, 3, 3, 0)', 'rgba(3, 3, 3, 0.15)']
@@ -227,7 +424,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
 
               return (
                 <Animated.View
-                  key={option.key}
+                  key={option.id}
                   style={{
                     flex: 1,
                     transform: [
@@ -240,14 +437,16 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                   <TouchableOpacity
                     style={{
                       alignItems: 'center',
-                      backgroundColor: selected.id === option.id ? '#F6F6F6' : '#fff',
+                      backgroundColor: option.soon ? '#F0F0F0' : (selected?.id === option.id ? '#F6F6F6' : '#fff'),
                       borderRadius: 14,
                       marginHorizontal: 6,
                       paddingVertical: 12,
-                      borderWidth: selected.id === option.id ? 3 : 1,
-                      borderColor: selected.id === option.id ? '#030303' : '#E0E0E0',
+                      borderWidth: selected?.id === option.id ? 3 : 1,
+                      borderColor: option.soon ? '#E0E0E0' : (selected?.id === option.id ? '#030303' : '#E0E0E0'),
+                      opacity: option.soon ? 0.6 : 1,
                     }}
                     onPress={() => handleVehicleSelect(option, index)}
+                    disabled={option.soon}
                   >
                     <Animated.View
                       style={{
@@ -263,15 +462,40 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                           width: 72, 
                         //  tintColor:selected.id === option.id ? '#030303' : '#BDBDBD',
                           height: 72,
-                          resizeMode: "cover"
+                          resizeMode: "cover",
+                          opacity: option.soon ? 0.5 : 1,
                         }} 
                       />
                     </Animated.View>
-                    <Text style={{ fontWeight: '700', color: '#000', fontSize: hp(1.8) }}>{t(`booking.step3.${option.key}`)}</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
-                      <MaterialCommunityIcons name="account" size={14} color="#BDBDBD" style={{ marginRight: 4 }} />
-                      <Text style={{ color: '#BDBDBD', fontSize: hp(1.4) }}>{option.nearby} {t('booking.step3.nearby')}</Text>
-                    </View>
+                    <Text style={{ 
+                      fontWeight: '700', 
+                      color: option.soon ? '#999' : '#000', 
+                      fontSize: hp(1.8) 
+                    }}>
+                      {option.label}
+                    </Text>
+                    {option.soon ? (
+                      <View style={{ 
+                        backgroundColor: '#FFA500', 
+                        paddingHorizontal: 8, 
+                        paddingVertical: 2, 
+                        borderRadius: 8, 
+                        marginTop: 4 
+                      }}>
+                        <Text style={{ 
+                          color: '#fff', 
+                          fontSize: hp(1.2), 
+                          fontWeight: '600' 
+                        }}>
+                          {t('common.coming_soon')}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                        <MaterialCommunityIcons name="account" size={14} color="#BDBDBD" style={{ marginRight: 4 }} />
+                        <Text style={{ color: '#BDBDBD', fontSize: hp(1.4) }}>{option.nearby} {t('booking.step3.nearby')}</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 </Animated.View>
               );
@@ -313,7 +537,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
             <ConfirmButton
            onPress={handleConfirm}
           text={t('booking.step3.book_now')}
-          disabled={isLoading}
+          disabled={isLoading || !selected}
         />
 
 

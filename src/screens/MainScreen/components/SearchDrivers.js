@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions, Image, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useToast } from 'native-base';
+import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { OneSignal } from 'react-native-onesignal';
 import api from '../../../utils/api';
@@ -31,12 +31,12 @@ const avatarUrls = [
 
 const Step4 = ({ goBack, formData }) => {
   const { t } = useTranslation();
-  const toast = useToast();
   const navigation = useNavigation();
   const user = useSelector(state => state.user.currentUser);
   const [drivers, setDrivers] = useState([]);
   const [driversIdsNotAccepted, setDriversIdsNotAccepted] = useState([]);
   const [accepted, setAccepted] = useState(null);
+  const [parameters, setParameters] = useState(null);
   const stepRef = useRef(5);
   const isSearchingRef = useRef(true);
   const requestRef = useRef(null);
@@ -44,6 +44,23 @@ const Step4 = ({ goBack, formData }) => {
   // Track step view
   useEffect(() => {
     trackBookingStepViewed(5, 'Searching Drivers');
+  }, []);
+
+  // Fetch parameters from API
+  useEffect(() => {
+    const fetchParameters = async () => {
+      try {
+        const paramsRes = await api.get('parameters');
+        setParameters(paramsRes.data.data[0]);
+       
+      } catch (error) {
+        console.error('Error fetching parameters:', error);
+        // Set default parameters if API fails
+        setParameters({ min_radius_search: 4 });
+      }
+    };
+    
+    fetchParameters();
   }, []);
 
   const generateCenteredPositions = (avatarUrls) => {
@@ -79,22 +96,43 @@ const Step4 = ({ goBack, formData }) => {
   const searchStartTime = useRef(Date.now());
 
   const searchDrivers = async () => {
+   
+    // Reset the searching flag to ensure the while loop can start
+    isSearchingRef.current = true;
+    stepRef.current = 5;
+    
     let radius = 1;
     let processedDrivers = new Set();
+    let currentDriverTimeout = null;
+    let currentDriverId = null;
     
     try {
+       
+      // Validate required formData
+      if (!formData?.pickupAddress?.latitude || !formData?.pickupAddress?.longitude) {
+        throw new Error('Pickup address coordinates are required');
+      }
+      
+      if (!formData?.dropAddress?.latitude || !formData?.dropAddress?.longitude) {
+        throw new Error('Dropoff address coordinates are required');
+      }
+      
+      if (!formData?.vehicleType?.id) {
+        throw new Error('Vehicle type is required');
+      }
+
       const db = database();
       if (!db) {
         throw new Error('Firebase database not initialized');
       }
-
+    
       const requestData = {
         ...formData,
         status: 'searching',
         createdAt: database.ServerValue.TIMESTAMP,
         user: user,
         pickupAddress: formData.pickupAddress,
-        dropoffAddress: formData.dropoffAddress,
+        dropoffAddress: formData.dropAddress,
         vehicleType: formData.vehicleType,
         notifiedDrivers: {},
       };
@@ -107,6 +145,7 @@ const Step4 = ({ goBack, formData }) => {
       requestRef.current = newRequestRef;
       await newRequestRef.set(requestData);
 
+      // Main listener for request status changes
       const unsubscribe = newRequestRef.on('value', (snapshot) => {
         if (!snapshot || !snapshot.exists()) {
           return;
@@ -118,7 +157,10 @@ const Step4 = ({ goBack, formData }) => {
           isSearchingRef.current = false;
           stepRef.current = 0;
           unsubscribe();
-          clearTimeout();
+          unsubscribeNotifiedDrivers();
+          if (currentDriverTimeout) {
+            clearTimeout(currentDriverTimeout);
+          }
          
           // Track driver found
           trackDriverFound(data.driverId, {
@@ -145,81 +187,162 @@ const Step4 = ({ goBack, formData }) => {
         }
       });
 
-      while (accepted == null && radius <= 4 && stepRef.current === 5 && isSearchingRef.current) {
+      // Listener for notifiedDrivers changes to detect rejections
+      let unsubscribeNotifiedDrivers = null;
+      let processNextDriver = null;
+
+      const setupNotifiedDriversListener = () => {
+        unsubscribeNotifiedDrivers = newRequestRef.child('notifiedDrivers').on('value', (snapshot) => {
+          if (!snapshot || !snapshot.exists() || !currentDriverId) {
+            return;
+          }
+          
+          const notifiedDrivers = snapshot.val() || {};
+          const currentDriverStatus = notifiedDrivers[currentDriverId];
+          
+          // If current driver rejected (status is false), move to next driver immediately
+          if (currentDriverStatus === false) {
+            if (currentDriverTimeout) {
+              clearTimeout(currentDriverTimeout);
+              currentDriverTimeout = null;
+            }
+            
+            processedDrivers.add(currentDriverId);
+            setDriversIdsNotAccepted(prev => {
+              if (!prev.includes(currentDriverId)) {
+                return [...prev, currentDriverId];
+              }
+              return prev;
+            });
+            
+            // Process next driver immediately
+            if (processNextDriver) {
+              processNextDriver();
+            }
+          }
+        });
+      };
+     
+      setupNotifiedDriversListener();
+      
+      // Function to process drivers with immediate rejection detection
+      const processDrivers = async (drivers) => {
+        const newDrivers = drivers.filter(driver => !processedDrivers.has(driver.id));
+        
+        for (const driver of newDrivers) {
+          if (!isSearchingRef.current || accepted !== null) {
+            break;
+          }
+          
+          if (driversIdsNotAccepted.includes(driver.id)) {
+            continue;
+          }
+
+          currentDriverId = driver.id;
+
+          try {
+            if (requestRef.current) {
+              await requestRef.current.child('notifiedDrivers').update({
+                [driver.id]: true
+              });
+
+              // Fix the data structure to match what sendNotificationToDrivers expects
+              const notificationData = {
+                formData: {
+                  ...formData,
+                  dropAddress: formData.dropAddress, // Fix the property name
+                  pickupAddress: formData.pickupAddress
+                },
+                driver,
+                currentUser: user
+              };
+
+              const notificationRed = await sendNotificationToDrivers(notificationData);
+              console.log("Notification sent successfully to driver:", driver.id);
+            }
+          } catch (notificationError) {
+            console.log("notificationError", notificationError.response || notificationError.message);
+            // Handle notification error silently and move to next driver
+            processedDrivers.add(driver.id);
+            continue;
+          }
+
+          if (!isSearchingRef.current || accepted !== null) break;
+
+          // Set timeout for current driver
+          currentDriverTimeout = setTimeout(() => {
+            if (isSearchingRef.current && accepted === null) {
+              processedDrivers.add(driver.id);
+              setDriversIdsNotAccepted(prev => {
+                if (!prev.includes(driver.id)) {
+                  return [...prev, driver.id];
+                }
+                return prev;
+              });
+
+              if (requestRef.current) {
+                requestRef.current.child('notifiedDrivers').update({
+                  [driver.id]: false
+                });
+              }
+              
+              // Process next driver after timeout
+              if (processNextDriver) {
+                processNextDriver();
+              }
+            }
+          }, 40000);
+
+          // Wait for either rejection (handled by listener) or timeout
+          await new Promise((resolve) => {
+            processNextDriver = resolve;
+          });
+
+          if (!isSearchingRef.current || accepted !== null) break;
+        }
+      };
+    
+      // Main search loop
+      const maxRadius = parameters?.min_radius_search || 4; // Fallback to 4 if not defined
+      console.log("Before while loop - accepted:", accepted, "radius:", radius, "maxRadius:", maxRadius, "stepRef.current:", stepRef.current, "isSearchingRef.current:", isSearchingRef.current);
+      while (accepted === null && radius <= maxRadius && isSearchingRef.current) {
         if (!isSearchingRef.current) {
           break;
         }
+       
         
         let drivers = [];
         if (stepRef.current !== 5 || !isSearchingRef.current) {
           return;
         }
-        if(accepted==null){
-          try {
-            let url=`/drivers-in-radius?radius=${radius}&latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}&vehicleType=${formData?.vehicleType?.id}`
-            const response = await api.get(url);
-            drivers = response.data || [];
-          } catch (error) {
-            radius += 1;
-            continue;
-          }
+     
+        try {
+          let url = `/drivers-in-radius?radius=${radius}&latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}&vehicleType=${formData?.vehicleType?.id}`;
+          console.log("Searching drivers with URL:", url);
+          console.log("Form data:", {
+            radius,
+            latitude: formData?.pickupAddress?.latitude,
+            longitude: formData?.pickupAddress?.longitude,
+            vehicleType: formData?.vehicleType?.id
+          });
+          
+          const response = await api.get(url);
+          drivers = response.data || [];
+          console.log(`Found ${drivers.length} drivers in radius ${radius}`);
+        } catch (error) {
+          console.error(`Error fetching drivers for radius ${radius}:`, error.response?.data || error.message);
+          radius += 1;
+          continue;
+        }
 
-          const newDrivers = drivers.filter(driver => !processedDrivers.has(driver.id));
-       
-          for (const driver of newDrivers) {
-            if (!isSearchingRef.current) {
-              break;
-            }
-            
-            if (driversIdsNotAccepted.includes(driver.id)) {
-              continue;
-            }
-
-            try {
-              if (requestRef.current) {
-                await requestRef.current.child('notifiedDrivers').update({
-                  [driver.id]: true
-                });
-
-                const notificationRed = await sendNotificationToDrivers({
-                  formData,
-                  driver,
-                  currentUser: user
-                });
-              }
-            } catch (notificationError) {
-              console.log("notificationError",notificationError.response)
-              // Handle notification error silently
-            }
-
-            if (!isSearchingRef.current) break;
-            
-            await new Promise(resolve => setTimeout(resolve, 50000));
-            
-            if (!isSearchingRef.current) break;
-            
-            processedDrivers.add(driver.id);
-            setDriversIdsNotAccepted(prev => {
-              if (!prev.includes(driver.id)) {
-                return [...prev, driver.id];
-              }
-              return prev;
-            });
-
-            if (requestRef.current) {
-              await requestRef.current.child('notifiedDrivers').update({
-                [driver.id]: false
-              });
-            }
-          }
-
-          if (newDrivers.length === 0) {
-            radius += 1;
-          }
+        if (drivers.length > 0) {
+          await processDrivers(drivers);
+        } else {
+          radius += 1;
         }
       }
     
-      if (accepted == null && isSearchingRef.current) {
+      if (accepted === null && isSearchingRef.current) {
         if (requestRef.current && !accepted) {
           await requestRef.current.remove();
         }
@@ -227,22 +350,31 @@ const Step4 = ({ goBack, formData }) => {
         // Track no driver found
         trackRideCancelled('no_driver_found', {
           search_duration: Date.now() - searchStartTime.current,
-          max_radius: radius,
+          max_radius: maxRadius,
+          final_radius: radius,
           drivers_notified: Object.keys(processedDrivers).length
         });
         
-        toast.show({
-          title: t('common.no_driver_accepted'),
-          placement: "top",
-          status: "error",
-          duration: 3000
+        Toast.show({
+          type: 'error',
+          text1: t('common.no_driver_accepted'),
+          visibilityTime: 2000,
+          onPress: () => {}
         });
-        setDriversIdsNotAccepted([])
+        
+        setDriversIdsNotAccepted([]);
         goBack();
       }
 
       unsubscribe();
+      if (unsubscribeNotifiedDrivers) {
+        unsubscribeNotifiedDrivers();
+      }
+      if (currentDriverTimeout) {
+        clearTimeout(currentDriverTimeout);
+      }
     } catch (error) {
+      console.log("dddd",error)
       if (requestRef.current) {
         requestRef.current.off();
       }
@@ -253,20 +385,32 @@ const Step4 = ({ goBack, formData }) => {
         search_duration: Date.now() - searchStartTime.current
       });
       
-      toast.show({
-        title: t('common.error'),
-        placement: "top",
-        status: "error",
-        duration: 3000
+      Toast.show({
+        type: 'error',
+        text1: t('common.error'),
+        position: 'top',
+        visibilityTime: 3000,
       });
     }
   };
 
   useEffect(() => {
+    console.log("SearchDrivers useEffect triggered");
+    console.log("Parameters loaded:", parameters);
+    console.log("Form data:", formData);
+    
     setDrivers(generateCenteredPositions(avatarUrls));
-    searchDrivers();
+    
+    // Only start searching when parameters are loaded
+    if (parameters) {
+      console.log("Starting searchDrivers function");
+      searchDrivers();
+    } else {
+      console.log("Parameters not loaded yet, waiting...");
+    }
 
     return () => {
+      console.log("SearchDrivers cleanup - stopping search");
       // Stop all ongoing operations
       isSearchingRef.current = false;
       stepRef.current = 0;
@@ -288,7 +432,7 @@ const Step4 = ({ goBack, formData }) => {
         });
       }
     }
-  }, []);
+  }, [parameters]);
 
   // Swipe overlay logic
  

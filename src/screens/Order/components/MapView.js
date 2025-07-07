@@ -8,6 +8,7 @@ import { getDatabase, ref as dbRef, onValue } from '@react-native-firebase/datab
 import { getApp } from '@react-native-firebase/app';
 import mapStyle from '../../../utils/googleMapStyle';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import DriverMarker from '../../../components/DriverMarker';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -98,11 +99,15 @@ const OrderMapView = ({ order }) => {
   const getVehicleIcon = (type) => {
     switch (type) {
       case 1: return require("../../../assets/eco.png");
-      case 2: return require("../../../assets/van.png");
-      case 3: return require("../../../assets/Berline.png");
-      default: return null;
+      case 2: return require("../../../assets/Berline.png");
+      case 3: return require("../../../assets/van.png");
+      default: 
+        // Fallback to eco car for unknown types
+        return require("../../../assets/eco.png");
     }
   };
+
+ 
 
   const getRouteOrigin = () => {
     return usePickupRoute ? driverPosition : pickup;
@@ -159,14 +164,10 @@ const OrderMapView = ({ order }) => {
           <Marker
             identifier="driver"
             coordinate={driverPosition}
-            rotation={driverPosition.angle}
-            flat
+           
           >
-            <View style={{ width: 23, height: 47 }}>
-              <Image
-                source={getVehicleIcon(driverPosition.type)}
-                style={{ width: "100%", height: "100%" }}
-              />
+            <View style={{ width: 50, height: 50 }}>
+              <DriverMarker angle={driverPosition.angle} type={driverPosition.type} />
             </View>
           </Marker>
         )}  

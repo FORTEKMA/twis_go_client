@@ -75,6 +75,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@attarchi/react-native-lottie-splash-screen@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "@attarchi/react-native-lottie-splash-screen@npm:2.0.4"
+  dependencies:
+    lottie-ios: 4.4.3
+    lottie-react-native: 6.7.2
+  peerDependencies:
+    react-native: ">=0.70.0"
+  checksum: 1385077626d88a36592ad8a49daf9c988b976fc9f2993d641761e15ac226ecb71838d3967cff6d9a0b4f6dc12c9e6ed1932aac4bd3a5f4bbf2f044a8976b7fae
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0, @babel/code-frame@npm:^7.12.13, @babel/code-frame@npm:^7.27.1":
   version: 7.27.1
   resolution: "@babel/code-frame@npm:7.27.1"
@@ -15457,6 +15469,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"kotlin@npm:^1.9.25":
+  version: 1.9.25
+  resolution: "kotlin@npm:1.9.25"
+  checksum: 90e6fc9de626ecbd8df26cdf5c5ee22fe37c979a8edc3cd46fb0a6b437b4033b81712474fc9437f05b31c397f2ebf3fb0b3c01c7b13a773f0bda27f17e1979f4
+  languageName: node
+  linkType: hard
+
 "lazy-cache@npm:^1.0.3":
   version: 1.0.4
   resolution: "lazy-cache@npm:1.0.4"
@@ -15954,6 +15973,33 @@ __metadata:
   bin:
     loose-envify: cli.js
   checksum: 6517e24e0cad87ec9888f500c5b5947032cdfe6ef65e1c1936a0c48a524b81e65542c9c3edc91c97d5bddc806ee2a985dbc79be89215d613b1de5db6d1cfe6f4
+  languageName: node
+  linkType: hard
+
+"lottie-ios@npm:4.4.3":
+  version: 4.4.3
+  resolution: "lottie-ios@npm:4.4.3"
+  checksum: 64a3d3d44e84deb9ead7e26805eb4606a90e3703a29a91ea446eda6c0f71568e3fad75ce33e1d57e9ed68d12f16d4dce3ad1e5bee28483e083f2f4c8b0e971b1
+  languageName: node
+  linkType: hard
+
+"lottie-react-native@npm:6.7.2":
+  version: 6.7.2
+  resolution: "lottie-react-native@npm:6.7.2"
+  peerDependencies:
+    "@dotlottie/react-player": ^1.6.1
+    "@lottiefiles/react-lottie-player": ^3.5.3
+    react: "*"
+    react-native: ">=0.46"
+    react-native-windows: ">=0.63.x"
+  peerDependenciesMeta:
+    "@dotlottie/react-player":
+      optional: true
+    "@lottiefiles/react-lottie-player":
+      optional: true
+    react-native-windows:
+      optional: true
+  checksum: 8b14ca10f4f0e75505ee5485b47c31db2146baea1634e66f0d485abb8a44ba2019930239970015cedaad627e306828be977b4797256aa2cc143b476ed31585fa
   languageName: node
   linkType: hard
 
@@ -19874,6 +19920,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-image-resizer@npm:^1.4.5":
+  version: 1.4.5
+  resolution: "react-native-image-resizer@npm:1.4.5"
+  peerDependencies:
+    react-native: ">=v0.40.0"
+  checksum: c530b119f25c27b669148461554440acd05fb37f0a24a1afc3d58c861e426551c70c679983c0399034fd54ca3575c89d0863778c49295721cb33b65bbf3f0f37
+  languageName: node
+  linkType: hard
+
 "react-native-iphone-x-helper@npm:^1.0.3":
   version: 1.3.1
   resolution: "react-native-iphone-x-helper@npm:1.3.1"
@@ -20196,15 +20251,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-splash-screen@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "react-native-splash-screen@npm:3.3.0"
-  peerDependencies:
-    react-native: ">=0.57.0"
-  checksum: 14c565d5d4214f55586dcf6f7abd12d99d3e0667f67de3bda7aa24988971567b283a4187fbc0c6269c83b3c21d59d1950335c61bb0780ec2d065e20b3b9199d0
-  languageName: node
-  linkType: hard
-
 "react-native-stallion@npm:^2.2.0":
   version: 2.2.0
   resolution: "react-native-stallion@npm:2.2.0"
@@ -20271,6 +20317,16 @@ __metadata:
   version: 1.0.5
   resolution: "react-native-swipe-gestures@npm:1.0.5"
   checksum: d637bc40baa50fa0ce3b6cf2b494efeceaea03cc3875cb7cf7d76922914a21d5e6b098d4a084fb291ce61bfbb0a241c03cff24b15bebf0cfae1c146f4ad10d92
+  languageName: node
+  linkType: hard
+
+"react-native-toast-message@npm:^2.3.2":
+  version: 2.3.2
+  resolution: "react-native-toast-message@npm:2.3.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 82f1fec5d5af359d302e31dbee557aa555445dac75fe5d037265dea72fd95a3b3ec022dc47eed182f02c5f24d7443b34e7fc22656fa4ece2e33e9b04e4057f56
   languageName: node
   linkType: hard
 
@@ -22844,6 +22900,7 @@ __metadata:
   resolution: "tawsilet@workspace:."
   dependencies:
     "@amplitude/analytics-react-native": ^1.4.13
+    "@attarchi/react-native-lottie-splash-screen": ^2.0.4
     "@babel/core": ^7.20.0
     "@babel/preset-env": ^7.20.0
     "@babel/runtime": ^7.20.0
@@ -22880,6 +22937,7 @@ __metadata:
     geolib: ^3.3.4
     i18next: ^25.1.1
     jest: ^29.2.1
+    kotlin: ^1.9.25
     lottie-react-native: ^7.2.2
     metro: 0.80.0
     metro-react-native-babel-preset: 0.76.8
@@ -22908,6 +22966,7 @@ __metadata:
     react-native-google-places-autocomplete: 2.5.6
     react-native-haptic-feedback: ^2.3.3
     react-native-image-picker: 7.0.3
+    react-native-image-resizer: ^1.4.5
     react-native-keyboard-aware-scroll-view: ^0.9.5
     react-native-keyboard-aware-scrollview: ^2.1.0
     react-native-localize: ^3.0.2
@@ -22930,11 +22989,11 @@ __metadata:
     react-native-safe-area-context: 4.6.3
     react-native-screens: ~3.22.0
     react-native-slide-to-unlock: ^0.1.8
-    react-native-splash-screen: ^3.3.0
     react-native-stallion: ^2.2.0
     react-native-star-rating-widget: ^1.7.2
     react-native-svg: ^13.14.0
     react-native-svg-transformer: ^1.1.0
+    react-native-toast-message: ^2.3.2
     react-native-vector-icons: ^10.0.0
     react-redux: ^8.1.3
     react-test-renderer: 18.2.0

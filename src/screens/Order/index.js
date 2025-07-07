@@ -58,7 +58,7 @@ const Order = ({ route }) => {
         trackDriverFound(orderData.driver.id, { order_id: id });
       }
     } catch (error) {
-      console.error('Error fetching order:', error);
+      console.log('Error fetching order:', error);
       Alert.alert('Error', 'Failed to fetch order details');
     } finally {
       setLoading(false);
@@ -74,6 +74,12 @@ const Order = ({ route }) => {
   useEffect(() => {
     if (!order?.requestId) return;
 
+    // Only set up listener if current status is not in the excluded list
+    const excludedStatuses = ["Canceled_by_partner", "Completed", "Canceled_by_client"];
+    if (excludedStatuses.includes(order.commandStatus)) {
+      return;
+    }
+
     const db = database();
     const orderStatusRef = db.ref(`rideRequests/${order.requestId}/commandStatus`);
      const unsubscribe = orderStatusRef.on('value', async (snapshot) => {
@@ -85,7 +91,9 @@ const Order = ({ route }) => {
       
       if (status === "Canceled_by_partner") {
         trackRideCancelled('canceled_by_partner', { order_id: id });
+        db.ref(`rideRequests/${order.requestId}`).remove();
         setShowAlert(true);
+        
         return;
       }
 
@@ -120,7 +128,7 @@ const Order = ({ route }) => {
     return () => {
       orderStatusRef.off('value', unsubscribe);
     };
-  }, [order?.requestId]);
+  }, [order?.requestId, order?.commandStatus]);
 
   // useEffect(() => {
   //   const subscription = AppState.addEventListener('change', nextAppState => {

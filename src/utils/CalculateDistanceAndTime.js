@@ -1,14 +1,16 @@
 import axios from 'axios';
 import api from './api';
+import { API_GOOGLE } from "@env";
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function calculateDistanceAndTime(startCoords, endCoords) {
-  const apiKey = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE';
+  const apiKey = API_GOOGLE;
 
-
-  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${startCoords.latitude},${startCoords.longitude}&destination=${endCoords.latitude},${endCoords.longitude}&key=${apiKey}&language=fr`;
-   try {
-    const response = await axios.get(url);
+  // Try Directions API first
+  const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${startCoords.latitude},${startCoords.longitude}&destination=${endCoords.latitude},${endCoords.longitude}&key=${apiKey}&language=fr`;
+  
+  try {
+    const response = await axios.get(directionsUrl);
 
     const distance = response.data.routes[0].legs[0].distance.value;
     const duration = response.data.routes[0].legs[0].duration.text.trim();
@@ -18,7 +20,25 @@ export async function calculateDistanceAndTime(startCoords, endCoords) {
       time: duration,
     };
   } catch (error) {
-    console.error(error);
+    console.error('Directions API failed, trying Distance Matrix API:', error);
+    
+    // Fallback to Distance Matrix API
+    try {
+      const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${startCoords.latitude},${startCoords.longitude}&destinations=${endCoords.latitude},${endCoords.longitude}&key=${apiKey}&units=metric`;
+      
+      const matrixResponse = await axios.get(distanceMatrixUrl);
+      
+      if (matrixResponse.data.status === 'OK' && matrixResponse.data.rows[0]?.elements[0]?.status === 'OK') {
+        const element = matrixResponse.data.rows[0].elements[0];
+        return {
+          distance: element.distance.value,
+          time: element.duration.text,
+        };
+      }
+    } catch (matrixError) {
+      console.error('Distance Matrix API also failed:', matrixError);
+    }
+    
     return null;
   }
 }
@@ -82,16 +102,7 @@ export const sendNotificationToDrivers = async (
 "android_channel_id": 'ec037fdf-e9b4-4020-babd-181a1dd77ad4',
           priority: 10,
           data: rideInfo,
-          // buttons: [
-          //   {
-          //     id: "accept",
-          //     text: "Accepter"
-          //   },
-          //   {
-          //     id: "reject",
-          //     text: "Refuser"
-          //   }
-          // ],
+        
         },
         {
           headers: {

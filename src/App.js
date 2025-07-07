@@ -16,6 +16,7 @@ import {persistStore} from 'redux-persist';
 import {PersistGate} from 'redux-persist/integration/react';
 import 'react-native-gesture-handler';
 import { withStallion, useStallionUpdate, restart } from 'react-native-stallion';
+import Toast from 'react-native-toast-message';
 
 import store from './store';
 import {ONESIGNAL_APP_ID} from '@env';
@@ -26,13 +27,13 @@ import {OneSignal} from 'react-native-onesignal';
 import {colors} from './utils/colors';
 import './local';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import SplashScreen from 'react-native-splash-screen';
 import PopOver from './components/PopOver';
 import {ModalPortal} from 'react-native-modals';
 import * as Sentry from '@sentry/react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "./local";
 import CheckConnection from './components/CheckConnection';
+import LottieSplashScreen from '@attarchi/react-native-lottie-splash-screen';
 
 // Only initialize Sentry in production mode
 if (!__DEV__) {
@@ -50,8 +51,7 @@ let persistor = persistStore(store);
 const App=()=> {
   useKeepAwake();
   const { isRestartRequired } = useStallionUpdate();
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [isModalVisible, setModalVisible] = useState(false);
+   const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
 
   const setupLanguage = async () => {
@@ -69,29 +69,22 @@ const App=()=> {
 
   useEffect(() => {
     if (isRestartRequired) {
-      setShowUpdateModal(true);
+      restart();
     }
   }, [isRestartRequired]);
 
   useEffect(() => {
+   
     OneSignal.initialize(ONESIGNAL_APP_ID);
     OneSignal.User.setLanguage("fr");
-
     OneSignal.Notifications.requestPermission(true)
-    
-
     setupLanguage()
-       
   }, []);
 
   onReady=()=>{
-    SplashScreen.hide();
+    LottieSplashScreen.hide();
   }
-
-  const handleRestart = () => {
-    setShowUpdateModal(false);
-    restart(); // Trigger Stallion restart
-  };
+ 
 
   return (
     <SafeAreaProvider>
@@ -109,28 +102,10 @@ const App=()=> {
                 />
               )}
               
-              {/* Update Modal */}
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={showUpdateModal}
-                onRequestClose={() => setShowUpdateModal(false)}
-              >
-                <View style={styles.modalContainer}>
-                  <View style={styles.modalContent}>
-                    <Text style={styles.updateTitle}>New Update Available</Text>
-                    <Text style={styles.updateText}>
-                      A new update was downloaded for your app. Restart the app to install the update.
-                    </Text>
-                    <Pressable
-                      style={styles.restartButton}
-                      onPress={handleRestart}
-                    >
-                      <Text style={styles.restartButtonText}>Restart App</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </Modal>
+              <Toast
+        position='top'
+        
+      />
             </NativeBaseProvider>
           </View>
           <ModalPortal />

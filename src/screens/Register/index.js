@@ -55,6 +55,13 @@ const Register = ({navigation, route}) => {
     flag: '🇹🇳',
   });
 
+  // Add refs for each input and the ScrollView
+  const nameRef = useRef(null);
+  const phoneFieldRef = useRef(null); // For the View wrapping PhoneInput
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const scrollViewRef = useRef(null);
+
   // Track screen view on mount
   useEffect(() => {
     trackScreenView('Register', { 
@@ -82,6 +89,28 @@ const Register = ({navigation, route}) => {
     }
     setIsFlagsVisible(false);
   }, []);
+
+  // Helper to scroll to the first error field
+  const scrollToError = (errorFields) => {
+    setTimeout(() => {
+      if (errorFields.name && nameRef.current) {
+        nameRef.current.focus();
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      } else if (errorFields.phone && phoneFieldRef.current) {
+        // Try to focus PhoneInput if possible
+        phoneInput.current?.focus?.();
+        phoneFieldRef.current.measure?.((fx, fy, width, height, px, py) => {
+          scrollViewRef.current?.scrollTo({ y: py - 60, animated: true });
+        });
+      } else if (errorFields.email && emailRef.current) {
+        emailRef.current.focus();
+        scrollViewRef.current?.scrollTo({ y: 300, animated: true });
+      } else if (errorFields.password && passwordRef.current) {
+        passwordRef.current.focus();
+        scrollViewRef.current?.scrollTo({ y: 400, animated: true });
+      }
+    }, 300);
+  };
 
   const validate = () => {
     let valid = true;
@@ -127,6 +156,7 @@ const Register = ({navigation, route}) => {
       }
     }
      setErrors(newErrors);
+    if (!valid) scrollToError(newErrors);
     return valid;
   };
 
@@ -146,7 +176,7 @@ const Register = ({navigation, route}) => {
     api
       .post('register/client', {
         username: form.name,
-        email: form.email,
+        email: form.email.toLowerCase(),
         phoneNumber:form.phone.replace(/\s/g, ''),
         password: form.password,
         user_role: 'client',
@@ -155,7 +185,8 @@ const Register = ({navigation, route}) => {
         validaton:route?.params?.number?false:true
       })
       .then(async response => {
-        setIsLoading(false);
+
+         setIsLoading(false);
         if(response?.data?.emailExists==true){
           trackRegisterFailure('email_already_exists');
           setErrors({
@@ -182,8 +213,8 @@ if(route?.params?.number){
               
   dispatch(userRegister(response.data));
  
-  if(route?.params?.handleLoginSucces){
-    route?.params?.handleLoginSucces()
+  if(route?.params?.handleLoginSuccess){
+    route?.params?.handleLoginSuccess()
     navigation.goBack()
   }
   return
@@ -192,13 +223,13 @@ if(route?.params?.number){
           number:form.phone.replace(/\s/g, ''),
           data:{
             username: form.name,
-            email: form.email,
+            email: form.email.toLowerCase(),
             phoneNumber:form.phone.replace(/\s/g, ''),
             password: form.password,
             user_role: 'client',
             firstName: form.name.split(' ')[0],
             lastName: form.name.split(' ')[1],
-            handleLoginSucces:route?.params?.handleLoginSucces
+            handleLoginSuccess:route?.params?.handleLoginSuccess
           }
         })
   
@@ -244,9 +275,11 @@ const handlerUpadte=async()=>{
    const phoneResponse = await api.get(
     `/users?filters[phoneNumber][$endsWith]=${form.phone.replace(/\s/g, '').replace("+", "")}`
   );
- 
 
-  if(Array.isArray(emailResponse.data) && emailResponse.data.length > 1){
+  console.log(" emailResponse.data", emailResponse.data)
+  const acceptedLength=route?.params?.result?.user?.email.endsWith("@apple.com")?0:1
+
+  if(Array.isArray(emailResponse.data) && emailResponse.data.length >acceptedLength ){
     trackRegisterFailure('phone_already_exists');
     setErrors({
       ...errors,
@@ -282,8 +315,8 @@ const handlerUpadte=async()=>{
       id:route?.params?.result?.user?.id,
 
       user:route?.params?.result.user,
-      handleLoginSucces:route?.params?.handleLoginSucces,
-      email: form.email,
+      handleLoginSuccess:route?.params?.handleLoginSuccess,
+      email: form.email.toLowerCase(),
     }
   })
  
@@ -309,7 +342,7 @@ const handlerUpadte=async()=>{
             <Ionicons name={I18nManager.isRTL?"arrow-forward":"arrow-back"} size={28} color={PRIMARY_COLOR} />
           </TouchableOpacity>
 
-          <ScrollView style={{paddingHorizontal: 10, flex: 1}} contentContainerStyle={{paddingBottom: 20}}>
+          <ScrollView ref={scrollViewRef} style={{paddingHorizontal: 10, flex: 1}} contentContainerStyle={{paddingBottom: 20}}>
             <View style={loginStyles.header}>
               <Text style={loginStyles.headerTitle}>
                 {t('register.createAccount')}
@@ -328,6 +361,7 @@ const handlerUpadte=async()=>{
                   {t('register.namePlaceholder')}
                 </Text>
                 <TextInput
+                  ref={nameRef}
                   style={[loginStyles.input, errors.name && loginStyles.inputError]}
                   placeholder={t('register.namePlaceholder')}
                   placeholderTextColor="#8391A1"
@@ -339,7 +373,7 @@ const handlerUpadte=async()=>{
                   <Text style={loginStyles.errorText}>{errors.name}</Text>
                 )}
               </View>
-              <View style={loginStyles.inputContainer}>
+              <View ref={phoneFieldRef} style={loginStyles.inputContainer}>
                 <Text
                   style={{
                     fontWeight: '600',
@@ -418,6 +452,7 @@ const handlerUpadte=async()=>{
                   {t('register.email')}
                 </Text>
                 <TextInput
+                  ref={emailRef}
                   style={[
                     loginStyles.input,
                     errors.email && loginStyles.inputError,
@@ -427,6 +462,7 @@ const handlerUpadte=async()=>{
                   value={form.email}
                   onChangeText={v => handleChange('email', v)}
                   autoCapitalize="none"
+                  
                   keyboardType="email-address"
                  />
                 {errors.email && (
@@ -451,6 +487,7 @@ const handlerUpadte=async()=>{
                       errors.password && loginStyles.inputError,
                     ]}>
                     <TextInput
+                      ref={passwordRef}
                       style={loginStyles.passwordInput}
                       placeholder={t('register.passwordPlaceholder')}
                       placeholderTextColor="#8391A1"
@@ -490,22 +527,9 @@ const handlerUpadte=async()=>{
                 {t('register.terms2')}
               </Text>
               
-              <View style={loginStyles.dividerContainer}>
-                <View style={loginStyles.divider} />
-                <Text style={loginStyles.dividerText}>{t('register.or')}</Text>
-                <View style={loginStyles.divider} />
-              </View>
+              
 
-              <View style={{alignItems: 'center', marginTop: 24}}>
-                <Text style={{color: '#8391A1', fontSize: 14}}>
-                  {t('register.alreadyHaveAccount')}{' '}
-                  <Text
-                    style={{color: PRIMARY_COLOR, fontWeight: '700'}}
-                    onPress={() => navigation.navigate('login')}>
-                    {t('register.signInHere')}
-                  </Text>
-                </Text>
-              </View>
+             
             </View>
           </ScrollView>
           

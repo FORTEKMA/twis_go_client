@@ -1,23 +1,29 @@
 import React from 'react';
-import { View, StyleSheet, Image } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { StyleSheet, Image } from 'react-native';
+import { useSelector } from 'react-redux';
+import { selectSettingsList } from '../store/utilsSlice/utilsSlice';
 
 const DriverMarker = ({ angle = 0, type = 1 }) => {
-  const getIconName = () => {
-    switch (type) {
-      case 1:
-        return require("../assets/eco.png")
-      case 3:
-        return require("../assets/van.png")
-      case 2:
-        return require("../assets/Berline.png")
-     
-    }
-  };
+  const settingsList = useSelector(selectSettingsList);
+  // Find the settings entry for this type
+  //console.log("settingsList",settingsList)
+  const setting = settingsList.find(s => s.id === type);
+  const iconUrl = setting?.map_icon?.url;
+   if (!iconUrl) {
+    // fallback to a local image if not found
+    return (
+      <Image
+        source={require('../assets/eco.png')}
+        style={[styles.icon, { transform: [{ rotate: `${angle}deg` }] }]}
+      />
+    );
+  }
 
   return (
-    <Image source={getIconName()} style={[styles.icon,{transform:[{rotate:`${angle}deg`}]}]} />
+    <Image
+      source={{ uri: iconUrl }}
+      style={[styles.icon, { transform: [{ rotate: `${angle}deg` }] }]}
+    />
   );
 };
 

@@ -14,40 +14,68 @@ import {
   trackRideConfirmed
 } from '../../../utils/analytics';
 
-const vehicleOptions = 
-{
-1:  {
-    key: 'eco',
-    label: 'Éco',
-    nearby: 4,
-    icon:require('../../../assets/TawsiletEcoCar.png'),
-    id:1,
-    description:'eco_description'
-  },
- 2: {
-    key: 'berline',
-    label: 'Berline',
-    nearby: 4,
-    icon:require('../../../assets/TawsiletBerlineCar.png'),
-    id:2,
-    description:'berline_description'
-  },
-3:  {
-    key: 'van',
-    label: 'Van',
-    nearby:7,
-    icon:require('../../../assets/TawsiletVanCar.png'),
-    id:3,
-    description:'van_description'
-  },
-};
 const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
-  const { t } = useTranslation();
+  const { t, i18n: i18nInstance } = useTranslation();
   const user = useSelector(state => state.user.currentUser);
   const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Get vehicle info from formData
+  const getVehicleInfo = () => {
+    if (!formData?.vehicleType) {
+      return null;
+    }
+    
+    const vehicle = formData.vehicleType;
+    return {
+      icon: vehicle.icon || getDefaultIcon(vehicle.id),
+      label: vehicle.label || getLocalizedName(vehicle),
+      description: vehicle.description || getDefaultDescription(vehicle.id)
+    };
+  };
+
+  // Get localized name based on current language
+  const getLocalizedName = (vehicle) => {
+    const currentLang = i18nInstance.language;
+    switch (currentLang) {
+      case 'ar':
+        return vehicle.name_ar || vehicle.name_en || 'Vehicle';
+      case 'fr':
+        return vehicle.name_fr || vehicle.name_en || 'Vehicle';
+      default:
+        return vehicle.name_en || 'Vehicle';
+    }
+  };
+
+  // Get default icon based on vehicle ID
+  const getDefaultIcon = (vehicleId) => {
+    switch (vehicleId) {
+      case 1:
+        return require('../../../assets/TawsiletEcoCar.png');
+      case 2:
+        return require('../../../assets/TawsiletBerlineCar.png');
+      case 3:
+        return require('../../../assets/TawsiletVanCar.png');
+      default:
+        return require('../../../assets/TawsiletEcoCar.png');
+    }
+  };
+
+  // Get default description based on vehicle ID
+  const getDefaultDescription = (vehicleId) => {
+    switch (vehicleId) {
+      case 1:
+        return 'eco_description';
+      case 2:
+        return 'berline_description';
+      case 3:
+        return 'van_description';
+      default:
+        return 'eco_description';
+    }
+  };
 
   // Track step view
   useEffect(() => {
@@ -160,6 +188,20 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
     );
   }
 
+  const vehicleInfo = getVehicleInfo();
+
+  // Show error if no vehicle info is available
+  if (!vehicleInfo) {
+    return (
+      <View style={[localStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <MaterialCommunityIcons name="car-off" size={48} color="#BDBDBD" />
+        <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+          Vehicle information not available
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={localStyles.container}>
       {/* Header */}
@@ -176,10 +218,10 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
       {/* Car Type Card */}
       <View style={localStyles.card}>
         <View style={localStyles.row}>
-           <Image source={vehicleOptions[formData?.vehicleType?.id].icon} style={{ width: 70, height: 70, marginRight: 12 }} />
+           <Image source={vehicleInfo.icon} style={{ width: 70, height: 70, marginRight: 12 }} />
           <View style={{ flex: 1 }}>
-            <Text style={localStyles.carType}>{t(`booking.step3.${vehicleOptions[formData?.vehicleType?.id].key}`)}</Text>
-            <Text style={localStyles.carDescription}>{t(vehicleOptions[formData?.vehicleType?.id].description)}</Text>
+            <Text style={localStyles.carType}>{vehicleInfo.label}</Text>
+            <Text style={localStyles.carDescription}>{t(vehicleInfo.description)}</Text>
           </View>
         </View>
       </View>

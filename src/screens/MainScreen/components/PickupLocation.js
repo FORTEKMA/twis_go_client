@@ -129,7 +129,8 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
             placeholder: formData?.pickupAddress?.address ? formData?.pickupAddress?.address : "",
             placeholderTextColor: "#ccc",
             style: {
-              width: "100%"
+              width: "100%",
+              color:"#000"
             }
           }}
           query={{

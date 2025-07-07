@@ -458,8 +458,12 @@ PODS:
     - React-Core
   - react-native-image-picker (7.0.3):
     - React-Core
+  - react-native-image-resizer (1.4.5):
+    - React-Core
   - react-native-keep-awake (1.3.1):
     - React-Core
+  - react-native-lottie-splash-screen (2.0.4):
+    - React
   - react-native-maps (1.8.0):
     - React-Core
   - react-native-netinfo (11.4.1):
@@ -475,8 +479,6 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-splash-screen (3.3.0):
-    - React-Core
   - react-native-stallion (2.2.0):
     - React-Core
     - ZIPFoundation
@@ -702,13 +704,14 @@ DEPENDENCIES:
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-google-maps (from `../node_modules/react-native-maps`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - "react-native-keep-awake (from `../node_modules/@sayem314/react-native-keep-awake`)"
+  - "react-native-lottie-splash-screen (from `../node_modules/@attarchi/react-native-lottie-splash-screen`)"
   - react-native-maps (from `../node_modules/react-native-maps`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-onesignal (from `../node_modules/react-native-onesignal`)
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
   - react-native-stallion (from `../node_modules/react-native-stallion`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -836,8 +839,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-maps"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-image-resizer:
+    :path: "../node_modules/react-native-image-resizer"
   react-native-keep-awake:
     :path: "../node_modules/@sayem314/react-native-keep-awake"
+  react-native-lottie-splash-screen:
+    :path: "../node_modules/@attarchi/react-native-lottie-splash-screen"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
   react-native-netinfo:
@@ -848,8 +855,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-restart"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-splash-screen:
-    :path: "../node_modules/react-native-splash-screen"
   react-native-stallion:
     :path: "../node_modules/react-native-stallion"
   React-NativeModulesApple:
@@ -977,13 +982,14 @@ SPEC CHECKSUMS:
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06
   react-native-google-maps: 356b9d01da0920be13e4c4dc83673b30e8a22c16
   react-native-image-picker: 2381c008bbb09e72395a2d043c147b11bd1523d9
+  react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-keep-awake: f242130d32a8e312b53c4b422534fd73ff35885a
+  react-native-lottie-splash-screen: 56a96be13e6558ace9f8f5910b39cace5e4b54b4
   react-native-maps: f699e0753c22c4d5c3a44d03895b193a4dbca6c2
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-onesignal: a8e7e5c9fc9a973befdbd38aa23f1e54fd364a8b
   react-native-restart: 7595693413fe3ca15893702f2c8306c62a708162
   react-native-safe-area-context: 36cc67648134e89465663b8172336a19eeda493d
-  react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
   react-native-stallion: b41cdff28a2a5a7d6a0912bbbcb2ffb177f81aa6
   React-NativeModulesApple: 797bc6078d566eef3fb3f74127e6e1d2e945a15f
   React-perflogger: cd8886513f68e1c135a1e79d20575c6489641597

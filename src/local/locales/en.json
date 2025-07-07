@@ -35,7 +35,14 @@
     "settings": "Settings",
     "reservation_created_success": "Your reservation has been created successfully",
     "location_permission_error": "Unable to access location. Please enable location services in your device settings.",
-    "location_permission_required": "Location permission is required to use this feature"
+    "location_permission_required": "Location permission is required to use this feature",
+    "retry": "Retry",
+    "coming_soon": "Coming Soon",
+    "countdown_title": "The application will be\nactive in",
+    "days": "Days",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds"
   },
   "onboarding": {
     "login": "Login",
@@ -60,6 +67,7 @@
   "login": {
     "needToLogin": "You need to login to continue",
     "needToLoginSubtitle": "Log in to access your account and enjoy all the features",
+    "needToLoginSubtitleShort": "Please log in to continue.",
     "enterAsGuest": "Enter as guest",
     "enterRecoveryEmail": "Enter your recovery email",
     "recoveryEmail": "Recovery email",
@@ -94,7 +102,8 @@
     "passwordSpecialChar": "Password must contain at least one special character (!@#$%^&*)",
     "terms1": "By continuing, you agree to the ",
     "termsOfService": "Terms of Service",
-    "terms2": "."
+    "terms2": ".",
+    "loginBanner": "Please log in to access your account and enjoy all the features."
   },
   "register": {
     "emailTaken": "This email address is already in use",
@@ -127,18 +136,27 @@
     "signInHere": "Sign in here"
   },
   "otp": {
-    "enterCode": "Enter your OTP code here.",
+    "enter_code": "Enter the verification code",
+    "code_sent_to": "The verification code will be sent to your phone number via SMS or WhatsApp",
+    "resend_code": "Resend code",
+    "continue": "Continue",
+    "invalidCode": "The entered data is incorrect",
+    "need_help": "Need help?",
     "notReceived": "Didn't receive OTP?",
     "resend": "Resend",
     "verify": "Verify",
-    "invalidCode": "Invalid code!",
     "errorOccurred": "An error occurred",
     "verify_phone": "Verify phone",
-    "code_sent_to": "Code sent to",
     "didnt_get_otp": "Didn't get OTP?",
-    "resend_code": "Resend code",
     "resend_in": "Resend in",
-    "seconds": "seconds"
+    "seconds": "seconds",
+    "choose_method": "Choose verification method",
+    "method_info": "We will send the verification code to {{number}} via SMS or WhatsApp",
+    "sms": "SMS Message",
+    "whatsapp": "WhatsApp",
+    "confirm": "Confirm",
+    "sms_desc": "We will send the verification code via SMS.",
+    "whatsapp_desc": "We will send the verification code via WhatsApp."
   },
   "history": {
     "empty": {
@@ -395,7 +413,7 @@
       "select_date": "Please select a date",
       "select_car": "Select a car",
       "eco": "Economy",
-      "berline": "Sedan",
+      "berline": "Class",
       "van": "Van",
       "nearby": "Nearby",
       "distance": "{value}",
@@ -457,7 +475,9 @@
       "get_location": "Could not get your location",
       "fetch_address": "Could not get address"
     },
-    "outside_tunisia": "This location is outside of Tunisia. Please select a location within Tunisia."
+    "outside_tunisia": "This location is outside of Tunisia. Please select a location within Tunisia.",
+    "too_close": "The dropoff location must be at least 100 meters from the pickup location.",
+    "calculating_distance": "Calculating distance..."
   },
   "Choose_location": "Choose a location",
   "save": "Save",

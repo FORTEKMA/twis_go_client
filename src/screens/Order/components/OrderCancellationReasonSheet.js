@@ -24,18 +24,18 @@ const OrderCancellationReasonSheet = ({
 
     setIsLoading(true);
     try {
-        api.put(`commands/${order.documentId}`, {
+       await api.put(`commands/${order.documentId}`, {
            data: {commandStatus: 'Canceled_by_client',
             cancelReason: selectedReason === 'Other' ? otherReason : selectedReason}
             
-        }).then(async (res)=>{
-         onSubmit(selectedReason);
-        }).catch((err)=>{
-        
-            console.log(err.response)
         })
-       //
-    } finally {
+        onSubmit(selectedReason);
+       
+    }
+    catch(err) {
+      console.log(err)
+    }
+    finally {
       setIsLoading(false);
     }
   };

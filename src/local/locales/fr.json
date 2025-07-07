@@ -37,7 +37,14 @@
     "settings": "Paramètress",
     "reservation_created_success": "Votre réservation a été créée avec succès",
     "location_permission_error": "Impossible d'accéder à la localisation. Veuillez activer les services de localisation dans les paramètres de votre appareil.",
-    "location_permission_required": "L'autorisation de localisation est requise pour utiliser cette fonctionnalité"
+    "location_permission_required": "L'autorisation de localisation est requise pour utiliser cette fonctionnalité",
+    "retry": "Réessayer",
+    "coming_soon": "Bientôt Disponible",
+    "countdown_title": "L'application sera\nactive dans",
+    "days": "Jours",
+    "hours": "Heures",
+    "minutes": "Minutes",
+    "seconds": "Secondes"
   },
   "auth": {
     "login": "Connexion",
@@ -94,6 +101,7 @@
   "login": {
     "needToLogin": "Vous devez vous connecter pour continuer",
     "needToLoginSubtitle": "Connectez-vous pour accéder à votre compte et profiter de toutes les fonctionnalités",
+    "needToLoginSubtitleShort": "Veuillez vous connecter pour continuer.",
     "enterAsGuest": "Entrer en tant que invité",
     "enterRecoveryEmail": "Entrez votre email de récupération",
     "recoveryEmail": "Email de Récupération",
@@ -128,7 +136,8 @@
     "passwordSpecialChar": "Le mot de passe doit contenir au moins un caractère spécial (!@#$%^&*)",
     "terms1": "En continuant, vous acceptez nos ",
     "termsOfService": "conditions d'utilisation",
-    "terms2": "."
+    "terms2": ".",
+    "loginBanner": "Veuillez vous connecter pour accéder à votre compte et profiter de toutes les fonctionnalités."
   },
   "register": {
     "emailTaken": "Cette adresse email est déjà prise",
@@ -163,18 +172,27 @@
     "signInHere": "Connectez-vous ici"
   },
   "otp": {
-    "enterCode": "Entrez votre code OTP ici.",
+    "enter_code": "Entrez le code de vérification",
+    "code_sent_to": "Le code de vérification sera envoyé à votre numéro de téléphone par SMS ou WhatsApp",
+    "resend_code": "Renvoyer le code",
+    "continue": "Continuer",
+    "invalidCode": "Les données saisies sont incorrectes",
+    "need_help": "Besoin d'aide ?",
     "notReceived": "Vous n'avez pas reçu l'OTP ?",
     "resend": "Renvoyer",
     "verify": "Vérifier",
-    "invalidCode": "Code est invalide !",
     "errorOccurred": "Un problème est survenu",
     "verify_phone": "Vérification du téléphone",
-    "code_sent_to": "Un code a été envoyé à",
     "didnt_get_otp": "Vous n'avez pas reçu le code OTP ?",
-    "resend_code": "Renvoyer le code",
     "resend_in": "Renvoyer dans",
-    "seconds": "secondes"
+    "seconds": "secondes",
+    "choose_method": "Choisissez la méthode de vérification",
+    "method_info": "Nous enverrons le code de vérification à {{number}} par SMS ou WhatsApp",
+    "sms": "Message SMS",
+    "whatsapp": "WhatsApp",
+    "confirm": "Confirmer",
+    "sms_desc": "Nous enverrons le code de vérification par SMS.",
+    "whatsapp_desc": "Nous enverrons le code de vérification par WhatsApp."
   },
   "history": {
     "empty": {
@@ -496,7 +514,9 @@
       "get_location": "Impossible d'obtenir votre position",
       "fetch_address": "Impossible d'obtenir l'adresse"
     },
-    "outside_tunisia":"Cet emplacement est situé hors de Tunisie. Veuillez choisir un emplacement en Tunisie."
+    "outside_tunisia":"Cet emplacement est situé hors de Tunisie. Veuillez choisir un emplacement en Tunisie.",
+    "too_close": "Le point d'arrivée doit être à au moins 100 mètres du point de départ.",
+    "calculating_distance": "Calcul de la distance..."
   },
   "Choose_location": "Choisir un lieu",
   "save": "Enregistrer",

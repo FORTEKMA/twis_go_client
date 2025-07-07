@@ -54,7 +54,7 @@ const PhoneLoginForm = React.memo(() => {
       console.log(`/users?filters[phoneNumber][$eq]=${"+"+number.replace(/\D/g, '')}`)
       // Query Strapi for user with this phone number
       const res = await api.get(`/users?filters[phoneNumber][$endsWith]=${number.replace(/\D/g, '')}`);
-      console.log("rse",res.data)
+       
       const users = res.data;
       if(users.length>0){
         const user = users[0];

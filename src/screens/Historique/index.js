@@ -130,13 +130,14 @@ const mangeStatus = (status) => {
      
 
         <FlatList
-          style={{ flex: 1, width: "100%", height: "100%" }}
+          style={{ flex: 1, width: "100%", height: "100%",paddingBottom:100 }}
           data={newOrders}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => <Card refresh={()=>getData(true)} key={item.id} order={item} />}
           onEndReachedThreshold={0.5}
           ListHeaderComponent={renderHeader}
           onEndReached={handleEndReached}
+
           scrollEventThrottle={16}
           ListEmptyComponent={() => <Empty />}
           ListFooterComponent={

@@ -7,6 +7,7 @@ import TabNavigator from './TabNavigator';
 import {createStackNavigator} from '@react-navigation/stack';
 import Onboarding from '../screens/Onboarding';
 import Rating from "../screens/Rating"
+import Login from '../screens/Login';
 const Stack = createStackNavigator();
 
 const MainNavigator = ({onReady}) => {
@@ -31,7 +32,19 @@ const MainNavigator = ({onReady}) => {
       
     {isFirstTime==true&&(  <Stack.Screen name="onboarding" component={Onboarding} />)}
       {hasReview!=null&&(  <Stack.Screen options={{ gestureEnabled: false }}  initialParams={{ order:hasReview}}  name="Rating" component={Rating} />)}
-      <Stack.Screen name="Main" component={userIsLoggedIn ? TabNavigator : AuthStack} />
+     
+      <Stack.Screen name="Main" component={TabNavigator} />
+      <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="LoginModal"
+        component={Login}
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+          gestureDirection: 'vertical',
+          cardStyle: { backgroundColor: 'transparent' },
+        }}
+      />
  
       </Stack.Navigator>
     </NavigationContainer>

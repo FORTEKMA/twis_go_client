@@ -8,7 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   ActivityIndicator,
-  I18nManager
+  I18nManager,
+  Platform
 } from 'react-native';
 import { colors } from '../../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: Platform.OS=="ios"?50: 20,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',

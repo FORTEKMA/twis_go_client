@@ -104,7 +104,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   };
 
   const handleSubmitCancellation = async (reason) => {
-    await database().ref(`rideRequests/${order.requestId}`).update({commandStatus: "Canceled_by_client",});
+    database().ref(`rideRequests/${order.requestId}`).update({commandStatus: "Canceled_by_client",});
 
     setShowReasonSheet(false);
     setSelectedReason(null);

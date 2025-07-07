@@ -8,7 +8,9 @@
 
 #import <AuthenticationServices/AuthenticationServices.h>
 #import <SafariServices/SafariServices.h>
- 
+#import "RNSplashScreen.h"
+#import "Tawsilet-Swift.h"
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -33,7 +35,16 @@
   }
 
   [super application:application didFinishLaunchingWithOptions:launchOptions];
-  [RNSplashScreen show];
+  UIView *rootView = self.window.rootViewController.view;
+  rootView.backgroundColor = [UIColor colorWithRed:12/255.0 green:12/255.0 blue:12/255.0 alpha:1.0]; // #0c0c0c
+
+  Dynamic *t = [Dynamic new];
+  UIView *animationUIView = (UIView *)[t createAnimationViewWithRootView:rootView lottieName:@"loading"];
+  [RNSplashScreen showLottieSplash:animationUIView inRootView:rootView];
+
+  LottieAnimationView *animationView = (LottieAnimationView *) animationUIView;
+  [t playWithAnimationView:animationView];
+  [RNSplashScreen setAnimationFinished:true];
   return YES;
 }
 

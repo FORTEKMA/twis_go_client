@@ -3,17 +3,16 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, Keyboard
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Toast } from 'native-base';
-import Modal from 'react-native-modal';
-import { OtpInput } from 'react-native-otp-entry';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker from 'react-native-country-picker-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../styles';
 import { updateUser, getCurrentUser,updateUserSwitcher } from '../../../store/userSlice/userSlice';
 import Header from '../components/Header';
+import OtpModal from '../components/OtpModal';
 import { useNavigation } from '@react-navigation/native';
 import { ActivityIndicator } from 'react-native';
- import api from '../../../utils/api';
+import api from '../../../utils/api';
 
 const PersonalInfo = () => {
   const { t } = useTranslation();
@@ -32,8 +31,12 @@ const PersonalInfo = () => {
   });
   const [isDataChanged, setIsDataChanged] = useState(false);
   const [isOtpModalVisible, setOtpModalVisible] = useState(false);
-  const [otp, setOtp] = useState('');
   const [isFlagsVisible, setFlagsVisible] = useState(false);
+  
+  // Timer states for preventing multiple updates
+  const [timer, setTimer] = useState(0);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const [isUpdateBlocked, setIsUpdateBlocked] = useState(false);
 
   const onSelectCountry = (country) => {
     phoneInputRef.current.selectCountry(country.cca2.toLowerCase());
@@ -85,6 +88,32 @@ const PersonalInfo = () => {
     }
   }, [userData, user]);
 
+  // Timer effect for preventing multiple updates
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      setIsUpdateBlocked(true);
+      interval = setInterval(() => {
+        setTimer(prev => {
+          if (prev <= 1) {
+            setIsUpdateBlocked(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setIsUpdateBlocked(false);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
   const handleUpdate = async () => {
     try {
       setIsLoading(true);
@@ -122,6 +151,17 @@ const PersonalInfo = () => {
   };
 
   const handleSaveChanges = async () => {
+    // Prevent multiple attempts while timer is active
+    if (isUpdateBlocked) {
+      Toast.show({
+        title: t("common.warning"),
+        description: t("profile.personal_info.please_wait", { time: formatTime(timer) }),
+        status: "warning",
+        duration: 3000,
+      });
+      return;
+    }
+
     if (userData.phoneNumber !== user.phoneNumber) {
       if (phoneInputRef.current && !phoneInputRef.current.isValidNumber()) {
         Toast.show({
@@ -152,9 +192,9 @@ const PersonalInfo = () => {
         // For now, we'll just open the modal
        await api.post('codes/send-otp', { phoneNumber: userData.phoneNumber.replace(/\s/g, '') });
 
-
-
-
+        // Set timer to prevent multiple attempts
+        setTimer(60);
+        setResendAttempts(0);
         setOtpModalVisible(true);
       } catch (error) {
         Toast.show({
@@ -171,33 +211,29 @@ const PersonalInfo = () => {
     }
   };
 
-  const handleOtpConfirm = async (code) => {
-    setOtpModalVisible(false);
-    setIsLoading(true);
-    const finalOtp = typeof code === "string" ? code : otp;
+  const handleOtpSuccess = async () => {
+    await handleUpdate();
+  };
+
+  const handleOtpError = (error) => {
+    console.log('OTP Error:', error);
+  };
+
+  const handleResendOtp = async () => {
+    if (timer > 0) return;
+    
     try {
-      // This is where you would call your API to verify the OTP
-      // For now, we'll just assume it's correct and proceed
-      console.log({
-        phoneNumber: userData.phoneNumber.replace(/\s/g, ""),
-        code: finalOtp,
-      });
-      await api.post("/codes/verify-otp", {
-        phoneNumber: userData.phoneNumber.replace(/\s/g, ""),
-        code: finalOtp,
-      });
-      await handleUpdate();
+      await api.post('codes/send-otp', { phoneNumber: userData.phoneNumber.replace(/\s/g, '') });
+      const nextAttempt = resendAttempts + 1;
+      setResendAttempts(nextAttempt);
+      setTimer(60 * Math.pow(2, nextAttempt - 1));
     } catch (error) {
       Toast.show({
         title: t("common.error"),
-        description: t("profile.personal_info.otp_verify_error"),
+        description: t("profile.personal_info.otp_send_error"),
         status: "error",
         duration: 3000,
       });
-      console.log(error)
-    } finally {
-      setIsLoading(false);
-      setOtp('');
     }
   };
 
@@ -309,12 +345,14 @@ const PersonalInfo = () => {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.nextButton, (isLoading || !isDataChanged) && styles.loginButtonDisabled]}
+            style={[styles.nextButton, (isLoading || !isDataChanged || isUpdateBlocked) && styles.loginButtonDisabled]}
             onPress={handleSaveChanges}
-            disabled={isLoading || !isDataChanged}
+            disabled={isLoading || !isDataChanged || isUpdateBlocked}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
+            ) : isUpdateBlocked ? (
+              <Text style={styles.nextButtonText}>{t("common.please_wait")} ({formatTime(timer)})</Text>
             ) : (
               <Text style={styles.nextButtonText}>{t("common.edit")}</Text>
             )}
@@ -322,29 +360,17 @@ const PersonalInfo = () => {
         </View>
       </KeyboardAvoidingView>
 
-      <Modal isVisible={isOtpModalVisible} onBackdropPress={() => setOtpModalVisible(false)} style={{ justifyContent: 'flex-end', margin: 0 }}>
-        <View style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 60 }}>
-          <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>{t('profile.personal_info.otp_title')}</Text>
-          <Text style={{ textAlign: 'center', marginVertical: 10 }}>{t('profile.personal_info.otp_message', { phoneNumber: userData.phoneNumber })}</Text>
-          <OtpInput
-            numberOfDigits={4}
-            focusColor="#0c0c0c"
-            focusStickBlinkingDuration={500}
-            onTextChange={(text) => setOtp(text)}
-            onFilled={handleOtpConfirm}
-            theme={{
-              containerStyle: { marginVertical: 20 },
-              pinCodeContainerStyle: { width: 60, height: 60, borderWidth: 1, borderRadius: 5 },
-            }}
-          />
-          <TouchableOpacity
-            style={[styles.nextButton, { marginTop: 20 }]}
-            onPress={handleOtpConfirm}
-          >
-            <Text style={styles.nextButtonText}>{t('common.confirm')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <OtpModal
+        isVisible={isOtpModalVisible}
+        onClose={() => setOtpModalVisible(false)}
+        phoneNumber={userData.phoneNumber}
+        onSuccess={handleOtpSuccess}
+        onError={handleOtpError}
+        timer={timer}
+        onResend={handleResendOtp}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+      />
     </SafeAreaView>
   );
 };

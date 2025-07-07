@@ -1,25 +1,22 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet ,Dimensions} from 'react-native';
 import { colors } from '../../utils/colors';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
-
+const WIDTH=Dimensions.get("screen").width-90
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+    paddingTop:10
   },
   backButton: {
-   // position: 'absolute',
-   // top: 50,
-  //  left: 20,
-  //  zIndex: 1,
+  
     padding: 8,
-    marginTop:50
+    
   },
   titleContainer: {
-    marginTop: 100,
-    alignItems: 'center',
-    marginBottom: 32,
+    marginTop: 15,
+     marginBottom: 32,
   },
   otpContainer: {
     flexDirection: 'row',
@@ -99,7 +96,128 @@ export const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 10,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'left',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  subtitle: {
+    color: '#888',
+    fontSize: 15,
+    textAlign: 'left',
+    marginBottom: 2,
+  },
+  phoneNumber: {
+    fontWeight: 'bold',
+    color: '#000',
+    fontSize: 15,
+  },
+  editPhoneLinkContainer: {
+    alignSelf: 'flex-start',
+    marginTop: 2,
+    marginBottom: 8,
+  },
+  editPhoneLink: {
+    color: '#007AFF',
+    fontSize: 15,
+    textAlign: 'left',
+    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
+  otpInputContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  otpInput: {
+    width: WIDTH/4,
+    height: WIDTH/4,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    marginHorizontal: 6,
+    backgroundColor: '#FAFAFA',
+    textAlign: 'center',
+    fontSize: 24,
+    color: '#000',
+  },
+  otpInputError: {
+    borderColor: '#D21313',
+    backgroundColor: '#FFF0F0',
+  },
+  otpInputText: {
+    fontSize: 24,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  helpText: {
+    color: '#888',
+    fontSize: 15,
+    textAlign: 'left',
+    marginBottom: 16,
+    marginTop: 2,
+  },
+  resendContinueRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  resendButton: {
+    borderColor: '#0c0c0c',
+    flex: 1,
+    borderWidth:1,
+    borderRadius: 12,
+    paddingVertical: 20,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  resendButtonDisabled: {
+    opacity: 0.6,
+    borderColor: '#0c0c0c60',
+  },
+  resendButtonText: {
+    color: '#888',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  continueButton: {
+    flex: 1,
+    backgroundColor: '#030303',
+    borderRadius: 12,
+    paddingVertical: 20,
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  continueButtonDisabled: {
+    opacity: 0.6,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  bottomButtonsContainer: {
+    
+    padding: 16,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+   
+   
+  },
+  resendCountdown: {
+    color: '#888',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 }); 

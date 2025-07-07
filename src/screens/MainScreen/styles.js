@@ -307,4 +307,50 @@ height:50,
   carIcon: {
     marginLeft: 8,
   },
+  countdownOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    zIndex: 999999,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countdownTitle: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
+     position:"absolute",
+    top:"20%"
+  },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    position:"absolute",
+    top:"30%"
+  },
+  countdownBlock: {
+    alignItems: 'center',
+    marginHorizontal: 10,
+    
+  },
+  countdownNumber: {
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: 'bold',
+  },
+  countdownLabel: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  countdownColon: {
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginHorizontal: 2,
+    marginTop: -5,
+  },
 }); 

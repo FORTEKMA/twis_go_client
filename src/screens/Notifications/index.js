@@ -113,6 +113,7 @@ const Notifications = () => {
                 }))}
               />
             ))}
+                    <View style={{height:100}}/>
         </ScrollView>
       ) : (
         <EmptyState />

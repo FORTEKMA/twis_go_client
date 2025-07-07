@@ -25,7 +25,7 @@ api.interceptors.request.use(
     const state = store.getState();
 
   const userData = state.user
-    const token = userData && userData.token ? userData.token : null;
+    const token = userData && userData.token&& userData.token!==-1 ? userData.token : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,9 +40,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
-    
+    const state = store.getState();
 
-    if (error.response && error.response.status === 401) {
+    const userData = state.user
+    const token = userData && userData.token ? userData.token : null;
+   
+
+    if (error.response && error.response.status === 401&&token!==-1) {
       try {
         GoogleSignin.signOut();
      } catch (error) {

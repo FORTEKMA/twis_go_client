@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 150,
     marginBottom: 20,
+     color:"#000"
   },
   submitReportButton: {
     backgroundColor: colors.primary,

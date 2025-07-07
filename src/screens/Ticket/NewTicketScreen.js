@@ -30,9 +30,6 @@ const REASONS = [
   'other',
 ];
 
-// Reasons that require a command reference
-const COMMAND_REQUIRED_REASONS = ['payment_issue', 'driver_behavior'];
-
 const NewTicketScreen = ({ navigation, route }) => {
   const [reason, setReason] = useState(REASONS[0]);
   const [command, setCommand] = useState('');
@@ -45,8 +42,6 @@ const NewTicketScreen = ({ navigation, route }) => {
   const [isCommandModalVisible, setIsCommandModalVisible] = useState(false);
   const { t } = useTranslation();
   const currentUser = useSelector(state => state?.user?.currentUser);
-
-  const isCommandRequired = COMMAND_REQUIRED_REASONS.includes(reason);
 
   useEffect(() => {
     fetchUserCommands();
@@ -86,11 +81,12 @@ const NewTicketScreen = ({ navigation, route }) => {
             name: result.assets[0].fileName || 'camera_image.jpg',
           });
         }
+        setIsImagePickerVisible(false);
       }, 10);
     } catch (err) {
       console.error('Error taking photo:', err);
     } finally {
-      setIsImagePickerVisible(false);
+     
     }
   };
 
@@ -161,22 +157,12 @@ const NewTicketScreen = ({ navigation, route }) => {
       return;
     }
 
-    // Check if command is required for the selected reason
-    if (isCommandRequired && !command.trim()) {
-      Toast.show({
-        title: t('tickets.command_required'),
-        status: "error",
-        placement: "bottom",
-      });
-      return;
-    }
-
     setIsLoading(true);
     let commandId = null;
     let attachmentId = null;
 
     try {
-      // Validate command if provided or required
+      // Validate command if provided
       if (command.trim()) {
         const commandData = await validateCommand(command.trim());
         if (!commandData) {
@@ -189,14 +175,6 @@ const NewTicketScreen = ({ navigation, route }) => {
           return;
         }
         commandId = commandData.id;
-      } else if (isCommandRequired) {
-        Toast.show({
-          title: t('tickets.command_required'),
-          status: "error",
-          placement: "bottom",
-        });
-        setIsLoading(false);
-        return;
       }
 
       // Upload attachment if provided
@@ -409,9 +387,6 @@ const NewTicketScreen = ({ navigation, route }) => {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>
               {t('tickets.command')}
-              {isCommandRequired && (
-                <Text style={styles.requiredLabel}> *</Text>
-              )}
             </Text>
             <TouchableOpacity
               style={styles.reasonButton}
@@ -636,10 +611,6 @@ const styles = StyleSheet.create({
   },
   reasonItemTextSelected: {
     fontWeight: '600',
-  },
-  requiredLabel: {
-    color: colors.error,
-    fontSize: 16,
   },
   fileInfo: {
     flexDirection: 'row',

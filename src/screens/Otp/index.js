@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, KeyboardAvoidingView, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, KeyboardAvoidingView, Text, TouchableOpacity, ActivityIndicator, SafeAreaView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { OneSignal } from "react-native-onesignal";
@@ -18,16 +18,22 @@ import {
   trackRegisterSuccess,
   trackRegisterFailure 
 } from '../../utils/analytics';
+import Modal from 'react-native-modal';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const Otp = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { number } = route.params;
   const [otp, setOTP] = useState('');
   const [timer, setTimer] = useState(60);
+  const [resendAttempts, setResendAttempts] = useState(0);
   const [verificationSent, setVerificationSent] = useState(true);
   const [error, setError] = useState(false);
   const [error2, setError2] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResendModalVisible, setIsResendModalVisible] = useState(false);
+  const [selectedResendMethod, setSelectedResendMethod] = useState(null);
   const dispatch = useDispatch();
 
   // Track screen view on mount
@@ -39,7 +45,7 @@ const Otp = ({ route, navigation }) => {
   }, []);
 
   useEffect(() => {
-    dispatch(sendVerify(number.replace(/\s/g, '')));
+    dispatch(sendVerify({phoneNumber:number.replace(/\s/g, ''),"useWhatsapp": true}));
     setVerificationSent(true);
   }, []);
 
@@ -53,6 +59,7 @@ const Otp = ({ route, navigation }) => {
         phoneNumber: number.replace(/\s/g, ''),
         code: otp
       });
+      console.log("res",res.data.success)
      
       if (res.data.status == false) {
         trackOtpVerification(false, { error: 'invalid_code' });
@@ -64,31 +71,32 @@ const Otp = ({ route, navigation }) => {
 
         if(route?.params?.put==true){
           api.put(`users/${route?.params?.data?.id}`,{ 
-
-phoneNumber:number,
-firstName: route?.params?.data?.firstName,
-lastName:route?.params?.data?.lastName,
-email:route?.params?.data?.email,
-},{headers:{Authorization:route?.params?.data?.Authorization}}).then(res=>{
-
-OneSignal.login(String(route?.params?.data?.id));
-let tempUser=route?.params?.data.user
-tempUser.email= route?.params?.data?.email;
-tempUser.phoneNumber=number
-tempUser.firstName=route?.params?.data?.firstName,
-tempUser.lastName=route?.params?.data?.lastName,
-dispatch(userRegister({jwt:route?.params?.data?.Authorization,user:tempUser}));
-setIsLoading(false);
-trackOtpVerification(true, { action: 'profile_update' });
-if(route?.params?.data?.handleLoginSucces)
-{ route?.params?.data?.handleLoginSuccess()
-navigation.pop(2)}
-setIsLoading(false);
-}).catch(err=>{
-  setIsLoading(false);
-  trackOtpVerification(false, { error: 'profile_update_failed' });
-  console.log(err)})
-          return
+            phoneNumber: number,
+            firstName: route?.params?.data?.firstName,
+            lastName: route?.params?.data?.lastName,
+            email: route?.params?.data?.email,
+          },{headers:{Authorization:route?.params?.data?.Authorization}})
+          .then(res => {
+            OneSignal.login(String(route?.params?.data?.id));
+            let tempUser = route?.params?.data.user;
+            tempUser.email = route?.params?.data?.email;
+            tempUser.phoneNumber = number;
+            tempUser.firstName = route?.params?.data?.firstName;
+            tempUser.lastName = route?.params?.data?.lastName;
+            dispatch(userRegister({jwt: route?.params?.data?.Authorization, user: tempUser}));
+            setIsLoading(false);
+            trackOtpVerification(true, { action: 'profile_update' });
+            if(route?.params?.data?.handleLoginSuccess) {
+              route?.params?.data?.handleLoginSuccess();
+            }
+            navigation.pop(2);
+          })
+          .catch(err => {
+            setIsLoading(false);
+            trackOtpVerification(false, { error: 'profile_update_failed' });
+            console.log(err);
+          });
+          return;
         }
 
         if(route?.params?.add==true){
@@ -109,10 +117,12 @@ setIsLoading(false);
               dispatch(userRegister(response.data));
               trackOtpVerification(true, { action: 'registration' });
               trackRegisterSuccess({ phone_verified: true });
+              console.log("route?.params?.data?.handleLoginSuccess",route?.params?.data?.handleLoginSuccess)
               if(route?.params?.data?.handleLoginSuccess){
                 route?.params?.data?.handleLoginSuccess()
-                navigation.pop(2)
+               
               }
+              navigation.pop(2)
             }).catch(err=>{
               console.log(error);
               setError(true);
@@ -145,6 +155,7 @@ setIsLoading(false);
             jwt: res.data.authToken
           };
           dispatch(userRegister(payload));
+          navigation.pop(2)
           trackOtpVerification(true, { action: 'login' });
           trackLoginSuccess('phone', { phone_verified: true });
         } else {
@@ -153,7 +164,7 @@ setIsLoading(false);
         }
       }
     } catch (error) {
-      console.log(error);
+      console.log(error.response);
       setError(true);
       trackOtpVerification(false, { error: 'network_error' });
     } finally {
@@ -162,11 +173,21 @@ setIsLoading(false);
   };
 
   const handleResend = () => {
-    setTimer(60);
+    setIsResendModalVisible(true);
+    setSelectedResendMethod(null);
+  };
+
+  const handleConfirmResend = () => {
+    if (!selectedResendMethod) return;
+    setIsResendModalVisible(false);
+    const nextAttempt = resendAttempts + 1;
+    setResendAttempts(nextAttempt);
+    setTimer(60 * Math.pow(2, nextAttempt - 1));
+   
+    dispatch(sendVerify({phoneNumber:number.replace(/\s/g, ''),useWhatsapp:selectedResendMethod === 'whatsapp'}));
     setVerificationSent(true);
-    // Track resend OTP
-    trackOtpVerification(false, { action: 'resend_requested' });
-    // Add your resend logic here
+    trackOtpVerification(false, { action: 'resend_requested', attempt: nextAttempt, method: selectedResendMethod });
+    // TODO: Implement actual API call for WhatsApp if needed
   };
 
   useEffect(() => {
@@ -191,72 +212,115 @@ setIsLoading(false);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
+   return (
+       <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
+        <KeyboardAvoidingView
+          style={{flex: 1}}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <ScrollView style={{flex:1}}>
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.backButton} 
-        onPress={() => navigation.goBack()}
-      >
-        <Icon name="arrow-back" size={24} color="#000" />
-      </TouchableOpacity>
-      <View style={styles.titleContainer}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#000', marginBottom: 8 }}>{t('otp.verify_phone')}</Text>
-        <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>
-          {t('otp.code_sent_to')} {'\u200E' + number}
-        </Text>
-      </View>
-      <OtpInput
-        numberOfDigits={4}
-        onTextChange={(text) => setOTP(text)}
-        focusColor="#18365A"
-        focusStickBlinkingDuration={500}
-        theme={{
-          containerStyle: {
-            marginBottom: 32,
-          },
-          pinCodeContainerStyle: {
-            width: 60,
-            height: 60,
-            borderWidth: 1,
-            borderColor: '#18365A',
-            borderRadius: 8,
-          },
-          pinCodeTextStyle: {
-            fontSize: 24,
-            color: '#000',
-          },
-        }}
-      />
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      <View style={styles.resendContainer}>
-        {verificationSent ? (
-          <View style={styles.timerContainer}>
-            <Icon name="time-outline" size={16} color="#888" style={styles.timerIcon} />
-            <Text style={styles.timerText}>
-              {t('otp.resend_in')} <Text style={styles.timerCount}>{formatTime(timer)}</Text>
-            </Text>
+         
+          <View style={styles.container}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <Icon name="arrow-back" size={24} color="#000" />
+            </TouchableOpacity>
+            <View style={styles.titleContainer}>
+              <Text style={styles.title}>{t('otp.enter_code')}</Text>
+              <Text style={styles.subtitle}>
+                {t('otp.code_sent_to')} <Text style={styles.phoneNumber}>{'\u200E' + number}</Text>
+              </Text>
+            </View>
+            <OtpInput
+              numberOfDigits={4}
+              onTextChange={(text) => setOTP(text)}
+              focusColor={error ? '#D21313' : '#18365A'}
+              focusStickBlinkingDuration={500}
+              theme={{
+                containerStyle: styles.otpInputContainer,
+                pinCodeContainerStyle: [
+                  styles.otpInput,
+                  error && styles.otpInputError
+                ],
+                pinCodeTextStyle: styles.otpInputText,
+              }}
+              keyboardType="number-pad"
+            />
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            <View style={{height: 100}} />
           </View>
-        ) : (
-          <TouchableOpacity style={styles.resendButton} onPress={handleResend}>
-            <Icon name="refresh-outline" size={16} color={colors.primary} style={styles.resendIcon} />
-            <Text style={styles.resendButtonText}>{t('otp.resend_code')}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-      <TouchableOpacity
-        style={[styles.btn, isLoading && styles.btnDisabled]}
-        onPress={handleVerify}
-        disabled={isLoading || otp.length !== 4}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnText}>{t('otp.verify')}</Text>
-        )}
-      </TouchableOpacity>
-    </View>
-  );
+          </ScrollView>
+          <View style={styles.bottomButtonsContainer}>
+            <TouchableOpacity
+              style={[styles.resendButton, timer > 0 && styles.resendButtonDisabled]}
+              onPress={handleResend}
+              disabled={timer > 0}
+            >
+              <Text style={styles.resendButtonText}>
+                {t('otp.resend_code')}
+                {timer > 0 && (
+                  <Text style={styles.resendCountdown}>  {formatTime(timer)}</Text>
+                )}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.continueButton, (isLoading || otp.length !== 4) && styles.continueButtonDisabled]}
+              onPress={handleVerify}
+              disabled={isLoading || otp.length !== 4}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.continueButtonText}>{t('otp.continue')}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      
+        <Modal
+          isVisible={isResendModalVisible}
+          onBackdropPress={() => setIsResendModalVisible(false)}
+          onBackButtonPress={() => setIsResendModalVisible(false)}
+          style={{ justifyContent: 'flex-end', margin: 0 }}
+          backdropOpacity={0.3}
+        >
+          <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 }}>
+            <View style={{ alignItems: 'center', marginBottom: 12 }}>
+              <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: '#ccc', marginBottom: 8 }} />
+            </View>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginBottom: 8,color: '#0c0c0c', }}>{t('otp.choose_method')}</Text>
+             <Text style={{ color: '#0c0c0c', fontSize: 14, textAlign: 'center', marginBottom: 12 }}>{t('otp.method_info', { number })}</Text>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: selectedResendMethod === 'sms' ? '#0c0c0c50' : '#F8F8F8', borderWidth: selectedResendMethod === 'sms' ? 2 : 0, borderColor: selectedResendMethod === 'sms' ? '#0c0c0c' : 'transparent', borderRadius: 12, padding: 16, marginBottom: 12,gap:5 }}
+              onPress={() => setSelectedResendMethod('sms')}
+            >
+              <Ionicons name="chatbubble-ellipses-outline" size={24} color="#000" style={{ marginLeft: 8 }} />
+              <Text style={{ fontSize: 16, color: '#000', fontWeight: '500', flex: 1, textAlign: 'right' }}>{t('otp.sms')}</Text>
+              {selectedResendMethod === 'sms' && <Ionicons name="checkmark-circle" size={22} color="#0c0c0c" style={{ marginRight: 8 }} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: selectedResendMethod === 'whatsapp' ? '#0c0c0c50' : '#F8F8F8', borderWidth: selectedResendMethod === 'whatsapp' ? 2 : 0, borderColor: selectedResendMethod === 'whatsapp' ? '#0c0c0c' : 'transparent', borderRadius: 12, padding: 16, marginBottom: 12 ,gap:5 }}
+              onPress={() => setSelectedResendMethod('whatsapp')}
+            >
+              <Ionicons name="logo-whatsapp" size={24} color="#25D366" style={{ marginLeft: 8 }} />
+              <Text style={{ fontSize: 16, color: '#000', fontWeight: '500', flex: 1, textAlign: 'right' }}>{t('otp.whatsapp')}</Text>
+              {selectedResendMethod === 'whatsapp' && <Ionicons name="checkmark-circle" size={22} color="#0c0c0c" style={{ marginRight: 8 }} />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: selectedResendMethod ? '#0c0c0c' : '#F0F0F0', borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8, opacity: selectedResendMethod ? 1 : 0.6 }}
+              onPress={handleConfirmResend}
+              disabled={!selectedResendMethod}
+            >
+              <Text style={{ color: selectedResendMethod ? '#fff' : '#888', fontSize: 16 }}>{t('common.confirm')}</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      </SafeAreaView>
+   );
 };
 
 export default Otp; 

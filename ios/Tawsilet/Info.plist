@@ -76,6 +76,9 @@
 	<string>We need your location to show you the nearest Tawsilet services</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to update your profile image</string>
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
+
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>

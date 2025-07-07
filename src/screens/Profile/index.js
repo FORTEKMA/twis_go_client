@@ -16,6 +16,7 @@ import LanguageModal from './components/LanguageModal';
 import LanguageConfirmationModal from './components/LanguageConfirmationModal';
 import DeleteAccountModal from './components/DeleteAccountModal';
 import api from "../../utils/api";
+import ImageResizer from 'react-native-image-resizer';
 
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
@@ -65,6 +66,8 @@ const Profile = () => {
     } catch (error) {
       console.log(error)
     }
+
+    navigation.navigate("Home")
   
     dispatch(logOut()).then(() => {
       OneSignal.logout();
@@ -89,13 +92,18 @@ const Profile = () => {
       imagePicker(options, async (res) => {
          
         if (res.assets && res.assets[0]) {
-        
+          const resizedImage = await ImageResizer.createResizedImage(
+            res.assets[0].uri,
+            res.assets[0].width,
+            res.assets[0].height,
+            'JPEG',
+            80
+          );
+
            const formData = new FormData();
-          // formData.append("ref", "plugin::users-permissions.user");
-          // formData.append("refId", user?.id);
-          // formData.append("field", "profilePicture");
+       
           formData.append("files", {  
-            uri: res.assets[0].uri,
+            uri: resizedImage.uri,
             type: res.assets[0].type,
             name: res.assets[0].fileName,
           });
@@ -142,6 +150,19 @@ try {
 
   const confirmDeleteAccount = () => {
      setDeleteModalVisible(false);
+     trackLogout();
+     try {
+        GoogleSignin.signOut();
+     } catch (error) {
+       console.log(error)
+     }
+ 
+     navigation.navigate("Home")
+   
+     dispatch(logOut()).then(() => {
+       OneSignal.logout();
+       
+     });
     // Add your account deletion logic here
   };
 
@@ -214,6 +235,7 @@ try {
           <Ionicons name="trash-outline" size={24} color="#d32f2f" />
           <Text style={[styles.logoutText, { color: '#d32f2f' }]}>{t('profile.delete_account.button')}</Text>
         </TouchableOpacity>
+        <View style={{height:100}}/>
       </ScrollView>
 
       <LogoutModal
