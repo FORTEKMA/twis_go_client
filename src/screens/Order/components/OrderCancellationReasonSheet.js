@@ -4,8 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../utils/colors';
 import api from '../../../utils/api';
- import {ONESIGNAL_DRIVER_APP_ID,ONESIGNAL_DRIVER_APP_API_KEY} from "@env"
-const OrderCancellationReasonSheet = ({
+ const OrderCancellationReasonSheet = ({
   visible,
   onClose,
   reasons,

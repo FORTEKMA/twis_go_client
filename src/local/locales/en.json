@@ -450,6 +450,8 @@
   "pick_off": "Drop-off Point",
   "go_to_payment": "Go to Payment",
   "proceeding_to_payment": "Proceeding to payment...",
+  "price_includes_reservation": "Price includes {{amount}} DT for reservation",
+  "scheduled_date": "Scheduled Date",
   "payment": {
     "online": "Pay Online",
     "online_description": "Pay securely with your bank card",

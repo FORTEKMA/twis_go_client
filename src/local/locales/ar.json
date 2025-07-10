@@ -444,6 +444,8 @@
   "pick_off": "نقطة الوصول",
   "go_to_payment": "الذهاب إلى الدفع",
   "proceeding_to_payment": "المتابعة إلى الدفع...",
+  "price_includes_reservation": "السعر يشمل {{amount}} د.ت للحجز",
+  "scheduled_date": "تاريخ الحجز",
   "payment": {
     "online": "الدفع عبر الإنترنت",
     "online_description": "ادفع بأمان باستخدام بطاقتك المصرفية",

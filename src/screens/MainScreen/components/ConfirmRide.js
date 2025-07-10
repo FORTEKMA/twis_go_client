@@ -21,7 +21,7 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
   const [price, setPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
+ 
   // Get vehicle info from formData
   const getVehicleInfo = () => {
     if (!formData?.vehicleType) {
@@ -294,6 +294,28 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
 
       </View>
 
+      {/* Scheduled Date Card - Show only if selectedDate exists */}
+      {formData?.selectedDate && (
+        <View style={localStyles.dateCard}>
+          <View style={localStyles.dateRow}>
+            <MaterialCommunityIcons name="calendar-clock" size={24} color="#030303" />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={localStyles.dateLabel}>{t('scheduled_date')}</Text>
+              <Text style={localStyles.dateText}>
+                {new Date(formData.selectedDate).toLocaleDateString(i18nInstance.language === 'ar' ? 'ar-TN' : 'en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Success Modal */}
       <Modal
         visible={showSuccessModal}
@@ -333,6 +355,20 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
           </>
         )}
       </TouchableOpacity>
+
+      {/* Price Information */}
+      {formData?.selectedDate && (
+        <View style={localStyles.priceInfoCard}>
+          <View style={localStyles.priceInfoRow}>
+            <MaterialCommunityIcons name="information" size={16} color="#6c757d" />
+            <Text style={localStyles.priceInfoText}>
+              {t('price_includes_reservation', { 
+                amount: parseFloat(formData.vehicleType.reservation_price).toFixed(2) 
+              })}
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -361,6 +397,57 @@ const localStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
+  dateCard: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 18,
+   // shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+ //   borderLeftWidth: 4,
+  //  borderLeftColor: '#030303',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dateLabel: {
+    color: '#BDBDBD',
+    fontSize: hp(1.5),
+    fontWeight: '400',
+    textAlign:  "left",
+  },
+  dateText: {
+    color: '#030303',
+    fontWeight: '600',
+    fontSize: hp(1.8),
+    marginTop: 2,
+    textAlign:  "left",
+  },
+  priceInfoCard: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  priceInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  priceInfoText: {
+    fontSize: hp(1.5),
+    color: '#6c757d',
+    fontWeight: '400',
+    marginLeft: 8,
+
+    textAlign:  "left",
+    flex: 1,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -369,13 +456,13 @@ const localStyles = StyleSheet.create({
     fontWeight: '700',
     fontSize: hp(2.2),
     color: '#030303',
-    textAlign:I18nManager.isRTL?"left":"left",
+    textAlign:"left",
   },
   carDescription: {
     color: '#BDBDBD',
     fontSize: hp(1.7),
     marginTop: 2,
-    textAlign:I18nManager.isRTL?"left":"left",
+    textAlign:"left",
 
   },
   infoCard: {
@@ -398,7 +485,7 @@ const localStyles = StyleSheet.create({
     color: '#BDBDBD',
     fontSize: hp(1.5),
     fontWeight: '400',
-    textAlign:I18nManager.isRTL?"left":"left",
+    textAlign:"left",
      
   },
   boldText: {

@@ -100,6 +100,9 @@ export const sendNotificationToDrivers = async (
           },
           "mutable_content": true,
 "android_channel_id": 'ec037fdf-e9b4-4020-babd-181a1dd77ad4',
+"android_accent_color":"0c0c0c",
+"ios_badgeType": "Increase",
+"ios_badgeCount": 1,
           priority: 10,
           data: rideInfo,
         
@@ -157,6 +160,11 @@ export const sendActionToDrivers = async (driverID, replay="") => {
         ar: 'لديك طلب رحلة جديد!',
       },
       priority: 10,
+      "mutable_content": true,
+      "android_channel_id": 'ec037fdf-e9b4-4020-babd-181a1dd77ad4',
+      "android_accent_color":"0c0c0c",
+      "ios_badgeType": "Increase",
+      "ios_badgeCount": 1,
       data: {
   
         type:replay

@@ -45,7 +45,7 @@ const Otp = ({ route, navigation }) => {
   }, []);
 
   useEffect(() => {
-    dispatch(sendVerify({phoneNumber:number.replace(/\s/g, ''),"useWhatsapp": true}));
+    dispatch(sendVerify({phoneNumber:number.replace(/\s/g, ''),"useWhatsapp": false}));
     setVerificationSent(true);
   }, []);
 

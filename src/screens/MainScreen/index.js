@@ -753,7 +753,7 @@ const MainScreen = () => {
   useEffect(() => {
     api.get('/parameters').then(response => {
       const activeDateStr = response?.data?.data[0]?.active_date;
-      console.log("activeDateStr",activeDateStr)
+      
       if (activeDateStr) setActivationDate(activeDateStr);
     });
   }, []);

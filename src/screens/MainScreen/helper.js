@@ -151,7 +151,7 @@ export const getMapCenterPosition = (layout, statusBarHeight = 0) => {
   if (Platform.OS === 'android') {
     const adjustedHeight = layout.height - statusBarHeight;
     return {
-      x: layout.width / 2,
+      x: (layout.width / 2),
       y: adjustedHeight / 2
     };
   } else {
@@ -176,7 +176,7 @@ export const getLottieViewPosition = (layout, statusBarHeight = 0) => {
       left: centerPosition.x - (lottieWidth / 2)
     };
   } else {
-    const androidOffsetY = 0;
+   
     return {
       top: centerPosition.y - (lottieHeight / 2),
       left: centerPosition.x - (lottieWidth / 2)

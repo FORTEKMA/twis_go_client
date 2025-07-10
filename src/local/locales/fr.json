@@ -489,6 +489,8 @@
   "pick_off": "Point d'arrivée",
   "go_to_payment": "Aller au paiement",
   "proceeding_to_payment": "Passage au paiement...",
+  "price_includes_reservation": "Le prix inclut {{amount}} DT pour la réservation",
+  "scheduled_date": "Date programmée",
   "payment": {
     "online": "Paiement en ligne",
     "online_description": "Payez en toute sécurité avec votre carte bancaire",

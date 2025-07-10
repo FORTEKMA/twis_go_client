@@ -37,17 +37,19 @@ const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
     trackBookingStepViewed(4.5, 'Login Required');
   }, []);
 
+
+  
+
   const handleGoogleLogin = async () => {
     try {
       setIsGoogleLoading(true);
       trackLoginAttempt('google', { context: 'booking_flow' });
       const result = await googleSignIn();
       console.log("result",result)
-      if(result?.user?.user_role!="client"||result?.user?.blocked==true)
-        return
+      
      
       OneSignal.login(String(result.user.id));
-      console.log("resultresult",result)
+ 
       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
          
         onRegisterPress(result)
@@ -56,6 +58,8 @@ else
       await dispatch(userRegister(result));
       trackLoginSuccess('google', { context: 'booking_flow', complete_profile: true });
       trackBookingStepCompleted(4.5, 'Login Required', { method: 'google' });
+      if(result?.user?.user_role!="client"||result?.user?.blocked==true)
+        return
       onLoginSuccess();
     }
     } catch (error) {
@@ -71,8 +75,7 @@ else
       setIsAppleLoading(true);
       trackLoginAttempt('apple', { context: 'booking_flow' });
       const result = await appleSignIn();
-      if(result?.user?.user_role!="client"||result?.user?.blocked==true)
-        return
+       
       OneSignal.login(String(result.user.id));
       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
          
@@ -81,6 +84,8 @@ else {
       await dispatch(userRegister(result));
       trackLoginSuccess('apple', { context: 'booking_flow', complete_profile: true });
       trackBookingStepCompleted(4.5, 'Login Required', { method: 'apple' });
+      if(result?.user?.user_role!="client"||result?.user?.blocked==true)
+        return
       onLoginSuccess();}
     } catch (error) {
       trackLoginFailure('apple', error.message || 'unknown_error', { context: 'booking_flow' });

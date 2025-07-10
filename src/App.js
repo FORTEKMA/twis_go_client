@@ -22,7 +22,7 @@ import store from './store';
 import {ONESIGNAL_APP_ID} from '@env';
 import {Provider} from 'react-redux';
 import {NativeBaseProvider} from 'native-base';
-import MainNavigator from './navigators/Main';
+import MainNavigator, { navigationRef } from './navigators/Main';
 import {OneSignal} from 'react-native-onesignal';
 import {colors} from './utils/colors';
 import './local';
@@ -78,6 +78,20 @@ const App=()=> {
     OneSignal.initialize(ONESIGNAL_APP_ID);
     OneSignal.User.setLanguage("fr");
     OneSignal.Notifications.requestPermission(true)
+    
+    // Add notification opened handler
+    OneSignal.Notifications.addEventListener('click', (event) => {
+      try {
+        const data = event?.notification?.additionalData || event?.notification?.data || {};
+        const commandId = data.commandId || data.command_id || data.id;
+        if (commandId && navigationRef.isReady()) {
+          navigationRef.navigate('OrderDetails', { id: commandId });
+        }
+      } catch (e) {
+        console.error('Error handling notification open:', e);
+      }
+    });
+
     setupLanguage()
   }, []);
 

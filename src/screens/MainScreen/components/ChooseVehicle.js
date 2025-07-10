@@ -4,6 +4,8 @@ import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTranslation } from 'react-i18next';
 import { styles } from '../styles';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import Ionicons from "react-native-vector-icons/Ionicons"
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {calculateDistanceAndTime} from '../../../utils/CalculateDistanceAndTime';
 import i18n from '../../../local';
@@ -15,6 +17,8 @@ import {
   trackBookingStepBack,
   trackVehicleSelected
 } from '../../../utils/analytics';
+import LottieView from 'lottie-react-native';
+import loaderAnimation from '../../../utils/loader.json';
 
 const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const { t, i18n: i18nInstance } = useTranslation();
@@ -26,6 +30,8 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingVehicles, setIsLoadingVehicles] = useState(true);
   const [error, setError] = useState(null);
+  const [loadingImages, setLoadingImages] = useState({}); // Track loading state for each image
+  const [showLoader, setShowLoader] = useState({}); // Ensure loader shows for at least 1s
   
   // Track step view
   useEffect(() => {
@@ -42,7 +48,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
       if (response?.data?.data && Array.isArray(response?.data?.data)) {
         // Filter out vehicles where show is false
         const visibleVehicles = response?.data?.data.filter(vehicle => vehicle.show !== false);
-        
+       
         const processedOptions = visibleVehicles.map(vehicle => ({
           id: vehicle.id,
           key: vehicle.id,
@@ -50,7 +56,8 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
           nearby: vehicle.places_numbers || 4,
           icon: { uri: vehicle.icon.url },
           soon: vehicle.soon || false,
-          show: vehicle.show !== false
+          reservation_price: vehicle.reservation_price
+
         }));
      
         // Sort processedOptions based on id
@@ -351,8 +358,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
       <Text style={{ fontWeight: '700', fontSize: hp(2.2), color: '#030303', }}>{t('booking.step3.select_car')}</Text>
 
           </View>
-
-
+         
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 18 }}>
             {vehicleOptions.map((option, index) => {
               // Safety check for animations - render without animations if not ready
@@ -368,11 +374,23 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                         borderWidth: selected?.id === option.id ? 3 : 1,
                         borderColor: option.soon ? '#E0E0E0' : (selected?.id === option.id ? '#030303' : '#E0E0E0'),
                         opacity: option.soon ? 0.6 : 1,
+                       
                       }}
                       onPress={() => handleVehicleSelect(option, index)}
                       disabled={option.soon}
                     >
-                      <View style={{ borderRadius: 12, padding: 8, marginBottom: 6 }}>
+                      <View style={{backgroundColor:"red", borderRadius: 12, padding: 8, marginBottom: 6,}}>
+                      {showLoader[option.id] ? (
+                          <LottieView
+                            source={loaderAnimation}
+                            autoPlay
+                            loop
+
+                            speed={4}
+                            resizeMode="contain"
+                            style={{height:140,width:140}}
+                          />
+                        ) : null}
                         <Image 
                           source={option.icon} 
                           style={{ 
@@ -380,7 +398,25 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                             height: 72,
                             resizeMode: "cover",
                             opacity: option.soon ? 0.5 : 1,
+                            position: showLoader[option.id] ? 'absolute' : 'relative',
+                            zIndex: showLoader[option.id] ? -1 : 1,
                           }} 
+                          onLoadStart={() => {
+                            setLoadingImages(prev => ({ ...prev, [option.id]: true }));
+                            setShowLoader(prev => ({ ...prev, [option.id]: true }));
+                          }}
+                          onLoadEnd={() => {
+                            setLoadingImages(prev => ({ ...prev, [option.id]: false }));
+                         
+                              setShowLoader(prev => ({ ...prev, [option.id]: false }));
+                            
+                          }}
+                          onError={() => {
+                            setLoadingImages(prev => ({ ...prev, [option.id]: false }));
+                            
+                              setShowLoader(prev => ({ ...prev, [option.id]: false }));
+                           
+                          }}
                         />
                       </View>
                       <Text style={{ 
@@ -453,18 +489,48 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                         //backgroundColor: glowColor,
                         borderRadius: 12,
                         padding: 8,
-                        marginBottom: 6
+                        marginBottom: 6,
+                        width: 72,
+                        height: 72,
+                        justifyContent: 'center',
+                        alignItems: 'center',
                       }}
                     >
+                      {showLoader[option.id] ? (
+                        <LottieView
+                          source={loaderAnimation}
+                          autoPlay
+                          speed={4}
+                          loop
+                          style={{ width: 140, height: 140 }}
+                        />
+                      ) : null}
                       <Image 
                         source={option.icon} 
                         style={{ 
                           width: 72, 
-                        //  tintColor:selected.id === option.id ? '#030303' : '#BDBDBD',
                           height: 72,
                           resizeMode: "cover",
                           opacity: option.soon ? 0.5 : 1,
+                          position: showLoader[option.id] ? 'absolute' : 'relative',
+                          zIndex: showLoader[option.id] ? -1 : 1,
                         }} 
+                        onLoadStart={() => {
+                          setLoadingImages(prev => ({ ...prev, [option.id]: true }));
+                          setShowLoader(prev => ({ ...prev, [option.id]: true }));
+                        }}
+                        onLoadEnd={() => {
+                          setLoadingImages(prev => ({ ...prev, [option.id]: false }));
+                          
+                            setShowLoader(prev => ({ ...prev, [option.id]: false }));
+                        
+                        }}
+                        onError={() => {
+                          setLoadingImages(prev => ({ ...prev, [option.id]: false }));
+                        
+                            setShowLoader(prev => ({ ...prev, [option.id]: false }));
+                  
+                        }}
                       />
                     </Animated.View>
                     <Text style={{ 
@@ -500,20 +566,20 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                 </Animated.View>
               );
             })}
-          </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '95%', backgroundColor: '#F6F6F6', borderRadius: 12, padding: 12, marginBottom: 18 }}>
+          </View>  
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '95%', backgroundColor: selectedDate?"#0c0c0c": '#F6F6F6', borderRadius: 12, padding: 12, marginBottom: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialCommunityIcons name="map-marker" size={18} color="#BDBDBD" style={{ marginRight: 4 }} />
-              <Text style={{ color: '#BDBDBD', fontSize: hp(1.6) }}>{ isLoading ? "..." : (tripDetails?.distance/1000).toFixed(2)+" km"}</Text>
+              <MaterialCommunityIcons name="map-marker" size={18} color={selectedDate ? "#fff":"#BDBDBD"} style={{ marginRight: 4 }} />
+              <Text style={{ color: selectedDate ? "#fff":'#BDBDBD', fontSize: hp(1.6) }}>{ isLoading ? "..." : (tripDetails?.distance/1000).toFixed(2)+" km"}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialCommunityIcons name="clock-outline" size={18} color="#BDBDBD" style={{ marginRight: 4 }} />
-              <Text style={{ color: '#BDBDBD', fontSize: hp(1.6) }}>{ isLoading ? "..." : tripDetails?.time}</Text>
+              <MaterialCommunityIcons name="clock-outline" size={18} color={selectedDate ? "#fff":"#BDBDBD"} style={{ marginRight: 4 }} />
+              <Text style={{ color: selectedDate ? "#fff":'#BDBDBD', fontSize: hp(1.6) }}>{ isLoading ? "..." : tripDetails?.time}</Text>
             </View>
             {selectedDate && (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="calendar" size={18} color="#BDBDBD" style={{ marginRight: 4 }} />
-                <Text style={{ color: '#BDBDBD', fontSize: hp(1.6) }}>{ isLoading ? "..." : formatDate(selectedDate)}</Text>
+                <MaterialCommunityIcons name="calendar" size={18} color={selectedDate ? "#fff":"#BDBDBD"} style={{ marginRight: 4 }} />
+                <Text style={{ color: selectedDate ? "#fff":'#BDBDBD', fontSize: hp(1.6) }}>{ isLoading ? "..." : formatDate(selectedDate)}</Text>
               </View>
             )}
           </View>
@@ -523,20 +589,24 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
                 width: 48,
                 height: 48,
                 borderRadius: 12,
-                backgroundColor: '#CCC',
+                backgroundColor: selectedDate ? '#FF6B6B' : '#CCC',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 8,
                 flexDirection: 'row',
               }}
-              onPress={showDatePicker}
+              onPress={selectedDate ? () => setSelectedDate(null) : showDatePicker}
             >
-              <MaterialCommunityIcons name="clock-outline" size={24} color="#AAA" />
+              <Ionicons 
+                name={selectedDate ? "close" : "calendar-number-outline"} 
+                size={24} 
+                color={selectedDate ? "#FFF" : "#000"} 
+              />
             </TouchableOpacity>
            
             <ConfirmButton
            onPress={handleConfirm}
-          text={t('booking.step3.book_now')}
+          text={!selectedDate ? t("location.continue"): t('booking.step3.book_now')}
           disabled={isLoading || !selected}
         />
 

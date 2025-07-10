@@ -40,6 +40,7 @@ const Step4 = ({ goBack, formData }) => {
   const stepRef = useRef(5);
   const isSearchingRef = useRef(true);
   const requestRef = useRef(null);
+  const processedDriversRef = useRef(new Set()); // Persist processed drivers
 
   // Track step view
   useEffect(() => {
@@ -102,7 +103,7 @@ const Step4 = ({ goBack, formData }) => {
     stepRef.current = 5;
     
     let radius = 1;
-    let processedDrivers = new Set();
+    // processedDriversRef is now used instead of local processedDrivers
     let currentDriverTimeout = null;
     let currentDriverId = null;
     
@@ -192,7 +193,7 @@ const Step4 = ({ goBack, formData }) => {
       let processNextDriver = null;
 
       const setupNotifiedDriversListener = () => {
-        unsubscribeNotifiedDrivers = newRequestRef.child('notifiedDrivers').on('value', (snapshot) => {
+        unsubscribeNotifiedDrivers = newRequestRef.child('notifiedDrivers').on('value', async (snapshot) => {
           if (!snapshot || !snapshot.exists() || !currentDriverId) {
             return;
           }
@@ -207,13 +208,27 @@ const Step4 = ({ goBack, formData }) => {
               currentDriverTimeout = null;
             }
             
-            processedDrivers.add(currentDriverId);
+            processedDriversRef.current.add(currentDriverId);
             setDriversIdsNotAccepted(prev => {
               if (!prev.includes(currentDriverId)) {
                 return [...prev, currentDriverId];
               }
               return prev;
             });
+
+            // Increment rejected_command_number for the driver
+            try {
+              // Fetch current driver info
+              const userRes = await api.get(`users/${currentDriverId}`);
+              const oldRejectedCount = userRes.data?.rejected_command_number || 0;
+
+              // Update with incremented value using PUT
+              await api.put(`users/${currentDriverId}`, {
+                rejected_command_number: Number(oldRejectedCount) + 1,
+              });
+            } catch (err) {
+              console.error('Failed to update rejected_command_number:', err);
+            }
             
             // Process next driver immediately
             if (processNextDriver) {
@@ -227,9 +242,15 @@ const Step4 = ({ goBack, formData }) => {
       
       // Function to process drivers with immediate rejection detection
       const processDrivers = async (drivers) => {
-        const newDrivers = drivers.filter(driver => !processedDrivers.has(driver.id));
+        const newDrivers = drivers.filter(driver =>
+          !processedDriversRef.current.has(driver.id) && !driversIdsNotAccepted.includes(driver.id)
+        );
+        console.log('Processed drivers:', Array.from(processedDriversRef.current));
+        console.log('DriversIdsNotAccepted:', driversIdsNotAccepted);
+        console.log('New drivers to process:', newDrivers.map(d => d.id));
         
         for (const driver of newDrivers) {
+         
           if (!isSearchingRef.current || accepted !== null) {
             break;
           }
@@ -263,16 +284,16 @@ const Step4 = ({ goBack, formData }) => {
           } catch (notificationError) {
             console.log("notificationError", notificationError.response || notificationError.message);
             // Handle notification error silently and move to next driver
-            processedDrivers.add(driver.id);
+            processedDriversRef.current.add(driver.id);
             continue;
           }
 
           if (!isSearchingRef.current || accepted !== null) break;
 
           // Set timeout for current driver
-          currentDriverTimeout = setTimeout(() => {
+          currentDriverTimeout = setTimeout(async () => {
             if (isSearchingRef.current && accepted === null) {
-              processedDrivers.add(driver.id);
+              processedDriversRef.current.add(driver.id);
               setDriversIdsNotAccepted(prev => {
                 if (!prev.includes(driver.id)) {
                   return [...prev, driver.id];
@@ -284,6 +305,17 @@ const Step4 = ({ goBack, formData }) => {
                 requestRef.current.child('notifiedDrivers').update({
                   [driver.id]: false
                 });
+              }
+
+              // Increment rejected_command_number for the driver (timeout case)
+              try {
+                const userRes = await api.get(`users/${driver.id}`);
+                const oldRejectedCount = userRes.data?.rejected_command_number || 0;
+                await api.put(`users/${driver.id}`, {
+                  rejected_command_number: Number(oldRejectedCount) + 1,
+                });
+              } catch (err) {
+                console.error('Failed to update rejected_command_number after timeout:', err);
               }
               
               // Process next driver after timeout
@@ -309,7 +341,6 @@ const Step4 = ({ goBack, formData }) => {
         if (!isSearchingRef.current) {
           break;
         }
-       
         
         let drivers = [];
         if (stepRef.current !== 5 || !isSearchingRef.current) {
@@ -336,7 +367,15 @@ const Step4 = ({ goBack, formData }) => {
         }
 
         if (drivers.length > 0) {
-          await processDrivers(drivers);
+          const newDrivers = drivers.filter(driver =>
+            !processedDriversRef.current.has(driver.id) && !driversIdsNotAccepted.includes(driver.id)
+          );
+          if (newDrivers.length > 0) {
+            await processDrivers(drivers);
+          } else {
+            // All drivers in this radius are already processed, increase radius
+            radius += 1;
+          }
         } else {
           radius += 1;
         }
@@ -352,7 +391,7 @@ const Step4 = ({ goBack, formData }) => {
           search_duration: Date.now() - searchStartTime.current,
           max_radius: maxRadius,
           final_radius: radius,
-          drivers_notified: Object.keys(processedDrivers).length
+          drivers_notified: Object.keys(processedDriversRef.current).length
         });
         
         Toast.show({

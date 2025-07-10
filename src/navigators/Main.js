@@ -8,6 +8,10 @@ import {createStackNavigator} from '@react-navigation/stack';
 import Onboarding from '../screens/Onboarding';
 import Rating from "../screens/Rating"
 import Login from '../screens/Login';
+import { createNavigationContainerRef } from '@react-navigation/native';
+
+export const navigationRef = createNavigationContainerRef();
+
 const Stack = createStackNavigator();
 
 const MainNavigator = ({onReady}) => {
@@ -20,7 +24,7 @@ const MainNavigator = ({onReady}) => {
   }, [dispatch, userIsLoggedIn]);
 
   return (
-    <NavigationContainer onReady={onReady}>
+    <NavigationContainer ref={navigationRef} onReady={onReady}>
         <Stack.Navigator
       screenOptions={{
         headerShown: false,
