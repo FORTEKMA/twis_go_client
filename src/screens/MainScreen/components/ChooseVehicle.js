@@ -585,6 +585,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 8, alignItems: 'center' }}>
             <TouchableOpacity
+            disabled={true}
               style={{
                 width: 48,
                 height: 48,

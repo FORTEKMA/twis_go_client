@@ -18,7 +18,8 @@ import { useNavigation } from '@react-navigation/native';
 import Header from "./components/Header";
 import CustomAlert from "./components/CustomAlert";
 import { useTranslation } from 'react-i18next';
-import database from '@react-native-firebase/database';
+import { ref as dbRef, onValue, remove, off } from 'firebase/database';
+import db from '../../utils/firebase';
 import api from '../../utils/api';
 import { CommonActions } from '@react-navigation/native';
 import { 
@@ -80,9 +81,8 @@ const Order = ({ route }) => {
       return;
     }
 
-    const db = database();
-    const orderStatusRef = db.ref(`rideRequests/${order.requestId}/commandStatus`);
-     const unsubscribe = orderStatusRef.on('value', async (snapshot) => {
+    const orderStatusRef = dbRef(db, `rideRequests/${order.requestId}/commandStatus`);
+     onValue(orderStatusRef, async (snapshot) => {
      
       const status = snapshot.val();
       fetchOrder();
@@ -91,7 +91,7 @@ const Order = ({ route }) => {
       
       if (status === "Canceled_by_partner") {
         trackRideCancelled('canceled_by_partner', { order_id: id });
-        db.ref(`rideRequests/${order.requestId}`).remove();
+        remove(dbRef(db, `rideRequests/${order.requestId}`));
         setShowAlert(true);
         
         return;
@@ -119,14 +119,14 @@ const Order = ({ route }) => {
         );
     
       }
-      db.ref(`rideRequests/${order.requestId}`).remove()
+      remove(dbRef(db, `rideRequests/${order.requestId}`))
     }
 
     //
     });
 
     return () => {
-      orderStatusRef.off('value', unsubscribe);
+      // orderStatusRef.off('value', unsubscribe); // This line is no longer needed as onValue handles cleanup
     };
   }, [order?.requestId, order?.commandStatus]);
 

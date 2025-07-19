@@ -31,8 +31,8 @@ import { useToast } from 'native-base';
 import { useTranslation } from 'react-i18next';
 import CustomAlert from '../../components/CustomAlert';
 import Geolocation from '@react-native-community/geolocation';
-import { getDatabase, ref as dbRef, onValue, off  } from '@react-native-firebase/database';
-import { getApp } from '@react-native-firebase/app';
+import { ref , onValue, off } from 'firebase/database';
+import db from '../../utils/firebase';
 import {OneSignal} from 'react-native-onesignal';
  import PickupLocation from './components/PickupLocation';
 import DropoffLocation from './components/DropoffLocation';
@@ -48,8 +48,7 @@ import {
   trackDropoffLocationSelected,
   trackVehicleSelected,
   trackRideConfirmed,
-  trackRideCancelled,
-  trackDriverFound,
+ 
   trackLocationPermissionRequested,
   trackLocationPermissionGranted,
   trackLocationPermissionDenied,
@@ -234,8 +233,7 @@ const MainScreen = () => {
 
   // Optimized Firebase listener
   useEffect(() => {
-    const db = getDatabase(getApp());
-    const driversRef = dbRef(db, 'drivers');
+    const driversRef = ref(db, 'drivers');
 
     const unsubscribe = onValue(driversRef, snapshot => {
       const data = snapshot.val() || {};
@@ -266,7 +264,7 @@ const MainScreen = () => {
     });
 
     return () => {
-      driversRef.off('value', unsubscribe);
+      off(driversRef, unsubscribe);
     }
   }, [formData?.pickupAddress]);
 
@@ -401,8 +399,7 @@ const MainScreen = () => {
 
   // Firebase listener for drivers
   useEffect(() => {
-    const db = getDatabase(getApp());
-    const driversRef = dbRef(db, 'drivers');
+    const driversRef = ref(db, 'drivers');
 
     const unsubscribe = onValue(driversRef, snapshot => {
       const data = snapshot.val() || {};
@@ -423,7 +420,7 @@ const MainScreen = () => {
     });
 
     return () => {
-      driversRef.off('value', unsubscribe);
+      off(driversRef, unsubscribe);
     }
   }, [currentLocation]);
 

@@ -17,7 +17,8 @@ import {PersistGate} from 'redux-persist/integration/react';
 import 'react-native-gesture-handler';
 import { withStallion, useStallionUpdate, restart } from 'react-native-stallion';
 import Toast from 'react-native-toast-message';
-
+import { checkVersion } from "react-native-check-version";
+import UpdateBlockScreen from "./components/UpdateBlockScreen"
 import store from './store';
 import {ONESIGNAL_APP_ID} from '@env';
 import {Provider} from 'react-redux';
@@ -34,7 +35,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "./local";
 import CheckConnection from './components/CheckConnection';
 import LottieSplashScreen from '@attarchi/react-native-lottie-splash-screen';
-
+import api from './utils/api';
 // Only initialize Sentry in production mode
 if (!__DEV__) {
   Sentry.init({
@@ -53,7 +54,10 @@ const App=()=> {
   const { isRestartRequired } = useStallionUpdate();
    const [isModalVisible, setModalVisible] = useState(false);
   const [notificationBody, setNotificationBody] = useState('');
-
+  const [updateRequired, setUpdateRequired] = useState(false);
+  const [storeUrl, setStoreUrl] = useState(null);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  
   const setupLanguage = async () => {
     try {
       const savedLanguage = await AsyncStorage.getItem("language");
@@ -93,7 +97,27 @@ const App=()=> {
     });
 
     setupLanguage()
+
+    // Maintenance check
+  
+      api.get('/parameters').then((res) => {
+        const params = res?.data?.data?.[0];
+        if (params?.app_maintenance) {
+          setMaintenanceMode(true);
+        }
+      }).catch(() => {});
+ 
+
+    checkVersion().then((res) => {
+     
+          if (res.needsUpdate==true) {
+         setUpdateRequired(true);
+          setStoreUrl(res.url);
+   }
+     }).catch(() => {});
+
   }, []);
+ 
 
   onReady=()=>{
     LottieSplashScreen.hide();
@@ -106,7 +130,12 @@ const App=()=> {
         <PersistGate loading={null} persistor={persistor}>
           <View style={styles.container}>
             <NativeBaseProvider>
-              <MainNavigator onReady={onReady} />
+            {maintenanceMode ? (
+              <UpdateBlockScreen storeUrl={null} isMaintenance />
+            ) : updateRequired ? (
+              <UpdateBlockScreen storeUrl={storeUrl} />
+            ) :  ( <MainNavigator onReady={onReady} />)}
+             
               <CheckConnection />
               {isModalVisible && (
                 <PopOver

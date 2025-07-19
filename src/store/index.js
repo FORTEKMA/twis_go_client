@@ -13,8 +13,7 @@ import {
 } from 'redux-persist';
 import thunk from 'redux-thunk';
 import userSlice from './userSlice/userSlice';
-import objectSlice from './objectSlice/objectSlice';
-import commandeSlice from './commandeSlice/commandeSlice';
+ import commandeSlice from './commandeSlice/commandeSlice';
 import notificationSlice from './notificationSlice/notificationSlice';
 import reviewSlice from './reviewSlice/reviewSlice';
 import newCommandSlice from './newCommandSlice/newCommandSlice';
@@ -25,8 +24,7 @@ import utilsSlice from './utilsSlice/utilsSlice';
 const reducers = combineReducers({
   user: userSlice,
   driver: driverSlice,
-  objects: objectSlice,
-  commandes: commandeSlice,
+   commandes: commandeSlice,
   notifications: notificationSlice,
   review: reviewSlice,
   newCommand: newCommandSlice,

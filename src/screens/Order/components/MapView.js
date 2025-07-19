@@ -4,8 +4,8 @@ import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { styles } from '../styles';
 import { API_GOOGLE } from "@env";
-import { getDatabase, ref as dbRef, onValue } from '@react-native-firebase/database';
-import { getApp } from '@react-native-firebase/app';
+import { ref as dbRef, onValue, off } from 'firebase/database';
+import db from '../../../utils/firebase';
 import mapStyle from '../../../utils/googleMapStyle';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import DriverMarker from '../../../components/DriverMarker';
@@ -66,7 +66,6 @@ const OrderMapView = ({ order }) => {
   // Listen to driver location updates
   useEffect(() => {
     if (order?.driver?.documentId && isActive) {
-      const db = getDatabase(getApp());
       const driverRef = dbRef(db, `drivers/${order.driver.documentId}`);
 
       const unsubscribe = onValue(driverRef, snapshot => {
@@ -81,7 +80,7 @@ const OrderMapView = ({ order }) => {
         }
       });
 
-      return () => driverRef.off('value', unsubscribe);
+      return () => off(driverRef, unsubscribe);
     }
   }, [order?.driver?.documentId]);
 

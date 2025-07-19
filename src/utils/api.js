@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { API_URL,IN_DEV,DEV_API_URL } from '@env';
 
  import { OneSignal } from "react-native-onesignal";
  
@@ -10,7 +11,8 @@ import {
  
 } from "../store/userSlice/userSlice"
 let api = axios.create({
-  baseURL: "https://api.tawsilet.com/api",
+  baseURL:IN_DEV?DEV_API_URL: API_URL,
+
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',

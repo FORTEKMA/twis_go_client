@@ -1,9 +1,6 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import axios from 'axios';
-import {API_URL_ANDROID, API_URL_IOS} from '@env';
-import {Platform} from 'react-native';
-const API_URL = Platform.OS === 'ios' ? API_URL_IOS : API_URL_ANDROID;
-
+ 
+ 
 // --- SETTINGS THUNK ---
 import api from '../../utils/api';
 export const fetchSettingsWithMapIcons = createAsyncThunk(

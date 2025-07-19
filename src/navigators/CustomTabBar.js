@@ -31,7 +31,7 @@ import LoginModal from '../screens/LoginModal';
 import LanguageModal from '../screens/Profile/components/LanguageModal';
 import LanguageConfirmationModal from '../screens/Profile/components/LanguageConfirmationModal';
 
-const screenHideTabs = ["confirmation","NewTicketScreen","TicketScreen","Register","OrderDetails","Rating","PersonalInfo","Security","Help"];
+const screenHideTabs = [ "ForgotPassword","ResetCodeScreen", "ResetPassword", "confirmation","NewTicketScreen","TicketScreen","Register","OrderDetails","Rating","PersonalInfo","Security","Help"];
 
 const CustomTabBar = ({state, descriptors, navigation}) => {
 

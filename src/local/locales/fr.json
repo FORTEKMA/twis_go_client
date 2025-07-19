@@ -192,7 +192,8 @@
     "whatsapp": "WhatsApp",
     "confirm": "Confirmer",
     "sms_desc": "Nous enverrons le code de vérification par SMS.",
-    "whatsapp_desc": "Nous enverrons le code de vérification par WhatsApp."
+    "whatsapp_desc": "Nous enverrons le code de vérification par WhatsApp.",
+    "profile_update_failed": "La mise à jour du profil a échoué. Veuillez réessayer."
   },
   "history": {
     "empty": {
@@ -635,5 +636,10 @@
         "phone_exists": "Ce numéro de téléphone est déjà utilisé."
       }
     }
-  }
+  },
+  "update_required_title": "Mise à jour requise",
+  "update_required_message": "Une nouvelle version de l'application est disponible. Veuillez mettre à jour pour continuer à utiliser Tawsilet Driver.",
+  "update_now": "Mettre à jour maintenant",
+  "maintenance_message": "L'application est en maintenance. Veuillez réessayer plus tard.",
+  "maintenance_title": "Maintenance"
 } 

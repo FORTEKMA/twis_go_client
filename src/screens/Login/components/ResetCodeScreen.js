@@ -81,7 +81,9 @@ const ResetCodeScreen = ({route}) => {
                   onTextChange={(text) => setCode(text)}
                   focusColor="#18365A"
                   focusStickBlinkingDuration={500}
+                  textInputProps={{style:{color:"#000"}}}
                   theme={{
+                    
                     containerStyle: {
                       marginBottom: 32,
                     },

@@ -9,9 +9,10 @@ import OrderReportProblemModal from './OrderReportProblemModal';
 import { useNavigation } from '@react-navigation/native';
 import api from '../../../utils/api';
 import BackgroundTimer from 'react-native-background-timer';
+import { ref, update, off } from 'firebase/database';
+import db from '../../../utils/firebase';
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.47;
-import database from '@react-native-firebase/database';
 
 const STATUS_COLORS = {
   Driver_on_route_to_pickup: '#f1c40f',
@@ -104,7 +105,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   };
 
   const handleSubmitCancellation = async (reason) => {
-    database().ref(`rideRequests/${order.requestId}`).update({commandStatus: "Canceled_by_client",});
+    update(ref(db, `rideRequests/${order.requestId}`), {commandStatus: "Canceled_by_client",});
 
     setShowReasonSheet(false);
     setSelectedReason(null);

@@ -156,7 +156,8 @@
     "whatsapp": "WhatsApp",
     "confirm": "Confirm",
     "sms_desc": "We will send the verification code via SMS.",
-    "whatsapp_desc": "We will send the verification code via WhatsApp."
+    "whatsapp_desc": "We will send the verification code via WhatsApp.",
+    "profile_update_failed": "Profile update failed. Please try again."
   },
   "history": {
     "empty": {
@@ -598,5 +599,10 @@
         "phone_exists": "This phone number is already in use."
       }
     }
-  }
+  },
+  "update_required_title": "Update Required",
+  "update_required_message": "A new version of the app is available. Please update to continue using Tawsilet Driver.",
+  "update_now": "Update Now",
+  "maintenance_message": "The app is under maintenance. Please try again later.",
+  "maintenance_title": "Maintenance"
 }

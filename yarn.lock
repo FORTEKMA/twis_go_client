@@ -19745,6 +19745,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-check-version@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "react-native-check-version@npm:1.4.0"
+  peerDependencies:
+    react-native: ">=0.40.0"
+    react-native-device-info: ">=0.20.0"
+  checksum: c6b62ac524dc0a905d2eff0f4586ac81a2fd08589eec41f385618373696b57428bad02057ce847c45ff92ae34f71a91f81b1909553159b46b30a9285e50756cb
+  languageName: node
+  linkType: hard
+
 "react-native-codegen@npm:^0.0.13":
   version: 0.0.13
   resolution: "react-native-codegen@npm:0.0.13"
@@ -19800,6 +19810,15 @@ __metadata:
     react: ">= 17.0.1"
     react-native: ">= 0.64.3"
   checksum: 29fcff75b4ecbeb36d87a1972d0dc2fec7a8a59185a874c8bc313a9f953f5f7b16e023b7a6fad70b619a82e8b4d50feeca936e6ba639f68cfd4ebddb7190a982
+  languageName: node
+  linkType: hard
+
+"react-native-device-info@npm:^14.0.4":
+  version: 14.0.4
+  resolution: "react-native-device-info@npm:14.0.4"
+  peerDependencies:
+    react-native: "*"
+  checksum: aa839dbe7df1246a4b5f9bcfeb3d4cc4be585f13a0d3ff6a03f57a0c2cfe7590291ac292dda4c51fd8765f94c870857676463e8e2f1660b057f3ae2b4335db29
   languageName: node
   linkType: hard
 
@@ -22953,10 +22972,12 @@ __metadata:
     react-native-autocomplete-input: ^5.4.0
     react-native-background-timer: ^2.4.1
     react-native-calendars: ^1.1302.0
+    react-native-check-version: ^1.4.0
     react-native-country-codes-picker: ^2.3.4
     react-native-country-flag: ^2.0.2
     react-native-country-picker-modal: ^2.0.0
     react-native-date-picker: ^4.4.2
+    react-native-device-info: ^14.0.4
     react-native-document-picker: ^9.3.1
     react-native-dotenv: ^3.4.9
     react-native-eject: ^1.0.1

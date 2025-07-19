@@ -113,7 +113,8 @@ export const styles = StyleSheet.create({
     //marginBottom: 24,
   },
   btn: {
-    width: '100%',
+    width: '90%',
+    alignSelf:"center",
     paddingVertical: 16,
     backgroundColor: '#030303',
     borderRadius: 12,

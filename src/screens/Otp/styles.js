@@ -3,6 +3,21 @@ import { colors } from '../../utils/colors';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 const WIDTH=Dimensions.get("screen").width-90
 export const styles = StyleSheet.create({
+  // Layout styles
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff'
+  },
+  keyboardAvoidingView: {
+    flex: 1
+  },
+  scrollView: {
+    flex: 1
+  },
+  spacer: {
+    height: 100
+  },
+  
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -10,9 +25,7 @@ export const styles = StyleSheet.create({
     paddingTop:10
   },
   backButton: {
-  
     padding: 8,
-    
   },
   titleContainer: {
     marginTop: 15,
@@ -206,18 +219,92 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bottomButtonsContainer: {
-    
     padding: 16,
     backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-   
-   
   },
   resendCountdown: {
     color: '#888',
     fontSize: 15,
     fontWeight: 'bold',
   },
+
+  // Modal styles
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24
+  },
+  modalHandle: {
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  modalHandleBar: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#ccc',
+    marginBottom: 8
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+    color: '#0c0c0c'
+  },
+  modalSubtitle: {
+    color: '#0c0c0c',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12
+  },
+  methodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F8F8',
+    borderWidth: 0,
+    borderColor: 'transparent',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    gap: 5
+  },
+  methodOptionSelected: {
+    backgroundColor: '#0c0c0c50',
+    borderWidth: 2,
+    borderColor: '#0c0c0c'
+  },
+  methodText: {
+    fontSize: 16,
+    color: '#000',
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right'
+  },
+  confirmButton: {
+    backgroundColor: '#0c0c0c',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 8
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#F0F0F0',
+    opacity: 0.6
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 16
+  },
+  confirmButtonTextDisabled: {
+    color: '#888'
+  }
 }); 

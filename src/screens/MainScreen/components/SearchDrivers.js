@@ -9,9 +9,8 @@ import { sendNotificationToDrivers } from '../../../utils/CalculateDistanceAndTi
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useSelector } from 'react-redux';
-import firebase from '@react-native-firebase/app';
-import database from '@react-native-firebase/database';
-const { width } = Dimensions.get('window');
+import db from '../../../utils/firebase';
+import { ref, update, off, onValue, get, child, remove, push, set } from 'firebase/database';
 import Ring from './Ring';
 import Slider from 'react-native-slide-to-unlock';
 import { 
@@ -122,32 +121,32 @@ const Step4 = ({ goBack, formData }) => {
         throw new Error('Vehicle type is required');
       }
 
-      const db = database();
-      if (!db) {
-        throw new Error('Firebase database not initialized');
+      // Create a unique ride request reference
+      const newRequestRef = push(ref(db, 'rideRequests'));
+      if (!newRequestRef) {
+        throw new Error('Failed to create request reference');
       }
-    
-      const requestData = {
-        ...formData,
+      requestRef.current = newRequestRef;
+
+        
+      // Use set to create the initial request object
+       await set(newRequestRef, {
+        
         status: 'searching',
-        createdAt: database.ServerValue.TIMESTAMP,
+        createdAt: Date.now(),
         user: user,
         pickupAddress: formData.pickupAddress,
         dropoffAddress: formData.dropAddress,
         vehicleType: formData.vehicleType,
         notifiedDrivers: {},
-      };
-
-      const newRequestRef = db.ref('rideRequests').push();
-      if (!newRequestRef) {
-        throw new Error('Failed to create request reference');
-      }
-      
-      requestRef.current = newRequestRef;
-      await newRequestRef.set(requestData);
+        price:formData.price,
+        distance:formData.distance,
+        reservation:formData.selectedDate!=null,
+        time:formData.time
+      });
 
       // Main listener for request status changes
-      const unsubscribe = newRequestRef.on('value', (snapshot) => {
+      const unsubscribe = onValue(newRequestRef, (snapshot) => {
         if (!snapshot || !snapshot.exists()) {
           return;
         }
@@ -193,7 +192,8 @@ const Step4 = ({ goBack, formData }) => {
       let processNextDriver = null;
 
       const setupNotifiedDriversListener = () => {
-        unsubscribeNotifiedDrivers = newRequestRef.child('notifiedDrivers').on('value', async (snapshot) => {
+        const notifiedDriversRef = child(newRequestRef, 'notifiedDrivers');
+        unsubscribeNotifiedDrivers = onValue(notifiedDriversRef, async (snapshot) => {
           if (!snapshot || !snapshot.exists() || !currentDriverId) {
             return;
           }
@@ -263,7 +263,7 @@ const Step4 = ({ goBack, formData }) => {
 
           try {
             if (requestRef.current) {
-              await requestRef.current.child('notifiedDrivers').update({
+              await update(child(requestRef.current, 'notifiedDrivers'), {
                 [driver.id]: true
               });
 
@@ -292,6 +292,8 @@ const Step4 = ({ goBack, formData }) => {
 
           // Set timeout for current driver
           currentDriverTimeout = setTimeout(async () => {
+            console.log('[Timeout Triggered] For driver:', driver.id);
+            console.log('isSearchingRef.current:', isSearchingRef.current, 'accepted:', accepted);
             if (isSearchingRef.current && accepted === null) {
               processedDriversRef.current.add(driver.id);
               setDriversIdsNotAccepted(prev => {
@@ -302,7 +304,8 @@ const Step4 = ({ goBack, formData }) => {
               });
 
               if (requestRef.current) {
-                requestRef.current.child('notifiedDrivers').update({
+                console.log('[Timeout] Setting notifiedDrivers', driver.id, 'to false');
+                await update(child(requestRef.current, 'notifiedDrivers'), {
                   [driver.id]: false
                 });
               }
@@ -314,14 +317,18 @@ const Step4 = ({ goBack, formData }) => {
                 await api.put(`users/${driver.id}`, {
                   rejected_command_number: Number(oldRejectedCount) + 1,
                 });
+                console.log('[Timeout] Updated rejected_command_number for driver:', driver.id);
               } catch (err) {
-                console.error('Failed to update rejected_command_number after timeout:', err);
+                console.error('[Timeout] Failed to update rejected_command_number after timeout:', err);
               }
               
               // Process next driver after timeout
               if (processNextDriver) {
+                console.log('[Timeout] Calling processNextDriver for driver:', driver.id);
                 processNextDriver();
               }
+            } else {
+              console.log('[Timeout] Timeout fired but search stopped or driver already accepted. Driver:', driver.id);
             }
           }, 40000);
 
@@ -383,7 +390,7 @@ const Step4 = ({ goBack, formData }) => {
     
       if (accepted === null && isSearchingRef.current) {
         if (requestRef.current && !accepted) {
-          await requestRef.current.remove();
+          off(requestRef.current);
         }
         
         // Track no driver found
@@ -415,7 +422,7 @@ const Step4 = ({ goBack, formData }) => {
     } catch (error) {
       console.log("dddd",error)
       if (requestRef.current) {
-        requestRef.current.off();
+        off(requestRef.current);
       }
       
       // Track search error
@@ -458,16 +465,16 @@ const Step4 = ({ goBack, formData }) => {
       
       // Check if the request exists and its status before removing
       if (requestRef.current) {
-        requestRef.current.once('value', (snapshot) => {
+        get(requestRef.current).then((snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.val();
             // Only remove if the request wasn't accepted
             if (data.status !== 'accepted') {
-              requestRef.current.remove();
+              remove(requestRef.current);
             }
           }
           // Always remove the listener
-          requestRef.current.off();
+          off(requestRef.current);
         });
       }
     }

@@ -78,7 +78,7 @@ const ResetPassword = ({route}) => {
 
   const handleGoToLogin = () => {
     setShowSuccessPopup(false);
-    navigation.navigate("Login");
+    navigation.navigate("MainScreen");
   };
 
   return (

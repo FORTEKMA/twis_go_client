@@ -4,6 +4,10 @@ import { createStackNavigator } from "@react-navigation/stack";
  import Rating from "../screens/Rating"
 import Register from '../screens/Register';
 import Otp from '../screens/Otp/index';
+import ResetPassword from '../screens/Login/components/ResetPassword';
+import ResetCodeScreen from '../screens/Login/components/ResetCodeScreen';
+import ForgotPassword from '../screens/Login/components/ForgotPassword';
+ 
 
 const Stack = createStackNavigator();
 
@@ -30,14 +34,16 @@ const Stack = createStackNavigator();
       <Stack.Screen 
         name="Rating" 
         component={Rating}
-        options={{
-          headerShown: false,
-        }}
+        options={{headerShown: false,}}
       />
 
 <Stack.Screen  options={{
           headerShown: false,
         }} name="Register" component={Register} />
+              <Stack.Screen name="ResetPassword" component={ResetPassword}   options={{headerShown: false,}} />
+      <Stack.Screen name="ResetCodeScreen" component={ResetCodeScreen}   options={{headerShown: false,}}/>
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword}   options={{headerShown: false,}}/>
+
 
     </Stack.Navigator>
   );
