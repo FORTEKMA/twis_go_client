@@ -95,16 +95,7 @@ const OrderMapView = ({ order }) => {
     };
   }, []);
 
-  const getVehicleIcon = (type) => {
-    switch (type) {
-      case 1: return require("../../../assets/eco.png");
-      case 2: return require("../../../assets/Berline.png");
-      case 3: return require("../../../assets/van.png");
-      default: 
-        // Fallback to eco car for unknown types
-        return require("../../../assets/eco.png");
-    }
-  };
+ 
 
  
 

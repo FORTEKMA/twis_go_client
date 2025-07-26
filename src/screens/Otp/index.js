@@ -16,6 +16,8 @@ import { Toast } from 'native-base';
 import Modal from 'react-native-modal';
 import { OtpInput } from "react-native-otp-entry";
 import { useTranslation } from 'react-i18next';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import uuid from 'react-native-uuid';
 
 // Local imports
 import { styles } from './styles';
@@ -30,6 +32,16 @@ import {
   trackRegisterSuccess,
   trackRegisterFailure
 } from '../../utils/analytics';
+
+// Add the persistent device ID generator
+export const getPersistentDeviceId = async () => {
+  let deviceId = await EncryptedStorage.getItem('persistentDeviceId');
+  if (!deviceId) {
+    deviceId =  uuid.v4();
+    await EncryptedStorage.setItem('persistentDeviceId', deviceId);
+  }
+  return deviceId;
+};
 
 // Constants
 const OTP_LENGTH = 4;
@@ -122,11 +134,13 @@ const Otp = ({ route, navigation }) => {
   const handleProfileUpdate = useCallback(async () => {
     try {
       const { data } = route.params;
+      const deviceId = await getPersistentDeviceId();
       const response = await api.put(`users/${data.id}`, {
         phoneNumber: number,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
+        device_id:deviceId,
       }, {
         headers: { Authorization: data.Authorization }
       });
@@ -165,6 +179,8 @@ const Otp = ({ route, navigation }) => {
   const handleNewRegistration = useCallback(async () => {
     try {
       const { data } = route.params;
+      const deviceId = await getPersistentDeviceId();
+      console.log("deviceId",deviceId)
       const response = await api.post('register/client', {
         username: data.username,
         email: data.email,
@@ -173,6 +189,7 @@ const Otp = ({ route, navigation }) => {
         user_role: 'client',
         firstName: data.firstName,
         lastName: data.lastName,
+        device_id:deviceId, // Add deviceId to registration payload
       });
 
       handleOneSignalLogin(response.data.user.id);

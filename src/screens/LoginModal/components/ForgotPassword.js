@@ -110,11 +110,11 @@ const ForgotPassword = () => {
               <Ionicons name="arrow-back-outline" size={25} color="black" />
             </TouchableOpacity>
 
-            <Image
+            {/* <Image
               style={{ width: "100%", height: "44%" }}
               source={require("../../../assets/emailStep.png")}
               resizeMode="contain"
-            />
+            /> */}
 
             <View style={{ paddingHorizontal: 24 }}>
               <Text style={styles.title}>{t("auth.forgotPassword")}</Text>

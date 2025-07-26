@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, I18nManager, Modal } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -14,7 +14,7 @@ import {
   trackRideConfirmed
 } from '../../../utils/analytics';
 
-const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
+const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset }) => {
   const { t, i18n: i18nInstance } = useTranslation();
   const user = useSelector(state => state.user.currentUser);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
     
     const vehicle = formData.vehicleType;
     return {
-      icon: vehicle.icon || getDefaultIcon(vehicle.id),
+      icon: vehicle.icon ,
       label: vehicle.label || getLocalizedName(vehicle),
       description: vehicle.description || getDefaultDescription(vehicle.id)
     };
@@ -49,19 +49,7 @@ const Step3 = ({ goBack, formData, rideData, goNext, handleReset }) => {
     }
   };
 
-  // Get default icon based on vehicle ID
-  const getDefaultIcon = (vehicleId) => {
-    switch (vehicleId) {
-      case 1:
-        return require('../../../assets/TawsiletEcoCar.png');
-      case 2:
-        return require('../../../assets/TawsiletBerlineCar.png');
-      case 3:
-        return require('../../../assets/TawsiletVanCar.png');
-      default:
-        return require('../../../assets/TawsiletEcoCar.png');
-    }
-  };
+ 
 
   // Get default description based on vehicle ID
   const getDefaultDescription = (vehicleId) => {
@@ -581,4 +569,4 @@ const localStyles = StyleSheet.create({
   },
 });
 
-export default Step3; 
+export default memo(ConfirmRideComponent); 

@@ -7,7 +7,7 @@ import api from "../../utils/api"
     try {
   
       const response = await api.get(
-        `/notifications?sort=createdAt:desc&filters[sendTo][contains]=${id}&populate=*`);
+        `/notifications?sort=createdAt:desc&filters[sendTo][documentId][$eq]=${id}&populate=*`);
       return response.data;
     } catch (error) {
       throw error;

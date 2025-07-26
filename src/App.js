@@ -17,6 +17,9 @@ import {PersistGate} from 'redux-persist/integration/react';
 import 'react-native-gesture-handler';
 import { withStallion, useStallionUpdate, restart } from 'react-native-stallion';
 import Toast from 'react-native-toast-message';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+
 import { checkVersion } from "react-native-check-version";
 import UpdateBlockScreen from "./components/UpdateBlockScreen"
 import store from './store';
@@ -106,7 +109,13 @@ const App=()=> {
           setMaintenanceMode(true);
         }
       }).catch(() => {});
- 
+
+
+      GoogleSignin.configure({
+        iosClientId: '960462603456-vkbvlpur2nvg8t2uvo1d1dp2ja1vcoio.apps.googleusercontent.com',
+        offlineAccess: false,
+        "client_id":"960462603456-lea706mqdejqra584ckvd6guhi30pqmp.apps.googleusercontent.com"
+      });
 
     checkVersion().then((res) => {
      

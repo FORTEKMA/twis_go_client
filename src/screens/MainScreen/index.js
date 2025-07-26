@@ -1,24 +1,20 @@
 import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
   View,
-  Image,
-  Alert,
   TouchableWithoutFeedback,
-  StyleSheet,
   Dimensions,
   PermissionsAndroid,
   Platform,
   TouchableOpacity,
   Linking,
   ActivityIndicator,
-  Text,
+ 
   Keyboard,
-  KeyboardEvent,
   StatusBar
 } from 'react-native';
+import {localStyles} from "./localStyles"
 import DriverMarker from '../../components/DriverMarker';
 import MapView, {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
- 
 import MapViewDirections from 'react-native-maps-directions';
 import {useDispatch, useSelector} from 'react-redux';
  import {styles} from './styles';
@@ -27,13 +23,11 @@ import ConfirmRide from './components/ConfirmRide';
 import SearchDrivers from './components/SearchDrivers';
 import LoginStep from './components/LoginStep';
 import api from '../../utils/api';
-import { useToast } from 'native-base';
 import { useTranslation } from 'react-i18next';
 import CustomAlert from '../../components/CustomAlert';
 import Geolocation from '@react-native-community/geolocation';
-import { ref , onValue, off } from 'firebase/database';
+import { ref , onValue, off, query, orderByChild, equalTo } from 'firebase/database';
 import db from '../../utils/firebase';
-import {OneSignal} from 'react-native-onesignal';
  import PickupLocation from './components/PickupLocation';
 import DropoffLocation from './components/DropoffLocation';
 import LottieView from 'lottie-react-native';
@@ -48,8 +42,7 @@ import {
   trackDropoffLocationSelected,
   trackVehicleSelected,
   trackRideConfirmed,
- 
-  trackLocationPermissionRequested,
+ trackLocationPermissionRequested,
   trackLocationPermissionGranted,
   trackLocationPermissionDenied,
   trackCurrentLocationUsed,
@@ -60,16 +53,11 @@ import {
 import { setMainScreenStep, fetchSettingsWithMapIcons, selectSettingsList } from '../../store/utilsSlice/utilsSlice';
 import {
   STEP_NAMES,
-  TUNISIA_BOUNDS,
   HAPTIC_OPTIONS,
   GEOLOCATION_OPTIONS,
-  MAP_ANIMATION_DURATION,
   LOTTIE_DIMENSIONS,
-  calculateDistance,
-  isWithinTunisiaBounds,
-  getMapCenterPosition,
   getLottieViewPosition,
-  filterNearbyDrivers,
+  filterNearbyDriversGeoFire,
   getBottomOffset,
   getAnimationTiming
 } from './helper';
@@ -78,31 +66,28 @@ import Animated, {
   useSharedValue, 
   useAnimatedStyle, 
   withTiming,
-  runOnJS
 } from 'react-native-reanimated';
 
 import ActivationCountdown from '../../components/ActivationCountdown';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("screen");
-const SWIPE_THRESHOLD = 120;
-
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 
 import mapStyle from '../../utils/googleMapStyle';
 import { useNavigation } from '@react-navigation/native';
 
+ 
+ 
 const MainScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const currentUser = useSelector(state => state?.user?.currentUser);
-  const token = useSelector(state => state?.user?.token);
-  const toast = useToast();
-  const { t } = useTranslation();
+   const token = useSelector(state => state?.user?.token);
+   const { t } = useTranslation();
   const settingsList = useSelector(selectSettingsList);
   
   // State management
-  const [driversIdsNotAccepted, setDriversIdsNotAccepted] = useState([]);
   const [step, setStep] = useState(1);
+  const [currentZoomLevel, setCurrentZoomLevel] = useState(0);
   const stepRef = useRef(step);
   const [formData, setFormData] = useState({});
   const [layout, setLayout] = useState({ width: SCREEN_WIDTH, height: SCREEN_HEIGHT });
@@ -110,8 +95,7 @@ const MainScreen = () => {
   const [isMapReady, setIsMapReady] = useState(false);
   const [drivers, setDrivers] = useState({});
   const [loadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
-  const [accepted, setAccepted] = useState(null);
-  const [currentLocation, setCurrentLocation] = useState(null);
+   const [currentLocation, setCurrentLocation] = useState(null);
   const [filteredDrivers, setFilteredDrivers] = useState({});
   const [isMapDragging, setIsMapDragging] = useState(false);
   const [routeCoords, setRouteCoords] = useState([]);
@@ -129,22 +113,55 @@ const MainScreen = () => {
   const [mapRegion, setMapRegion] = useState({
     latitude: 36.80557596268572,
     longitude: 10.180696783260366,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
+    latitudeDelta: 0.02,  // Smaller delta for higher initial zoom
+    longitudeDelta: 0.02,
   });
+
+  const [tempMapRegion, setTempMapRegion] = useState(mapRegion);
 
   // Refs
   const mapRef = useRef(null);
   const position = useSharedValue(0);
   const slidePosition = useSharedValue(0);
-  const animationIndex = useRef(0);
-  const backInterval = useRef(null);
+   const backInterval = useRef(null);
   const startInterval = useRef(null);
   const lottieRef = useRef(null);
-  const bannerAnim = useSharedValue(-60);
-  const currentLocationButtonPosition = useSharedValue(Platform.OS === "android" ? 350 : 370);
+   const currentLocationButtonPosition = useSharedValue(Platform.OS === "android" ? 350 : 370);
   const previousButtonPosition = useRef(Platform.OS === "android" ? 350 : 370);
   const animationTimeoutRef = useRef(null);
+  // Haptic trigger guard
+  const hasTriggeredHaptic = useRef(false);
+  // Additions: refs for debouncing and throttling
+  const regionDebounceRef = useRef(null);
+
+  // Helper function to calculate zoom level from region
+  const getZoomLevel = (region) => {
+    return Math.round(Math.log(360 / region.longitudeDelta) / Math.LN2);
+  };
+
+
+  const throttle = (func, limit) => {
+    let lastFunc;
+    let lastRan;
+  
+    return function (...args) {
+      const context = this;
+  
+      if (!lastRan) {
+        func.apply(context, args);
+        lastRan = Date.now();
+      } else {
+        clearTimeout(lastFunc);
+        lastFunc = setTimeout(() => {
+          if ((Date.now() - lastRan) >= limit) {
+            func.apply(context, args);
+            lastRan = Date.now();
+          }
+        }, limit - (Date.now() - lastRan));
+      }
+    };
+  };
+  
 
   // Animated style for currentLocationButton
   const currentLocationButtonAnimatedStyle = useAnimatedStyle(() => {
@@ -233,50 +250,81 @@ const MainScreen = () => {
 
   // Optimized Firebase listener
   useEffect(() => {
-    const driversRef = ref(db, 'drivers');
-
-    const unsubscribe = onValue(driversRef, snapshot => {
-      const data = snapshot.val() || {};
-      
-      // Process in chunks to avoid blocking the main thread
-      const processChunk = (entries, startIndex) => {
-        const chunkSize = 450;
-        const chunk = entries.slice(startIndex, startIndex + chunkSize);
+    const driversQuery = query(
+      ref(db, 'drivers'),
+      orderByChild('isActive'),
+      equalTo(true)
+    );
+  
+    let isSubscribed = true;
+  
+    const throttledUpdate = throttle((activeDrivers) => {
+      requestAnimationFrame(() => {
+        if (!isSubscribed) return;
+  
+        if (formData?.pickupAddress?.latitude) {
+          const nearby = filterNearbyDriversGeoFire(activeDrivers, formData?.pickupAddress);
+          setFilteredDrivers(nearby);
+        } else {
+          setFilteredDrivers(activeDrivers);
+        }
+      });
+    }, 1000); // 1 update per second max
+  
+    const unsubscribe = onValue(driversQuery, snapshot => {
+      if (!isSubscribed) return;
+  
+      try {
+        const data = snapshot.val() || {};
         const activeDrivers = {};
-        
-        chunk.forEach(([uid, driver]) => {
-          if (driver.isActive === true && driver.isFree === true && driver.latitude && driver.longitude) {
+  
+        for (const [uid, driver] of Object.entries(data)) {
+          if (
+            driver &&
+            typeof driver.latitude === 'number' &&
+            typeof driver.longitude === 'number' &&
+            driver.isFree === true
+          ) {
             activeDrivers[uid] = driver;
           }
-        });
-
-        if (startIndex + chunkSize < entries.length) {
-          setTimeout(() => processChunk(entries, startIndex + chunkSize), 0);
-        } else {
-          if (formData?.pickupAddress?.latitude) {
-            const nearbyDrivers = filterNearbyDrivers(activeDrivers, formData?.pickupAddress);
-            setFilteredDrivers(nearbyDrivers);
-          }
         }
-      };
-
-      processChunk(Object.entries(data), 0);
+  
+        throttledUpdate(activeDrivers);
+  
+      } catch (error) {
+        console.error('Error processing driver data:', error);
+      }
+    }, error => {
+      console.error('Firebase subscription error:', error);
     });
-
+  
     return () => {
-      off(driversRef, unsubscribe);
-    }
+      isSubscribed = false;
+      // No built-in cancel with custom throttle, so we just stop updates via isSubscribed
+      off(driversQuery, unsubscribe);
+    };
   }, [formData?.pickupAddress]);
+
 
   // Optimized event handlers
   const handleRegionChange = useCallback((region) => {
+    // Update zoom level for all steps
+    
+
     if (step === 1 || step === 2) {
-      ReactNativeHapticFeedback.trigger("impactLight", HAPTIC_OPTIONS);
+      if (!hasTriggeredHaptic.current) {
+        ReactNativeHapticFeedback.trigger("impactLight", HAPTIC_OPTIONS);
+        hasTriggeredHaptic.current = true;
+      }
       setIsMapDragging(false);
       setHasTouchedMap(false);
       lottieRef.current?.play(8, 1395);
-      fetchLocationDetails(region);
-      
+      if (regionDebounceRef.current) {
+        clearTimeout(regionDebounceRef.current);
+      }
+      regionDebounceRef.current = setTimeout(() => {
+        fetchLocationDetails(region);
+      }, 600);
       // Ensure LottieView is properly positioned after region change
       setTimeout(() => {
         ensureLottieViewPosition();
@@ -287,6 +335,7 @@ const MainScreen = () => {
   const handleMapDrag = useCallback(() => {
     if (step === 1 || step === 2) {
       setIsMapDragging(true);
+      hasTriggeredHaptic.current = false; // reset for next drag cycle
       if (!hasTouchedMap) {
         setHasTouchedMap(true);
         lottieRef.current?.play(0, 7);
@@ -337,11 +386,12 @@ const MainScreen = () => {
   const getCurrentLocation = () => {
     try {
       setLoadingCurrentLocation(true);
-      trackCurrentLocationUsed();
       
       Geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+          // Send analytics event now that we have coordinates
+          trackCurrentLocationUsed({ latitude, longitude, platform: Platform.OS });
           const newRegion = {
             latitude,
             longitude,
@@ -382,48 +432,8 @@ const MainScreen = () => {
     }
   };
 
-  // Method to ensure LottieView is properly positioned
-  const ensureLottieViewPosition = useCallback(() => {
-    if (isLayoutReady && layout.width > 0 && layout.height > 0) {
-      setLayout(prevLayout => ({ ...prevLayout }));
-      setShouldRepositionLottie(true);
-      
-      // Platform-specific positioning adjustments
-      const timing = getAnimationTiming(Platform.OS);
-      setTimeout(() => {
-        setLayout(prevLayout => ({ ...prevLayout }));
-        setShouldRepositionLottie(true);
-      }, timing);
-    }
-  }, [isLayoutReady, layout.width, layout.height]);
 
-  // Firebase listener for drivers
-  useEffect(() => {
-    const driversRef = ref(db, 'drivers');
-
-    const unsubscribe = onValue(driversRef, snapshot => {
-      const data = snapshot.val() || {};
-      const activeDrivers = {};
-
-      Object.entries(data).forEach(([uid, driver]) => {
-        if (
-          driver.isActive === true &&
-          driver.isFree === true &&
-          driver.latitude &&
-          driver.longitude 
-        ) { 
-          activeDrivers[uid] = driver;
-        }
-      });
-
-      setFilteredDrivers(activeDrivers);
-    });
-
-    return () => {
-      off(driversRef, unsubscribe);
-    }
-  }, [currentLocation]);
-
+ 
   useEffect(() => {
     stepRef.current = step;
     dispatch(setMainScreenStep(step));
@@ -433,8 +443,6 @@ const MainScreen = () => {
     setStep(1);
     dispatch(setMainScreenStep(1));
     setFormData({});
-    setAccepted(null);
-    setDriversIdsNotAccepted([]);
     setDrivers({});
     setAnimatedCoords([]);
     setRouteCoords([]);
@@ -682,56 +690,30 @@ const MainScreen = () => {
       };
       const coord = await mapRef.current.coordinateForPoint(screenPoint);
       handleRegionChange(coord);
+      setTempMapRegion(region);
+      const newZoomLevel = getZoomLevel(region);
+    setCurrentZoomLevel(newZoomLevel);
       return coord;
     } catch (err) {
       console.warn("Failed to get coordinate for point:", err);
     }
   };
 
-  // Reset reposition flag when layout changes
-  useEffect(() => {
-    if (shouldRepositionLottie && isLayoutReady && layout.width > 0 && layout.height > 0) {
-      const timer = setTimeout(() => {
-        setShouldRepositionLottie(false);
-      }, getAnimationTiming(Platform.OS));
-      
-      return () => clearTimeout(timer);
-    }
-  }, [shouldRepositionLottie, isLayoutReady, layout.width, layout.height]);
-
-  // Handle layout changes and ensure LottieView positioning
-  useEffect(() => {
-    if (isLayoutReady && layout.width > 0 && layout.height > 0) {
-      const timer = setTimeout(() => {
-        setLayout(prevLayout => ({ ...prevLayout }));
-      }, Platform.OS === 'android' ? 50 : 30);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isLayoutReady, layout.width, layout.height]);
-
-  // Platform-specific layout adjustments
+  // Optimized layout handling
   useEffect(() => {
     const adjustLayout = () => {
       const { width, height } = Dimensions.get('window');
       const statusBarHeight = StatusBar.currentHeight || 0;
+      const adjustedHeight = Platform.OS === 'android' ? height - statusBarHeight : height;
       
-      if (Platform.OS === 'android') {
-        setLayout({ 
-          width, 
-          height: height - statusBarHeight 
-        });
-      } else {
-        setLayout({ width, height });
-      }
-      
-      setIsLayoutReady(true);
+      requestAnimationFrame(() => {
+        setLayout({ width, height: adjustedHeight });
+        setIsLayoutReady(true);
+      });
     };
     
-    // Initial adjustment
     adjustLayout();
     
-    // Listen for dimension changes
     const subscription = Dimensions.addEventListener('change', adjustLayout);
     
     return () => {
@@ -741,6 +723,63 @@ const MainScreen = () => {
     };
   }, []);
 
+  // Optimized LottieView positioning
+  const ensureLottieViewPosition = useCallback(() => {
+    if (!isLayoutReady || layout.width <= 0 || layout.height <= 0) return;
+    
+    requestAnimationFrame(() => {
+      setShouldRepositionLottie(true);
+    });
+  }, [isLayoutReady, layout.width, layout.height]);
+
+
+ 
+
+  // Reset reposition flag when layout changes
+  useEffect(() => {
+    if (!shouldRepositionLottie) return;
+    
+    const timer = requestAnimationFrame(() => {
+      setShouldRepositionLottie(false);
+    });
+    
+    return () => cancelAnimationFrame(timer);
+  }, [shouldRepositionLottie]);
+
+  // Render LottieView with optimized updates
+  const renderLottieView = useMemo(() => {
+    if (step > 2) {
+      return null;
+    }
+
+    return (
+      <LottieView
+        key={`lottie-${shouldRepositionLottie}-${layout.width}-${layout.height}`}
+        ref={lottieRef}
+        source={require("../../utils/marker.json")}
+                  style={{
+            ...LOTTIE_DIMENSIONS,
+            position: "absolute",
+            ...getLottieViewPosition(layout, StatusBar.currentHeight || 0),
+            pointerEvents: "none",
+            backgroundColor: "transparent",
+            elevation: Platform.OS === 'android' ? 1000 : undefined,
+          }}
+        loop={false}
+        autoPlay={false}
+        resizeMode="cover"
+       speed={Platform.OS === 'ios' ? 1.5 : 1} // Slightly faster on iOS
+       cacheComposition={true}
+       renderMode={Platform.OS === 'ios' ? 'HARDWARE' : 'AUTOMATIC'}
+        onLayout={() => {
+          requestAnimationFrame(() => {
+            setShouldRepositionLottie(false);
+          });
+        }}
+      />
+    );
+  }, [isLayoutReady, isMapReady, layout.width, layout.height, step, shouldRepositionLottie]);
+
   useEffect(() => {
     if (!settingsList || settingsList.length === 0) {
       dispatch(fetchSettingsWithMapIcons());
@@ -749,9 +788,10 @@ const MainScreen = () => {
 
   useEffect(() => {
     api.get('/parameters').then(response => {
+      
       const activeDateStr = response?.data?.data[0]?.active_date;
       
-      if (activeDateStr) setActivationDate(activeDateStr);
+if (activeDateStr) setActivationDate(activeDateStr);
     });
   }, []);
 
@@ -813,6 +853,52 @@ const MainScreen = () => {
     );
   };
 
+  const isDriverInView = (driver, region) => {
+    const latMin = region.latitude - region.latitudeDelta / 2;
+    const latMax = region.latitude + region.latitudeDelta / 2;
+    const lngMin = region.longitude - region.longitudeDelta / 2;
+    const lngMax = region.longitude + region.longitudeDelta / 2;
+  
+    return (
+      driver.latitude >= latMin &&
+      driver.latitude <= latMax &&
+      driver.longitude >= lngMin &&
+      driver.longitude <= lngMax
+    );
+  };
+
+  
+   // Optimize marker rendering with useMemo
+  const renderDriverMarkers = useMemo(() => {
+   
+     if (!tempMapRegion || currentZoomLevel < 16) return null;
+  
+    const visibleDrivers = Object.entries(filteredDrivers).filter(
+      ([, driver]) => isDriverInView(driver, tempMapRegion)
+    );
+  
+    return visibleDrivers.map(([uid, driver]) => (
+      <Marker
+        key={`driver-${uid}-${driver.latitude}-${driver.longitude}`}
+        coordinate={{
+          latitude: driver.latitude,
+          longitude: driver.longitude
+        }}
+        flat
+        anchor={{ x: 0.5, y: 0.5 }}
+        tracksViewChanges={Platform.OS === 'ios' ? null : true}
+      >
+        <DriverMarker 
+          key={`marker-${uid}-${driver.angle || 0}`}
+          type={driver.type} 
+          angle={driver.angle} 
+        />  
+      </Marker>
+    ));
+  }, [filteredDrivers, currentZoomLevel, tempMapRegion]);
+  
+
+  // Update the map render function to use the memoized markers
   const renderMap = () => {
     return (
       <MapView
@@ -821,6 +907,8 @@ const MainScreen = () => {
         provider={PROVIDER_GOOGLE}
         region={mapRegion}
         zoomEnabled
+        tracksViewChanges={false}
+       
         rotateEnabled={false}
         pitchEnabled={false} 
         focusable
@@ -831,9 +919,9 @@ const MainScreen = () => {
         onRegionChangeComplete={getAdjustedCenterCoordinate}
         onMapReady={() => {
           setIsMapReady(true);
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             ensureLottieViewPosition();
-          }, getAnimationTiming(Platform.OS));
+          });
         }}
       >
         {formData?.pickupAddress?.latitude && step > 1 && (
@@ -858,7 +946,7 @@ const MainScreen = () => {
               latitude: formData.dropAddress.latitude,
               longitude: formData.dropAddress.longitude
             }}
-            tracksViewChanges={true}
+            tracksViewChanges={false}
           >
             <View style={localStyles.dropoffMarker}>
               <View style={localStyles.dropoffMarkerInner} />
@@ -866,19 +954,7 @@ const MainScreen = () => {
           </Marker>
         )}
 
-        {Object.entries(filteredDrivers).map(([uid, driver]) => (
-          <Marker
-            key={uid}
-            coordinate={{
-              latitude: driver.latitude,
-              longitude: driver.longitude
-            }}
-            flat={true}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <DriverMarker type={driver.type} angle={driver.angle} />
-          </Marker>
-        ))}
+        {renderDriverMarkers}
 
         {formData?.pickupAddress?.latitude && formData?.dropAddress?.latitude && !isMapDragging && (
           <MapViewDirections
@@ -916,29 +992,19 @@ const MainScreen = () => {
         style={{flex: 1}}  
         onLayout={(event) => {
           const { width, height } = event.nativeEvent.layout;
-          if (width > 0 && height > 0) {
-            const statusBarHeight = StatusBar.currentHeight || 0;
-            
-            if (Platform.OS === 'android') {
-              const adjustedHeight = height - statusBarHeight;
-              setLayout({ width, height: adjustedHeight });
-            } else {
-              setLayout({ width, height });
-            }
-            
+          if (width <= 0 || height <= 0) return;
+          
+          const statusBarHeight = StatusBar.currentHeight || 0;
+          const adjustedHeight = Platform.OS === 'android' ? height - statusBarHeight : height;
+          
+          requestAnimationFrame(() => {
+            setLayout({ width, height: adjustedHeight });
             setIsLayoutReady(true);
-            
-            // Force a re-render after layout change
-            setTimeout(() => {
-              setLayout(prevLayout => ({ ...prevLayout }));
-              setTimeout(() => {
-                ensureLottieViewPosition();
-              }, Platform.OS === 'android' ? 100 : 50);
-            }, Platform.OS === 'android' ? 50 : 30);
-          }
+            ensureLottieViewPosition();
+          });
         }}
       >
-        {activationDate && <ActivationCountdown targetDate={activationDate} />}
+        {activationDate && <ActivationCountdown targetDate={activationDate} />}  
         {renderMap()}
         
         {(step === 1 || step === 2) && (
@@ -961,35 +1027,7 @@ const MainScreen = () => {
           </Animated.View>
         )}
         
-        {(step <= 2) && isLayoutReady && isMapReady && layout.width > 0 && layout.height > 0 && (
-          <LottieView
-            key={`lottie-${shouldRepositionLottie}-${layout.width}-${layout.height}`}
-            ref={lottieRef}
-            source={require("../../utils/marker.json")}
-            style={{
-              ...LOTTIE_DIMENSIONS,
-              position: "absolute",
-              ...getLottieViewPosition(layout, StatusBar.currentHeight || 0),
-              pointerEvents: "none",
-              backgroundColor: "transparent",
-              zIndex: 1000,
-              elevation: Platform.OS === 'android' ? 1000 : undefined,
-            }}
-            loop={false}
-            autoPlay={false}
-            resizeMode="cover"
-            speed={1}
-            onLayout={(event) => {
-              const { width, height } = event.nativeEvent.layout;
-              if (width > 0 && height > 0) {
-                setTimeout(() => {
-                  setLayout(prevLayout => ({ ...prevLayout }));
-                  setShouldRepositionLottie(false);
-                }, Platform.OS === 'android' ? 10 : 5);
-              }
-            }}
-          />
-        )}
+        {renderLottieView}
         
         <CustomAlert
           visible={showLocationAlert}
@@ -1016,86 +1054,12 @@ const MainScreen = () => {
               style: 'cancel'
             }
           ]}
-        />
+        />  
         
         {renderStep()}
       </View>
     </TouchableWithoutFeedback>
   );
 };
-
-const localStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  stepContainer: {
-    backgroundColor: 'transparent',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    flex: 1,
-    zIndex: 2000,
-    elevation: Platform.OS === 'android' ? 2000 : undefined,
-  },
-  stepContent: {
-    width: SCREEN_WIDTH,
-    backgroundColor: 'transparent',
-    flex: 1,
-  },
-  currentLocationButton: {
-    position: 'absolute',
-    right: 20,
-    backgroundColor: 'white',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  currentLocationButtonInner: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pickupMarker: {
-    width: 20, 
-    height: 20, 
-    borderRadius: 10,
-    backgroundColor: '#030303',
-    borderWidth: 2,
-    borderColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  pickupMarkerInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'white'
-  },
-  dropoffMarker: {
-    width: 20, 
-    height: 20, 
-    backgroundColor: '#030303',
-    borderWidth: 2,
-    borderColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  dropoffMarkerInner: {
-    width: 8,
-    height: 8,
-    backgroundColor: 'white'
-  },
-});
 
 export default MainScreen; 

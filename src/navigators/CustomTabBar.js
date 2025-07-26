@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
@@ -93,14 +93,10 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
   const currentIndex = state.index;
   const currentRoute = state.routes[currentIndex];
 
-  const getTabBarVisible = route => {
+  const getTabBarVisible = useCallback((route) => {
      const routeName = getFocusedRouteNameFromRoute(route);
-    if (screenHideTabs.includes(routeName)) {
-      return false;
-    }
-
-    return true;
-  };
+     return !screenHideTabs.includes(routeName);
+  }, []);
  
   const handleLanguageSelect = (language, needsConfirmation) => {
     if (needsConfirmation) {
@@ -193,7 +189,7 @@ const CustomTabBar = ({state, descriptors, navigation}) => {
     }
   };
 
-const hideTabBar=getTabBarVisible(currentRoute) 
+const hideTabBar = useMemo(() => getTabBarVisible(currentRoute), [currentRoute, getTabBarVisible]);
   return (
     <SafeAreaView edges={['bottom']} style={[styles.safeArea,{backgroundColor:token?"#fff":"transparent"}]} >
       {/* Login banner at the top of the tab bar */}
@@ -506,4 +502,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomTabBar; 
+export default React.memo(CustomTabBar); 

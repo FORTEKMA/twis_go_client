@@ -141,8 +141,10 @@ export const calculatePrice = async (formData,driver=null) => {
       "lng": driver.longitude
     }
   }
+  console.log(data);
  
   const response = await api.post('/calcul',data);
+
    return response.data;
 }
 

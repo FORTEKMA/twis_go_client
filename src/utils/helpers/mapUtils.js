@@ -70,3 +70,17 @@ export const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
   const d = R * c; // Distance in meters
   return d;
 };
+
+// Ray casting algorithm for point-in-polygon
+export function isPointInPolygon(point, polygon) {
+  let x = point.lat, y = point.lng;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    let xi = polygon[i].lat, yi = polygon[i].lng;
+    let xj = polygon[j].lat, yj = polygon[j].lng;
+    let intersect = ((yi > y) !== (yj > y)) &&
+      (x < (xj - xi) * (y - yi) / (yj - yi + 0.0000001) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}

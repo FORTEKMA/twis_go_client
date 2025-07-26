@@ -13,29 +13,7 @@ import {
 } from '../../utils/analytics';
 
 // Fake data for testing
-const fakeNotifications = [
-  {
-    id: '1',
-    title: 'new_ride',
-    description: 'Une nouvelle course est disponible dans votre zone',
-    createdAt: new Date().toISOString(),
-    type: 'new_ride'
-  },
-  {
-    id: '2',
-    title: 'payment',
-    description: 'Vous avez reçu un paiement de 150 MAD',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    type: 'payment'
-  },
-  {
-    id: '3',
-    title: 'update',
-    description: 'Une nouvelle version de l\'application est disponible',
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    type: 'update'
-  }
-];
+ 
 
 const EmptyState = () => {
   const { t } = useTranslation();
@@ -71,7 +49,7 @@ const Notifications = () => {
       dispatch(getNotification({ id: currentId }));
     }
   }, []);
-
+ 
   // Track notifications received
   useEffect(() => {
     if (notifications && notifications.length > 0) {
@@ -109,7 +87,7 @@ const Notifications = () => {
                 date={date}
                 notifications={notifications.map(notification => ({
                   ...notification,
-                  title: t(`notifications.types.${notification.type}`)
+                  title: notification.title
                 }))}
               />
             ))}

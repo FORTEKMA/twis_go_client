@@ -29,6 +29,8 @@ import {
   trackRegisterSuccess,
   trackRegisterFailure,
 } from '../../utils/analytics';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import { v4 as uuidv4 } from 'uuid';
 
 // Constants
 const PRIMARY_COLOR = '#030303';
@@ -61,6 +63,16 @@ const VALIDATION_RULES = {
     minLength: MIN_PASSWORD_LENGTH,
     specialChars: true,
   },
+};
+
+// Add the persistent device ID generator
+export const getPersistentDeviceId = async () => {
+  let deviceId = await EncryptedStorage.getItem('persistentDeviceId');
+  if (!deviceId) {
+    deviceId = uuidv4();
+    await EncryptedStorage.setItem('persistentDeviceId', deviceId);
+  }
+  return deviceId;
 };
 
 const Register = ({ navigation, route }) => {
@@ -327,11 +339,10 @@ if(route?.params?.number)
       setIsLoading(false);
       return;
     }
-
-
   }
 
     try {
+      const deviceId = await getPersistentDeviceId();
       const response = await api.post('register/client', {
         username: form.name,
         email: form.email.toLowerCase(),
@@ -340,8 +351,11 @@ if(route?.params?.number)
         user_role: 'client',
         firstName: form.name.split(' ')[0],
         lastName: form.name.split(' ')[1],
-        validaton: !route?.params?.number
+        validaton: !route?.params?.number,
+        device_id:deviceId, // Add deviceId to registration payload
       });
+
+      console.log(response?.data);
 
       if(response?.data?.phoneExists==true){
         setErrors(prev => ({ ...prev, phone: t('register.phoneTaken') }));
@@ -357,8 +371,10 @@ if(route?.params?.number)
       
 
       setIsLoading(false);
-      handleRegistrationSuccess(response.data);
+      handleRegistrationSuccess(response);
     } catch (error) {
+      setIsLoading(false);
+      console.log("error",error.response);
       if(error?.response?.data?.error?.message=="Email already exists")
         setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
 

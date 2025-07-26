@@ -9,6 +9,7 @@ import Onboarding from '../screens/Onboarding';
 import Rating from "../screens/Rating"
 import Login from '../screens/Login';
 import { createNavigationContainerRef } from '@react-navigation/native';
+import { startTrackingUserLocation } from "../utils/userLocationTracker"
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -16,12 +17,17 @@ const Stack = createStackNavigator();
 
 const MainNavigator = ({onReady}) => {
   const userIsLoggedIn = useSelector(state => state.user.token);
+ const currentUser= useSelector(state => state.user);
   const dispatch = useDispatch();
   const isFirstTime = useSelector(state => state.user.isFirstTime);
   const hasReview = useSelector(state => state.user.hasReview);
   useEffect(() => {
     dispatch(getCurrentUser());
-  }, [dispatch, userIsLoggedIn]);
+   if(currentUser?.currentUser?.documentId){
+    startTrackingUserLocation(currentUser?.currentUser?.documentId);
+
+   }
+   }, []);
 
   return (
     <NavigationContainer ref={navigationRef} onReady={onReady}>

@@ -6,7 +6,6 @@ GoogleSignin.configure({
   iosClientId: '960462603456-vkbvlpur2nvg8t2uvo1d1dp2ja1vcoio.apps.googleusercontent.com',
   offlineAccess: false,
   "client_id":"960462603456-lea706mqdejqra584ckvd6guhi30pqmp.apps.googleusercontent.com"
-  // webClientId: '960462603456-lea706mqdejqra584ckvd6guhi30pqmp.apps.googleusercontent.com',
 });
 // Settings.initializeSDK();
 

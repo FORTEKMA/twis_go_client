@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions, Image, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
@@ -20,6 +20,7 @@ import {
   trackRideCancelled,
   trackDriverFound
 } from '../../../utils/analytics';
+import { isPointInPolygon } from '../../../utils/helpers/mapUtils';
 
 const avatarUrls = [
   'https://randomuser.me/api/portraits/men/32.jpg',
@@ -28,7 +29,7 @@ const avatarUrls = [
   'https://randomuser.me/api/portraits/women/12.jpg',
 ];
 
-const Step4 = ({ goBack, formData }) => {
+const SearchDriversComponent = ({ goBack, formData }) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const user = useSelector(state => state.user.currentUser);
@@ -40,6 +41,57 @@ const Step4 = ({ goBack, formData }) => {
   const isSearchingRef = useRef(true);
   const requestRef = useRef(null);
   const processedDriversRef = useRef(new Set()); // Persist processed drivers
+  const [redZones, setRedZones] = useState([]);
+  const [inRedZone, setInRedZone] = useState(false);
+  const [redZonesChecked, setRedZonesChecked] = useState(false);
+
+  // Fetch red zones on mount
+  useEffect(() => {
+    const fetchRedZones = async () => {
+      try {
+        const response = await api.get('/red-zones');
+        const zones = response?.data?.data || response?.data || [];
+        setRedZones(zones.filter(z => z.active));
+      } catch (err) {
+        setRedZones([]);
+      }
+    };
+    fetchRedZones();
+  }, []);
+
+  // Check if pickup or dropoff is in a red zone
+  useEffect(() => {
+    if (!redZones.length || !formData?.pickupAddress || !formData?.dropAddress) return;
+    const pickup = { lat: formData.pickupAddress.latitude, lng: formData.pickupAddress.longitude };
+    const drop = { lat: formData.dropAddress.latitude, lng: formData.dropAddress.longitude };
+    let foundRedZone = false;
+    for (const zone of redZones) {
+      if (zone.polygonPath && Array.isArray(zone.polygonPath)) {
+        if (isPointInPolygon(pickup, zone.polygonPath) || isPointInPolygon(drop, zone.polygonPath)) {
+          foundRedZone = true;
+          break;
+        }
+      }
+    }
+    setInRedZone(foundRedZone);
+    setRedZonesChecked(true);
+  
+  }, [redZones, formData?.pickupAddress, formData?.dropAddress]);
+
+  // If inRedZone, show search UI for 30s, then show no_driver_accepted and goBack
+  useEffect(() => {
+    if (!inRedZone) return;
+    const timer = setTimeout(() => {
+      Toast.show({
+        type: 'error',
+        text1: t('common.no_driver_accepted'),
+        visibilityTime: 2000,
+        onPress: () => {}
+      });
+      goBack();
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [inRedZone]);
 
   // Track step view
   useEffect(() => {
@@ -52,7 +104,7 @@ const Step4 = ({ goBack, formData }) => {
       try {
         const paramsRes = await api.get('parameters');
         setParameters(paramsRes.data.data[0]);
-       
+        
       } catch (error) {
         console.error('Error fetching parameters:', error);
         // Set default parameters if API fails
@@ -137,6 +189,7 @@ const Step4 = ({ goBack, formData }) => {
         user: user,
         pickupAddress: formData.pickupAddress,
         dropoffAddress: formData.dropAddress,
+        dropAddress:formData.dropAddress,
         vehicleType: formData.vehicleType,
         notifiedDrivers: {},
         price:formData.price,
@@ -343,8 +396,7 @@ const Step4 = ({ goBack, formData }) => {
     
       // Main search loop
       const maxRadius = parameters?.min_radius_search || 4; // Fallback to 4 if not defined
-      console.log("Before while loop - accepted:", accepted, "radius:", radius, "maxRadius:", maxRadius, "stepRef.current:", stepRef.current, "isSearchingRef.current:", isSearchingRef.current);
-      while (accepted === null && radius <= maxRadius && isSearchingRef.current) {
+       while (accepted === null && radius <= maxRadius && isSearchingRef.current) {
         if (!isSearchingRef.current) {
           break;
         }
@@ -356,13 +408,7 @@ const Step4 = ({ goBack, formData }) => {
      
         try {
           let url = `/drivers-in-radius?radius=${radius}&latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}&vehicleType=${formData?.vehicleType?.id}`;
-          console.log("Searching drivers with URL:", url);
-          console.log("Form data:", {
-            radius,
-            latitude: formData?.pickupAddress?.latitude,
-            longitude: formData?.pickupAddress?.longitude,
-            vehicleType: formData?.vehicleType?.id
-          });
+           
           
           const response = await api.get(url);
           drivers = response.data || [];
@@ -397,6 +443,8 @@ const Step4 = ({ goBack, formData }) => {
         trackRideCancelled('no_driver_found', {
           search_duration: Date.now() - searchStartTime.current,
           max_radius: maxRadius,
+          pickup_address: formData?.pickupAddress,
+          drop_address: formData?.dropAddress,
           final_radius: radius,
           drivers_notified: Object.keys(processedDriversRef.current).length
         });
@@ -439,20 +487,26 @@ const Step4 = ({ goBack, formData }) => {
       });
     }
   };
-
+ 
   useEffect(() => {
     console.log("SearchDrivers useEffect triggered");
     console.log("Parameters loaded:", parameters);
     console.log("Form data:", formData);
-    
+    if (!redZonesChecked) {
+      console.log("Red zones not checked yet, waiting...");
+      return;
+    }
+    if (inRedZone) {
+      console.log("In red zone, skipping searchDrivers and showing search UI for 30s");
+      return;
+    }
     setDrivers(generateCenteredPositions(avatarUrls));
-    
-    // Only start searching when parameters are loaded
-    if (parameters) {
+    // Only start searching when parameters and redZonesChecked are loaded and not in red zone
+    if (parameters && redZonesChecked && !inRedZone) {
       console.log("Starting searchDrivers function");
       searchDrivers();
     } else {
-      console.log("Parameters not loaded yet, waiting...");
+      console.log("Parameters or red zone check not loaded yet, waiting...");
     }
 
     return () => {
@@ -478,7 +532,7 @@ const Step4 = ({ goBack, formData }) => {
         });
       }
     }
-  }, [parameters]);
+  }, [parameters, redZonesChecked, inRedZone]);
 
   // Swipe overlay logic
  
@@ -722,4 +776,4 @@ const localStyles = StyleSheet.create({
   },
 });
 
-export default Step4; 
+export default memo(SearchDriversComponent); 

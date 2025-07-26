@@ -10,8 +10,8 @@ import {
   logOut,
  
 } from "../store/userSlice/userSlice"
-let api = axios.create({
-  baseURL:IN_DEV?DEV_API_URL: API_URL,
+ let api = axios.create({
+  baseURL:IN_DEV=="true"   ?DEV_API_URL: API_URL,
 
   headers: {
     Accept: 'application/json',

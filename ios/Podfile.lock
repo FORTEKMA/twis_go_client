@@ -445,6 +445,8 @@ PODS:
   - react-native-document-picker (9.3.1):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
+  - react-native-encrypted-storage (4.0.3):
+    - React-Core
   - react-native-geolocation (3.4.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -701,6 +703,7 @@ DEPENDENCIES:
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - react-native-encrypted-storage (from `../node_modules/react-native-encrypted-storage`)
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-geolocation-service (from `../node_modules/react-native-geolocation-service`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
@@ -832,6 +835,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-date-picker"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
+  react-native-encrypted-storage:
+    :path: "../node_modules/react-native-encrypted-storage"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-geolocation-service:
@@ -982,6 +987,7 @@ SPEC CHECKSUMS:
   react-native-background-timer: 17ea5e06803401a379ebf1f20505b793ac44d0fe
   react-native-date-picker: 312c387d2ff873c66c5e4cf78ff6827fa91644e2
   react-native-document-picker: 52eab29bbc53f45399b475b7a3f4e503260f1134
+  react-native-encrypted-storage: db300a3f2f0aba1e818417c1c0a6be549038deb7
   react-native-geolocation: 2d8f71eb7d0c9a0c52f336d4634444488669371d
   react-native-geolocation-service: 608e1da71a1ac31b4de64d9ef2815f697978c55b
   react-native-get-random-values: 21325b2244dfa6b58878f51f9aa42821e7ba3d06

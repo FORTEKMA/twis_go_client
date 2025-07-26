@@ -7,7 +7,7 @@ import {
 } from '@env';
 
 const firebaseConfig = {
-  databaseURL: IN_DEV === 'true' ? FIREBASE_DB_URL_DEV : FIREBASE_DB_URL_DEFAULT,
+  databaseURL: IN_DEV == "true" ? FIREBASE_DB_URL_DEV : FIREBASE_DB_URL_DEFAULT,
 };
 
 const firebaseApp = initializeApp(firebaseConfig);

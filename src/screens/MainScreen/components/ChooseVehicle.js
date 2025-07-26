@@ -1,4 +1,4 @@
-import React, { useState,useEffect, useRef } from 'react';
+import React, { useState,useEffect, useRef, memo } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Animated, Easing,I18nManager, ActivityIndicator } from 'react-native';
 import { heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +19,12 @@ import {
 } from '../../../utils/analytics';
 import LottieView from 'lottie-react-native';
 import loaderAnimation from '../../../utils/loader.json';
+import { useSelector } from 'react-redux';
+import Toast from 'react-native-toast-message';
+import WomanValidationModal from './WomanValidationModal';
+import LoginModal from '../../LoginModal';
 
-const ChooseVehicle = ({ goNext, goBack, formData }) => {
+const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
   const { t, i18n: i18nInstance } = useTranslation();
   const [vehicleOptions, setVehicleOptions] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -32,6 +36,15 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   const [error, setError] = useState(null);
   const [loadingImages, setLoadingImages] = useState({}); // Track loading state for each image
   const [showLoader, setShowLoader] = useState({}); // Ensure loader shows for at least 1s
+  const user = useSelector(state => state.user.currentUser);
+  const [showWomanValidationModal, setShowWomanValidationModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [womanValidationForm, setWomanValidationForm] = useState({
+    user_with_cin: null,
+    cinFront: null,
+    cinBack: null,
+  });
+  const [womanValidationLoading, setWomanValidationLoading] = useState(false);
   
   // Track step view
   useEffect(() => {
@@ -96,20 +109,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
     }
   };
 
-  // Get default icon based on vehicle ID
-  const getDefaultIcon = (vehicleId) => {
-    switch (vehicleId) {
-      case 1:
-        return require('../../../assets/TawsiletEcoCar.png');
-      case 2:
-        return require('../../../assets/TawsiletBerlineCar.png');
-      case 3:
-        return require('../../../assets/TawsiletVanCar.png');
-      default:
-        return require('../../../assets/TawsiletEcoCar.png');
-    }
-  };
-  
+ 
   // New animation system
   const animations = useRef([]).current;
 
@@ -247,10 +247,43 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
     if (option.soon) {
       return;
     }
-    
+    // Special logic for 'for women' vehicle (id=4)
+    if (option.id === 4) {
+      if (!user) {
+        setShowLoginModal(true);
+        return;
+      }
+      console.log(user?.womanValidation);
+      if (user?.womanValidation?.validation_state === 'valid') {
+        setSelected(option);
+        animateSelection(index);
+        trackVehicleSelected(option, {
+          vehicle_type: option.key,
+          vehicle_id: option.id,
+          step: 3
+        });
+        return;
+      } else if (user?.womanValidation?.validation_state === 'waiting') {
+        Toast.show({
+          type: 'info',
+          text1: t('choose_vehicle.account_under_validation', 'Your account is under validation.'),
+          visibilityTime: 2500,
+        });
+        return;
+      } else if (!user?.womanValidation) {
+        setShowWomanValidationModal(true);
+        return;
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: t('choose_vehicle.must_complete_women_validation', 'You must complete the women validation process to select this vehicle.'),
+          visibilityTime: 2500,
+        });
+        return;
+      }
+    }
     setSelected(option);
     animateSelection(index);
-    
     // Track vehicle selection
     trackVehicleSelected(option, {
       vehicle_type: option.key,
@@ -284,65 +317,73 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
   // Show loading state while fetching vehicles
   if (isLoadingVehicles) {
     return (
-      <View style={localStyles.container}>
-        <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <ActivityIndicator size="large" color="#030303" />
-          <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15 }}>
-            {t('common.loading')}
-          </Text>
+      <>
+        <View style={localStyles.container}>
+          <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
+            <ActivityIndicator size="large" color="#030303" />
+            <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15 }}>
+              {t('common.loading')}
+            </Text>
+          </View>
         </View>
-      </View>
+      </>
     );
   }
 
   // Show error state if API fails
   if (error) {
     return (
-      <View style={localStyles.container}>
-        <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <MaterialCommunityIcons name="alert-circle" size={48} color="#FF6B6B" />
-          <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
-            {error}
-          </Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: '#030303',
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 8,
-              marginTop: 15
-            }}
-            onPress={() => {
-              setIsLoadingVehicles(true);
-              setError(null);
-              // Retry fetching vehicles
-              fetchVehicleOptions();
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: hp(1.6) }}>
-              {t('common.retry')}
+      <>
+        <View style={localStyles.container}>
+          <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
+            <MaterialCommunityIcons name="alert-circle" size={48} color="#FF6B6B" />
+            <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+              {error}
             </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#030303',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 8,
+                marginTop: 15
+              }}
+              onPress={() => {
+                setIsLoadingVehicles(true);
+                setError(null);
+                // Retry fetching vehicles
+                fetchVehicleOptions();
+              }}
+            >
+              <Text style={{ color: '#fff', fontSize: hp(1.6) }}>
+                {t('common.retry')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </>
     );
   }
 
   // Don't render if no vehicles are available
   if (vehicleOptions.length === 0) {
     return (
-      <View style={localStyles.container}>
-        <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <MaterialCommunityIcons name="car-off" size={48} color="#BDBDBD" />
-          <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
-            No vehicles available
-          </Text>
+      <>
+        <View style={localStyles.container}>
+          <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
+            <MaterialCommunityIcons name="car-off" size={48} color="#BDBDBD" />
+            <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+              No vehicles available
+            </Text>
+          </View>
         </View>
-      </View>
+      </>
     );
   }
+
   return (
-     
+    <>
+      {/* Main UI */}
       <View style={localStyles.container}>
         <View style={{
           
@@ -361,7 +402,7 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
          
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 18 }}>
             {vehicleOptions.map((option, index) => {
-              // Safety check for animations - render without animations if not ready
+               // Safety check for animations - render without animations if not ready
               if (!animations[index]) {
                 return (
                   <View key={option.id} style={{ flex: 1, marginHorizontal: 6 }}>
@@ -626,7 +667,28 @@ const ChooseVehicle = ({ goNext, goBack, formData }) => {
           />
         </View>
       </View>
-  
+      <WomanValidationModal
+        visible={showWomanValidationModal}
+        onClose={() => setShowWomanValidationModal(false)}
+        onSubmit={() => {
+          setWomanValidationLoading(true);
+          // TODO: handle submit logic (API call)
+          setTimeout(() => {
+            setWomanValidationLoading(false);
+            setShowWomanValidationModal(false);
+            Toast.show({
+              type: 'success',
+              text1: 'Validation info submitted! Your account is under review.',
+              visibilityTime: 2500,
+            });
+          }, 1200);
+        }}
+        form={womanValidationForm}
+        setForm={setWomanValidationForm}
+        loading={womanValidationLoading}
+      />
+      <LoginModal visible={showLoginModal} onClose={() => setShowLoginModal(false)} />
+    </>
   );
 };
 
@@ -646,4 +708,4 @@ const localStyles = StyleSheet.create({
   
   },
 });
-export default ChooseVehicle; 
+export default memo(ChooseVehicleComponent); 

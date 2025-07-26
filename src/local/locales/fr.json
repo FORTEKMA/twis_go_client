@@ -641,5 +641,22 @@
   "update_required_message": "Une nouvelle version de l'application est disponible. Veuillez mettre à jour pour continuer à utiliser Tawsilet Driver.",
   "update_now": "Mettre à jour maintenant",
   "maintenance_message": "L'application est en maintenance. Veuillez réessayer plus tard.",
-  "maintenance_title": "Maintenance"
+  "maintenance_title": "Maintenance",
+  "woman_validation": {
+    "title": "Validation des femmes",
+    "subtitle": "Veuillez télécharger les images suivantes pour valider votre compte :",
+    "upload_user_with_cin": "Télécharger l'utilisateur avec la CIN",
+    "upload_cin_front": "Télécharger la face avant de la CIN",
+    "upload_cin_back": "Télécharger la face arrière de la CIN",
+    "cancel": "Annuler",
+    "submit": "Soumettre",
+    "submitting": "Soumission...",
+    "success": "Soumis avec succès!",
+    "success_24h": "Votre demande de validation a été soumise et sera traitée sous 24 heures.",
+    "upload_error": "Échec du téléchargement. Veuillez réessayer."
+  },
+  "choose_vehicle": {
+    "account_under_validation": "Votre compte est en cours de validation.",
+    "must_complete_women_validation": "Vous devez compléter le processus de validation pour les femmes afin de sélectionner ce véhicule."
+  }
 } 

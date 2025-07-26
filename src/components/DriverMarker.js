@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectSettingsList } from '../store/utilsSlice/utilsSlice';
 
-const DriverMarker = ({ angle = 0, type = 1 }) => {
+const DriverMarkerComponent = ({ angle = 0, type = 1 }) => {
+ 
   const settingsList = useSelector(selectSettingsList);
   // Find the settings entry for this type
   //console.log("settingsList",settingsList)
@@ -35,4 +36,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DriverMarker;
+// Only re-render if angle or type changed
+export default memo(DriverMarkerComponent, (prev, next) => prev.angle === next.angle && prev.type === next.type);

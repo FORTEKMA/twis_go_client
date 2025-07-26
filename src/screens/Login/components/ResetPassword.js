@@ -105,11 +105,11 @@ const ResetPassword = ({route}) => {
         >
           <View style={{ flex: 1 }}>
             <View style={{ height: 400 }}>
-              <Image
+              {/* <Image
                 style={{ width: "100%", height: "100%" }}
                 source={require("../../../assets/resetPass.png")}
                 resizeMode="contain"
-              />
+              /> */}
             </View>
 
             <View style={{ paddingHorizontal: 24, marginTop: 20 }}>

@@ -64,10 +64,10 @@ const ResetCodeScreen = ({route}) => {
               <Ionicons name="arrow-back-outline" size={25} color="black" />
             </TouchableOpacity>
 
-            <Image
+            {/* <Image
               style={{ width: "100%", height: "60%" }}
               source={require("../../../assets/otp.png")}
-            />
+            /> */}
 
             <View style={{ paddingHorizontal: 24, flex: 1, justifyContent: 'space-between' }}>
               <View>

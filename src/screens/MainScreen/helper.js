@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { distanceBetween } from 'geofire-common';
 
 export function parseIcon (element) {
     const typesList = element.types;
@@ -184,21 +185,29 @@ export const getLottieViewPosition = (layout, statusBarHeight = 0) => {
   }
 };
 
-export const filterNearbyDrivers = (drivers, pickupLocation, maxDistance = 2) => {
-  if (!pickupLocation?.latitude || !pickupLocation?.longitude) return {};
-  
-  return Object.entries(drivers).reduce((acc, [uid, driver]) => {
-    const distance = calculateDistance(
-      pickupLocation.latitude,
-      pickupLocation.longitude,
-      driver.latitude,
-      driver.longitude
-    );
-    if (distance <= maxDistance) {
-      acc[uid] = driver;
+// Maximum distance in kilometers for nearby drivers
+const MAX_DISTANCE_KM = 2 ;
+
+export const filterNearbyDriversGeoFire = (drivers, pickupLocation) => {
+  if (!pickupLocation?.latitude || !pickupLocation?.longitude || !drivers) {
+    return {};
+  }
+
+  const center = [pickupLocation.latitude, pickupLocation.longitude];
+  const nearbyDrivers = {};
+
+  Object.entries(drivers).forEach(([driverId, driver]) => {
+    if (driver.latitude && driver.longitude) {
+      const driverLocation = [driver.latitude, driver.longitude];
+      const distanceInKm = distanceBetween(center, driverLocation);
+      
+      if (distanceInKm <= MAX_DISTANCE_KM) {
+        nearbyDrivers[driverId] = driver;
+      }
     }
-    return acc;
-  }, {});
+  });
+
+  return nearbyDrivers;
 };
 
 export const getBottomOffset = (step, token, isKeyboardVisible, keyboardHeight) => {

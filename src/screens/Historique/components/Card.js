@@ -138,7 +138,7 @@ export const Card = ({ order ,refresh}) => {
     }
   };
 
-  console.log("order.commandStatus",order.commandStatus)
+  
    return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
       <TouchableOpacity

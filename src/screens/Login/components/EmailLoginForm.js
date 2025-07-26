@@ -64,8 +64,7 @@ const EmailLoginForm = ({onLoginSuccess, hideForgetPassword}) => {
        if (result?.payload?.error) {
         setLoginError(t('login.invalidCredentials'));
       } else {
-        console.log("onLoginSuccess",onLoginSuccess)
-        if (onLoginSuccess) {
+         if (onLoginSuccess) {
           onLoginSuccess();
         }
       }

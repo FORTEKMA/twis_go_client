@@ -604,5 +604,22 @@
   "update_required_message": "A new version of the app is available. Please update to continue using Tawsilet Driver.",
   "update_now": "Update Now",
   "maintenance_message": "The app is under maintenance. Please try again later.",
-  "maintenance_title": "Maintenance"
+  "maintenance_title": "Maintenance",
+  "woman_validation": {
+    "title": "Women Validation",
+    "subtitle": "Please upload the following images to validate your account:",
+    "upload_user_with_cin": "Upload User with CIN",
+    "upload_cin_front": "Upload CIN Front",
+    "upload_cin_back": "Upload CIN Back",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "success": "Submitted successfully!",
+    "success_24h": "Your validation request was submitted and will be processed within 24 hours.",
+    "upload_error": "Upload failed. Please try again."
+  },
+  "choose_vehicle": {
+    "account_under_validation": "Your account is under validation.",
+    "must_complete_women_validation": "You must complete the women validation process to select this vehicle."
+  }
 }

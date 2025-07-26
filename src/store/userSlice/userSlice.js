@@ -5,6 +5,7 @@ import { OneSignal } from "react-native-onesignal";
 import { Toast } from "native-base";
 import i18n from "../../local"
 import { identify, Identify, setUserId } from '@amplitude/analytics-react-native';
+import { startTrackingUserLocation, stopTrackingUserLocation } from '../../utils/userLocationTracker';
 
 // Utility function to update Amplitude user properties for profile updates
 const updateAmplitudeUserProfile = (user) => {
@@ -454,6 +455,10 @@ export const userSlice = createSlice({
         
         // Set Amplitude user properties after successful registration
         setAmplitudeUserProperties(action.payload.user);
+        // Start location tracking after registration
+        if (action.payload.user.documentId) {
+          startTrackingUserLocation(action.payload.user.documentId);
+        }
       } else if (action.payload.jwt === -1 && action?.payload?.user?.user_role === 'client') {
         // Handle guest user
         state.token = action.payload.jwt;
@@ -467,6 +472,7 @@ export const userSlice = createSlice({
           is_guest: true
         };
         setAmplitudeUserProperties(guestUser);
+        // Optionally, do not track guest users
       }
     },
     [userRegister.rejected]: state => {
@@ -524,6 +530,10 @@ export const userSlice = createSlice({
         }
         
         setAmplitudeUserProperties(action.payload.user);
+        // Start location tracking after login
+        if (action.payload.user.documentId) {
+          startTrackingUserLocation(action.payload.user.documentId);
+        }
       }
     },
     [userLogin.rejected]: state => {
@@ -608,6 +618,8 @@ export const userSlice = createSlice({
       state.user = null
        // Clear Amplitude user properties on logout
     clearAmplitudeUserProperties();
+    // Stop location tracking on logout
+    stopTrackingUserLocation();
     },
     [logOut.rejected]: state => {
       state.status = 'fail';
