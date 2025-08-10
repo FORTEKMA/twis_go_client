@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { styles } from '../styles';
 import api from "../../../utils/api"
+import Toast from 'react-native-toast-message';
+import WomanValidationModal from './WomanValidationModal';
+import LoginModal from '../../LoginModal';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { calculatePrice } from '../../../utils/CalculateDistanceAndTime';
@@ -21,6 +24,14 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
   const [price, setPrice] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showWomanValidationModal, setShowWomanValidationModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [womanValidationForm, setWomanValidationForm] = useState({
+    user_with_cin: null,
+    cinFront: null,
+    cinBack: null,
+  });
+  const [womanValidationLoading, setWomanValidationLoading] = useState(false);
  
   // Get vehicle info from formData
   const getVehicleInfo = () => {
@@ -110,6 +121,33 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
   };
 
   const handleConfirm = () => {
+    // If 'for women' vehicle (id=4), enforce validation here instead of selection screen
+    if (formData?.vehicleType?.id === 4) {
+      if (!user) {
+        setShowLoginModal(true);
+        return;
+      }
+      if (user?.womanValidation?.validation_state === 'valid') {
+        // continue
+      } else if (user?.womanValidation?.validation_state === 'waiting') {
+        Toast.show({
+          type: 'info',
+          text1: t('choose_vehicle.account_under_validation', 'Your account is under validation.'),
+          visibilityTime: 2500,
+        });
+        return;
+      } else if (!user?.womanValidation) {
+        setShowWomanValidationModal(true);
+        return;
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: t('choose_vehicle.must_complete_women_validation', 'You must complete the women validation process to select this vehicle.'),
+          visibilityTime: 2500,
+        });
+        return;
+      }
+    }
     trackBookingStepCompleted(4, 'Ride Confirmation', {
       price: price,
       distance: formData.distance,
@@ -121,6 +159,33 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
   };
 
   const handleReservation = async () => {
+    // Enforce women validation here as well for scheduled rides
+    if (formData?.vehicleType?.id === 4) {
+      if (!user) {
+        setShowLoginModal(true);
+        return;
+      }
+      if (user?.womanValidation?.validation_state === 'valid') {
+        // continue
+      } else if (user?.womanValidation?.validation_state === 'waiting') {
+        Toast.show({
+          type: 'info',
+          text1: t('choose_vehicle.account_under_validation', 'Your account is under validation.'),
+          visibilityTime: 2500,
+        });
+        return;
+      } else if (!user?.womanValidation) {
+        setShowWomanValidationModal(true);
+        return;
+      } else {
+        Toast.show({
+          type: 'info',
+          text1: t('choose_vehicle.must_complete_women_validation', 'You must complete the women validation process to select this vehicle.'),
+          visibilityTime: 2500,
+        });
+        return;
+      }
+    }
     try {
       setIsLoading(true);
       const payload = {
@@ -357,6 +422,27 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
           </View>
         </View>
       )}
+      <WomanValidationModal
+        visible={showWomanValidationModal}
+        onClose={() => setShowWomanValidationModal(false)}
+        onSubmit={() => {
+          setWomanValidationLoading(true);
+          // TODO: handle submit logic (API call)
+          setTimeout(() => {
+            setWomanValidationLoading(false);
+            setShowWomanValidationModal(false);
+            Toast.show({
+              type: 'success',
+              text1: 'Validation info submitted! Your account is under review.',
+              visibilityTime: 2500,
+            });
+          }, 1200);
+        }}
+        form={womanValidationForm}
+        setForm={setWomanValidationForm}
+        loading={womanValidationLoading}
+      />
+      <LoginModal visible={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </View>
   );
 };

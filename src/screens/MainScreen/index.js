@@ -605,6 +605,7 @@ const MainScreen = () => {
  
     try {
       const response = await axios.get(url);
+     
       if (response.data.status === 'OK') {
         const address = response?.data?.results[0]?.formatted_address;
         const location = {

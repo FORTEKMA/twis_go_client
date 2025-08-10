@@ -14,7 +14,7 @@ const WomanValidationModal = ({ visible, onClose, form, setForm }) => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const user = useSelector(state => state.user.currentUser);
-  const [pickerType, setPickerType] = useState(null); // 'user_with_cin' | 'cinFront' | 'cinBack' | null
+  const [pickerType, setPickerType] = useState(null); // 'user_with_cin' | null
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -46,8 +46,7 @@ const WomanValidationModal = ({ visible, onClose, form, setForm }) => {
       // Prepare images to upload
       const imagesToUpload = [
         { key: 'user_with_cin', file: form.user_with_cin },
-        { key: 'cinFront', file: form.cinFront },
-        { key: 'cinBack', file: form.cinBack },
+       
       ];
       const uploadedIds = {};
       for (const img of imagesToUpload) {
@@ -71,8 +70,7 @@ const WomanValidationModal = ({ visible, onClose, form, setForm }) => {
    
     const response = await api.put(`/users/${user.id}`, {
         user_with_cin: uploadedIds.user_with_cin,
-        cinFront: uploadedIds.cinFront,
-        cinBack: uploadedIds.cinBack,
+      
        
        });
        await api.post(`usersbyrole/client/woman-validation`, {
@@ -142,50 +140,9 @@ const WomanValidationModal = ({ visible, onClose, form, setForm }) => {
                   </View>
                 )}
               </TouchableOpacity>
+ 
 
-              {/* CIN Front */}
-              <TouchableOpacity
-                style={[styles.imagePicker, !form.cinFront && styles.imagePickerDashed]}
-                onPress={() => handleImagePress('cinFront')}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {form.cinFront ? (
-                  <View style={styles.imagePreviewWrapper}>
-                    <Image source={{ uri: form.cinFront.uri || form.cinFront }} style={styles.imagePreview} />
-                    <View style={styles.editIconOverlay}>
-                      <MaterialIcons name="edit" size={24} color="#fff" />
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.emptyImageContent}>
-                    <MaterialIcons name="credit-card" size={36} color="#bbb" />
-                    <Text style={styles.imagePickerText}>{t('woman_validation.upload_cin_front')}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* CIN Back */}
-              <TouchableOpacity
-                style={[styles.imagePicker, !form.cinBack && styles.imagePickerDashed]}
-                onPress={() => handleImagePress('cinBack')}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                {form.cinBack ? (
-                  <View style={styles.imagePreviewWrapper}>
-                    <Image source={{ uri: form.cinBack.uri || form.cinBack }} style={styles.imagePreview} />
-                    <View style={styles.editIconOverlay}>
-                      <MaterialIcons name="edit" size={24} color="#fff" />
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.emptyImageContent}>
-                    <MaterialIcons name="credit-card" size={36} color="#bbb" />
-                    <Text style={styles.imagePickerText}>{t('woman_validation.upload_cin_back')}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+              
 
               <View style={styles.buttonRow}>
                 <TouchableOpacity
@@ -198,10 +155,10 @@ const WomanValidationModal = ({ visible, onClose, form, setForm }) => {
                 <TouchableOpacity
                   style={[
                     styles.submitButton,
-                    (!(form.user_with_cin && form.cinFront && form.cinBack) || loading) && styles.submitButtonDisabled,
+                    (!(form.user_with_cin) || loading) && styles.submitButtonDisabled,
                   ]}
                   onPress={handleSubmit}
-                  disabled={loading || !(form.user_with_cin && form.cinFront && form.cinBack)}
+                  disabled={loading || !(form.user_with_cin)}
                 >
                   {loading ? (
                     <ActivityIndicator color="#fff" size="small" />

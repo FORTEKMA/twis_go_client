@@ -33,7 +33,7 @@ export const getDistanceFromGoogleAPI = async (originLat, originLng, destLat, de
     const destinations = `${destLat},${destLng}`;
     
     const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origins}&destinations=${destinations}&key=${apiKey}&units=metric`;
-    
+    console.log("url", url);
     const response = await fetch(url);
     if (!response.ok) throw new Error("Error fetching distance matrix");
     

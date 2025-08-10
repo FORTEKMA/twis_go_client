@@ -19,10 +19,7 @@ import {
 } from '../../../utils/analytics';
 import LottieView from 'lottie-react-native';
 import loaderAnimation from '../../../utils/loader.json';
-import { useSelector } from 'react-redux';
-import Toast from 'react-native-toast-message';
-import WomanValidationModal from './WomanValidationModal';
-import LoginModal from '../../LoginModal';
+ 
 
 const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
   const { t, i18n: i18nInstance } = useTranslation();
@@ -36,15 +33,7 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
   const [error, setError] = useState(null);
   const [loadingImages, setLoadingImages] = useState({}); // Track loading state for each image
   const [showLoader, setShowLoader] = useState({}); // Ensure loader shows for at least 1s
-  const user = useSelector(state => state.user.currentUser);
-  const [showWomanValidationModal, setShowWomanValidationModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [womanValidationForm, setWomanValidationForm] = useState({
-    user_with_cin: null,
-    cinFront: null,
-    cinBack: null,
-  });
-  const [womanValidationLoading, setWomanValidationLoading] = useState(false);
+  
   
   // Track step view
   useEffect(() => {
@@ -246,41 +235,6 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
     // Don't allow selection of "coming soon" vehicles
     if (option.soon) {
       return;
-    }
-    // Special logic for 'for women' vehicle (id=4)
-    if (option.id === 4) {
-      if (!user) {
-        setShowLoginModal(true);
-        return;
-      }
-      console.log(user?.womanValidation);
-      if (user?.womanValidation?.validation_state === 'valid') {
-        setSelected(option);
-        animateSelection(index);
-        trackVehicleSelected(option, {
-          vehicle_type: option.key,
-          vehicle_id: option.id,
-          step: 3
-        });
-        return;
-      } else if (user?.womanValidation?.validation_state === 'waiting') {
-        Toast.show({
-          type: 'info',
-          text1: t('choose_vehicle.account_under_validation', 'Your account is under validation.'),
-          visibilityTime: 2500,
-        });
-        return;
-      } else if (!user?.womanValidation) {
-        setShowWomanValidationModal(true);
-        return;
-      } else {
-        Toast.show({
-          type: 'info',
-          text1: t('choose_vehicle.must_complete_women_validation', 'You must complete the women validation process to select this vehicle.'),
-          visibilityTime: 2500,
-        });
-        return;
-      }
     }
     setSelected(option);
     animateSelection(index);
@@ -667,27 +621,7 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
           />
         </View>
       </View>
-      <WomanValidationModal
-        visible={showWomanValidationModal}
-        onClose={() => setShowWomanValidationModal(false)}
-        onSubmit={() => {
-          setWomanValidationLoading(true);
-          // TODO: handle submit logic (API call)
-          setTimeout(() => {
-            setWomanValidationLoading(false);
-            setShowWomanValidationModal(false);
-            Toast.show({
-              type: 'success',
-              text1: 'Validation info submitted! Your account is under review.',
-              visibilityTime: 2500,
-            });
-          }, 1200);
-        }}
-        form={womanValidationForm}
-        setForm={setWomanValidationForm}
-        loading={womanValidationLoading}
-      />
-      <LoginModal visible={showLoginModal} onClose={() => setShowLoginModal(false)} />
+      
     </>
   );
 };

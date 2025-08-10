@@ -25,7 +25,7 @@ export async function calculateDistanceAndTime(startCoords, endCoords) {
     // Fallback to Distance Matrix API
     try {
       const distanceMatrixUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${startCoords.latitude},${startCoords.longitude}&destinations=${endCoords.latitude},${endCoords.longitude}&key=${apiKey}&units=metric`;
-      
+      console.log("distanceMatrixUrl", distanceMatrixUrl);
       const matrixResponse = await axios.get(distanceMatrixUrl);
       
       if (matrixResponse.data.status === 'OK' && matrixResponse.data.rows[0]?.elements[0]?.status === 'OK') {

@@ -4,7 +4,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
 
 const PickUpAdress = ({setNewreservation, newReservation, setInputErrors}) => {
   const pinIcon = require('../assets/pinIcon.png');
-  const api = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE';
+  const api = 'AIzaSyA0JbWwMvbJ7IYcL4_cagsFQLyLqXHA7xs';
 
   return (
     <View style={{flexDirection: 'row', alignItems: 'center'}}>

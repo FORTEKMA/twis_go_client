@@ -8,7 +8,7 @@ import MapView, {
 import MapViewDirections from 'react-native-maps-directions';
 import {styles} from '../styles';
 
-const GOOGLE_MAPS_APIKEY = 'AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE';
+const GOOGLE_MAPS_APIKEY = 'AIzaSyA0JbWwMvbJ7IYcL4_cagsFQLyLqXHA7xs';
 
 const TrackingMap = ({
   mapRef,

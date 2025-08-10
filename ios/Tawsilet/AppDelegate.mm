@@ -20,7 +20,7 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
   [FIRApp configure];
-  [GMSServices provideAPIKey:@"AIzaSyA8oEc5WKQqAXtSKpSH4igelH5wlPDaowE"]; // add this line using the api key obtained from Google Console
+  [GMSServices provideAPIKey:@"AIzaSyA0JbWwMvbJ7IYcL4_cagsFQLyLqXHA7xs"]; // add this line using the api key obtained from Google Console
 
   // Configure Apple Sign In
   if (@available(iOS 13.0, *)) {
