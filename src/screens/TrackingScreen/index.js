@@ -68,8 +68,8 @@ const decodePolyline = (encoded) => {
   return poly;
 };
 
-// Enhanced route generation with street-level details
-const generateEnhanced3DRoute = (origin, destination) => {
+// Fallback route generation for when Directions API fails
+const generateFallbackRoute = (origin, destination) => {
   const [originLat, originLng] = origin.split(',').map(Number);
   const [destLat, destLng] = destination.split(',').map(Number);
   
@@ -86,7 +86,7 @@ const generateEnhanced3DRoute = (origin, destination) => {
     const lat = originLat + (destLat - originLat) * ratio + curveFactor;
     const lng = originLng + (destLng - originLng) * ratio + curveFactor * 0.5;
     
-    coordinates.push([lng, lat]);
+    coordinates.push({ latitude: lat, longitude: lng });
   }
   
   return coordinates;
@@ -164,7 +164,7 @@ const TrackingScreen = ({ route }) => {
     };
   }, []);
 
-  // Enhanced route regeneration with 3D street style
+  // Generate/refresh route when status or driver position changes
   useEffect(() => {
     if (order && driverPosition) {
       generateRouteBasedOnStatus(order, driverPosition).catch(console.error);
@@ -195,7 +195,7 @@ const TrackingScreen = ({ route }) => {
     }
   }, [driverPosition, isFollowingDriver, mapReady, focusOnAllCoordinates]);
 
-  // Listen to driver location updates from Firebase with enhanced tracking
+  // Listen to driver location updates from Firebase
   useEffect(() => {
     if (driver?.documentId) {
       const driverRef = ref(db, `drivers/${driver.documentId}`);
@@ -224,7 +224,7 @@ const TrackingScreen = ({ route }) => {
           // Update estimated arrival
           updateEstimatedArrival(newPosition);
           
-          // Enhanced route regeneration with debouncing
+          // Route regeneration with debouncing
           if (order) {
             if (routeUpdateTimeoutRef.current) {
               clearTimeout(routeUpdateTimeoutRef.current);
@@ -245,7 +245,7 @@ const TrackingScreen = ({ route }) => {
       });
       return () => off(driverRef, 'value', unsubscribe);
     }
-  }, [driver?.documentId, isFollowingDriver, mapReady, order, streetViewMode, cameraFollowBearing]);
+  }, [driver?.documentId, isFollowingDriver, mapReady, order]);
 
   // Enhanced UI animations
   useEffect(() => {
@@ -293,8 +293,8 @@ const TrackingScreen = ({ route }) => {
         setOrder(response.data.data); 
         setDriver(response.data.data.driver);
         
-        // Generate enhanced 3D route based on status
-        generateEnhanced3DRouteBasedOnStatus(response.data.data, driverPosition).catch(console.error);
+        // Generate route based on status
+        generateRouteBasedOnStatus(response.data.data, driverPosition).catch(console.error);
       } else {
         setError(t('tracking.order_not_found'));
       }
@@ -306,16 +306,13 @@ const TrackingScreen = ({ route }) => {
     }
   };
 
-  // Enhanced 3D route generation with street-level details
-  const generateEnhanced3DRouteBasedOnStatus = async (orderData, driverPos) => {
+  // Build route using Google Directions API
+  const generateRouteBasedOnStatus = async (orderData, driverPos) => {
     const pickup = orderData?.pickUpAddress?.coordonne;
     const dropoff = orderData?.dropOfAddress?.coordonne;
     const status = orderData?.commandStatus;
     
     if (!pickup || !dropoff) return;
-    
-    const pickupCoord = [pickup.longitude, pickup.latitude];
-    const dropoffCoord = [dropoff.longitude, dropoff.latitude];
     
     let routeCoordinates = [];
     let origin, destination;
@@ -352,7 +349,7 @@ const TrackingScreen = ({ route }) => {
     }
     
     try {
-      // Enhanced Google Directions API call with additional parameters
+      // Google Directions API call
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&mode=driving&alternatives=false&avoid=tolls&traffic_model=best_guess&departure_time=now&key=${API_GOOGLE}`
       );
@@ -363,8 +360,9 @@ const TrackingScreen = ({ route }) => {
         const route = data.routes[0];
         const points = route.overview_polyline.points;
         
-        // Decode the polyline to get coordinates
-        routeCoordinates = decodePolyline(points);
+        // Decode the polyline to get coordinates in { latitude, longitude }
+        const decoded = decodePolyline(points);
+        routeCoordinates = decoded.map(([lng, lat]) => ({ latitude: lat, longitude: lng }));
         
         // Calculate enhanced route metrics
         const distance = route.legs[0].distance.value;
@@ -387,13 +385,13 @@ const TrackingScreen = ({ route }) => {
         
         setRouteInstructions(steps);
         
-        // Initialize navigation manager with enhanced route data
+        // Initialize navigation manager with route data
         if (navigationManager && typeof navigationManager.setRoute === 'function') {
           navigationManager.setRoute(routeCoordinates, steps);
         }
       } else {
-        // Enhanced fallback route generation
-        routeCoordinates = generateEnhanced3DRoute(origin, destination);
+        // Fallback route generation
+        routeCoordinates = generateFallbackRoute(origin, destination);
         
         // Initialize navigation manager with fallback route
         if (navigationManager && typeof navigationManager.setRoute === 'function') {
@@ -402,7 +400,7 @@ const TrackingScreen = ({ route }) => {
       }
     } catch (error) {
       console.error('Failed to fetch enhanced route:', error);
-      routeCoordinates = generateEnhanced3DRoute(origin, destination);
+      routeCoordinates = generateFallbackRoute(origin, destination);
       
       // Initialize navigation manager with fallback route
       if (navigationManager && typeof navigationManager.setRoute === 'function') {
@@ -410,22 +408,7 @@ const TrackingScreen = ({ route }) => {
       }
     }
     
-    // Convert to enhanced GeoJSON with additional properties
-    const routeShape = {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: routeCoordinates
-      },
-      properties: {
-        color: '#000000',
-        width: streetViewMode ? STREET_STYLE_3D_CONFIG.routeWidth : 4,
-        opacity: 0.8,
-        style: streetViewMode ? '3d-street' : 'standard'
-      }
-    };
-    
-    setRouteCoordinates(routeShape);
+    setRouteCoordinates(routeCoordinates);
     setRouteUpdateKey(prev => prev + 1);
   };
 
@@ -470,23 +453,23 @@ const TrackingScreen = ({ route }) => {
     
     // Add driver position if available
     if (driverPosition) {
-      coordinates.push([driverPosition.longitude, driverPosition.latitude]);
+      coordinates.push({ latitude: driverPosition.latitude, longitude: driverPosition.longitude });
     }
     
     // Add pickup location
     if (order?.pickUpAddress?.coordonne) {
-      coordinates.push([
-        order.pickUpAddress.coordonne.longitude,
-        order.pickUpAddress.coordonne.latitude
-      ]);
+      coordinates.push({
+        latitude: order.pickUpAddress.coordonne.latitude,
+        longitude: order.pickUpAddress.coordonne.longitude,
+      });
     }
     
     // Add dropoff location
     if (order?.dropOfAddress?.coordonne) {
-      coordinates.push([
-        order.dropOfAddress.coordonne.longitude,
-        order.dropOfAddress.coordonne.latitude
-      ]);
+      coordinates.push({
+        latitude: order.dropOfAddress.coordonne.latitude,
+        longitude: order.dropOfAddress.coordonne.longitude,
+      });
     }
     
     // If we have coordinates, fit them to the map
