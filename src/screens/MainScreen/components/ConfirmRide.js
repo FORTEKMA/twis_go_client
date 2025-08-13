@@ -189,6 +189,7 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
 
   
   const handleConfirmRide = async () => {
+    console.log("dasd",formData?.vehicleType?.id);
     // Check if this is a women vehicle (id=4) and handle validation
     if (formData?.vehicleType?.id === 4) {
       if (!user) {
@@ -353,13 +354,7 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
                 {formatDateTime(formData.selectedDate)}
               </Text>
             </View>
-            
-            <View style={localStyles.detailRow}>
-              <MaterialCommunityIcons name="map-marker-distance" size={20} color="#666" />
-              <Text style={localStyles.detailText}>
-                {priceData?.distance ? `${(priceData.distance).toFixed(1)} ${t('common.km')}` : t('confirm_ride.calculating')}
-              </Text>
-            </View>
+           
             
             {vehicleInfo && (
               <View style={localStyles.detailRow}>
@@ -545,7 +540,7 @@ const localStyles = StyleSheet.create({
     flex: 1,
   },
   locationItem: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   locationLabel: {
     fontSize: 12,

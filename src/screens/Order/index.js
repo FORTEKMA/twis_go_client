@@ -18,8 +18,7 @@ import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
- 
-import OrderPlaceholder from '../../components/OrderPlaceholder';
+ import OrderPlaceholder from '../../components/OrderPlaceholder';
 import { 
   trackScreenView, 
   trackOrderDetailsViewed 
@@ -33,7 +32,7 @@ const Order = ({ route }) => {
   
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const [showCallAlert, setShowCallAlert] = useState(false);
  
   const navigation = useNavigation();
 
@@ -188,7 +187,26 @@ const Order = ({ route }) => {
               </View>
             </View>
             
-            
+            {/* Chat and Call Actions */}
+            {canTrack && (
+              <View style={styles.driverActionsContainer}>
+                <TouchableOpacity 
+                  style={styles.chatButton}
+                  onPress={() => navigation.navigate('ComingSoon')}
+                >
+                  <MaterialCommunityIcons name="message-text" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>{t('order.chat')}</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.callButton}
+                  onPress={() => navigation.navigate('ComingSoon')}
+                >
+                  <MaterialCommunityIcons name="phone" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>{t('order.call')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
 
@@ -298,7 +316,7 @@ const Order = ({ route }) => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
       
-        
+      
     </SafeAreaView>
   );
 };
@@ -607,4 +625,3 @@ const styles = StyleSheet.create({
 });
 
 export default Order;
-

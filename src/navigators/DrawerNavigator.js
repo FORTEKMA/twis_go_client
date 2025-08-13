@@ -24,6 +24,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 
 // Import existing screens/navigators
 import Notifications from '../screens/Notifications';
+import ComingSoon from '../screens/ComingSoon';
 import HisoryStackNavigator from './HisoryStackNavigator';
 import ProfileStack from './ProfileStack';
 import HomeStackNavigator from './HomeNavigation';
@@ -170,6 +171,14 @@ const CustomDrawerContent = ({ navigation, state }) => {
       badge: null,
     },
     
+    {
+      name: 'Chats',
+      label: t('drawer.chats', 'Chats'),
+      icon: 'message-text-outline',
+      iconType: 'MaterialCommunityIcons',
+      guestAllowed: false,
+      badge: null,
+    },
     {
       name: 'Historique',
       label: t('drawer.history', 'History'),
@@ -427,6 +436,13 @@ const DrawerNavigator = () => {
         }}
       />
       
+      <Drawer.Screen
+        name="Chats"
+        component={ComingSoon}
+        options={{
+          drawerLabel: 'Chats',
+        }}
+      />
       <Drawer.Screen
         name="Historique"
         component={HisoryStackNavigator}

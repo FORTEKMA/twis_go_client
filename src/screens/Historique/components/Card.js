@@ -103,11 +103,7 @@ export const Card = ({ order, refresh, index }) => {
   };
 
   const handleCardPress = () => {
-    if (isActiveOrder()) {
-      navigation.navigate("TrackingScreen", { id: order.documentId });
-    } else {
-      navigation.navigate("OrderDetails", { id: order.documentId, refresh });
-    }
+    navigation.navigate("OrderDetails", { id: order.documentId, refresh });
   };
 
   return (

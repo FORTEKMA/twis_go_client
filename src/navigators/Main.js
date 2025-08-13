@@ -9,6 +9,7 @@ import Onboarding from '../screens/Onboarding';
 import Rating from "../screens/Rating"
 import Login from '../screens/Login';
 import TrackingScreen from '../screens/TrackingScreen'; // Import TrackingScreen
+import ComingSoon from '../screens/ComingSoon';
  import { startTrackingUserLocation } from "../utils/userLocationTracker"
 import { navigationRef,  } from './navigationRef';
 
@@ -59,6 +60,7 @@ const MainNavigator = ({onReady}) => {
         }}
       />
       <Stack.Screen name="TrackingScreen" component={TrackingScreen} />
+      <Stack.Screen name="ComingSoon" component={ComingSoon} />
 
  
       </Stack.Navigator>
