@@ -8,7 +8,8 @@ import {
   Modal,
   Platform,
   SafeAreaView,
-  I18nManager
+  I18nManager,
+  AppState
 } from 'react-native';
 import { useKeepAwake } from '@sayem314/react-native-keep-awake';
 import * as amplitude from '@amplitude/analytics-react-native';
@@ -18,15 +19,14 @@ import 'react-native-gesture-handler';
 import { withStallion, useStallionUpdate, restart } from 'react-native-stallion';
 import Toast from 'react-native-toast-message';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-
-
+import {  processNavigationQueue,navigationRef } from './navigators/navigationRef';
+ 
 import { checkVersion } from "react-native-check-version";
 import UpdateBlockScreen from "./components/UpdateBlockScreen"
 import store from './store';
 import {ONESIGNAL_APP_ID} from '@env';
 import {Provider} from 'react-redux';
-import {NativeBaseProvider} from 'native-base';
-import MainNavigator, { navigationRef } from './navigators/Main';
+ import MainNavigator from './navigators/Main';
 import {OneSignal} from 'react-native-onesignal';
 import {colors} from './utils/colors';
 import './local';
@@ -38,7 +38,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import i18n from "./local";
 import CheckConnection from './components/CheckConnection';
 import LottieSplashScreen from '@attarchi/react-native-lottie-splash-screen';
-import api from './utils/api';
+import api, { setStoreReference } from './utils/api';
+ 
+ 
+
 // Only initialize Sentry in production mode
 if (!__DEV__) {
   Sentry.init({
@@ -50,16 +53,29 @@ if (!__DEV__) {
     environment: 'production',
   });
 }
-amplitude.init('d977e9d7ccb4617cd9e2a90ec1d95e27');
+
+amplitude.init('d977e9d7ccb4617cd9e2a90ec1d95e27',"",{
+  disableCookies: true,
+  
+});
+
+
 let persistor = persistStore(store);
+
+// Set store reference for API module
+setStoreReference(store);
+
+ 
+
 const App=()=> {
   useKeepAwake();
   const { isRestartRequired } = useStallionUpdate();
-   const [isModalVisible, setModalVisible] = useState(false);
+   const [isModalVisible, setModalVisible] = useState('');
   const [notificationBody, setNotificationBody] = useState('');
   const [updateRequired, setUpdateRequired] = useState(false);
   const [storeUrl, setStoreUrl] = useState(null);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const setupLanguage = async () => {
     try {
@@ -81,23 +97,34 @@ const App=()=> {
   }, [isRestartRequired]);
 
   useEffect(() => {
+    // Prevent multiple initializations
+    if (isInitialized) return;
+    setIsInitialized(true);
    
     OneSignal.initialize(ONESIGNAL_APP_ID);
     OneSignal.User.setLanguage("fr");
     OneSignal.Notifications.requestPermission(true)
     
+    
+
     // Add notification opened handler
     OneSignal.Notifications.addEventListener('click', (event) => {
       try {
         const data = event?.notification?.additionalData || event?.notification?.data || {};
+        
+        // Handle regular order notifications
         const commandId = data.commandId || data.command_id || data.id;
-        if (commandId && navigationRef.isReady()) {
+        if (commandId ) {
           navigationRef.navigate('OrderDetails', { id: commandId });
         }
+
+     
       } catch (e) {
         console.error('Error handling notification open:', e);
       }
     });
+
+ 
 
     setupLanguage()
 
@@ -125,11 +152,16 @@ const App=()=> {
    }
      }).catch(() => {});
 
-  }, []);
+  }, [isInitialized]);
  
 
   onReady=()=>{
     LottieSplashScreen.hide();
+    setTimeout(() => {
+      processNavigationQueue()
+
+    }, 1000);
+
   }
  
 
@@ -138,7 +170,7 @@ const App=()=> {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <View style={styles.container}>
-            <NativeBaseProvider>
+            
             {maintenanceMode ? (
               <UpdateBlockScreen storeUrl={null} isMaintenance />
             ) : updateRequired ? (
@@ -158,7 +190,7 @@ const App=()=> {
         position='top'
         
       />
-            </NativeBaseProvider>
+            
           </View>
           <ModalPortal />
         </PersistGate>
@@ -211,3 +243,5 @@ const styles = StyleSheet.create({
 
 // Only wrap with Sentry in production mode
 export default __DEV__ ? withStallion(App) : withStallion(Sentry.wrap(App));
+
+

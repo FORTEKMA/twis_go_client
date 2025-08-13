@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, SafeAreaView, StatusBar, Keyboard, TouchableWithoutFeedback ,I18nManager} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Toast } from 'native-base';
+import Toast from 'react-native-toast-message';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker from 'react-native-country-picker-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styles } from '../styles';
 import { updateUser, getCurrentUser,updateUserSwitcher } from '../../../store/userSlice/userSlice';
 import Header from '../components/Header';
@@ -36,8 +37,7 @@ const PersonalInfo = () => {
   // Timer states for preventing multiple updates
   const [timer, setTimer] = useState(0);
   const [resendAttempts, setResendAttempts] = useState(0);
-  const [isUpdateBlocked, setIsUpdateBlocked] = useState(false);
-
+ 
   const onSelectCountry = (country) => {
     phoneInputRef.current.selectCountry(country.cca2.toLowerCase());
     setFlagsVisible(false);
@@ -88,25 +88,7 @@ const PersonalInfo = () => {
     }
   }, [userData, user]);
 
-  // Timer effect for preventing multiple updates
-  useEffect(() => {
-    let interval;
-    if (timer > 0) {
-      setIsUpdateBlocked(true);
-      interval = setInterval(() => {
-        setTimer(prev => {
-          if (prev <= 1) {
-            setIsUpdateBlocked(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      setIsUpdateBlocked(false);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
+ 
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -133,17 +115,17 @@ const PersonalInfo = () => {
       await dispatch(getCurrentUser());
 
       Toast.show({
-        title: t("common.success"),
-        description: t("profile.personal_info.update_success"),
-        status: "success",
-        duration: 3000,
+        type: 'success',
+        text1: t("common.success"),
+        text2: t("profile.personal_info.update_success"),
+        position: 'top'
       });
     } catch (error) {
       Toast.show({
-        title: t("common.error"),
-        description: error?.message || t("profile.personal_info.update_error"),
-        status: "error",
-        duration: 3000,
+        type: 'error',
+        text1: t("common.error"),
+        text2: error?.message || t("profile.personal_info.update_error"),
+        position: 'top'
       });
     } finally {
       setIsLoading(false);
@@ -151,24 +133,15 @@ const PersonalInfo = () => {
   };
 
   const handleSaveChanges = async () => {
-    // Prevent multiple attempts while timer is active
-    if (isUpdateBlocked) {
-      Toast.show({
-        title: t("common.warning"),
-        description: t("profile.personal_info.please_wait", { time: formatTime(timer) }),
-        status: "warning",
-        duration: 3000,
-      });
-      return;
-    }
+    
 
     if (userData.phoneNumber !== user.phoneNumber) {
       if (phoneInputRef.current && !phoneInputRef.current.isValidNumber()) {
         Toast.show({
-          title: t("common.error"),
-          description: t("signup.step4.errors.invalid_phone"),
-          status: "error",
-          duration: 3000,
+          type: 'error',
+          text1: t("common.error"),
+          text2: t("signup.step4.errors.invalid_phone"),
+          position: 'top'
         });
         return;
       }
@@ -181,10 +154,10 @@ const PersonalInfo = () => {
 
         if (Array.isArray(phoneResponse.data) && phoneResponse.data.length > 0) {
           Toast.show({
-            title: t("common.error"),
-            description: t("signup.step4.errors.phone_exists"),
-            status: "error",
-            duration: 3000,
+            type: 'error',
+            text1: t("common.error"),
+            text2: t("signup.step4.errors.phone_exists"),
+            position: 'top'
           });
           return;
         }
@@ -198,10 +171,10 @@ const PersonalInfo = () => {
         setOtpModalVisible(true);
       } catch (error) {
         Toast.show({
-          title: t("common.error"),
-          description: t("profile.personal_info.otp_send_error"),
-          status: "error",
-          duration: 3000,
+          type: 'error',
+          text1: t("common.error"),
+          text2: t("profile.personal_info.otp_send_error"),
+          position: 'top'
         });
       } finally {
         setIsLoading(false);
@@ -229,10 +202,10 @@ const PersonalInfo = () => {
       setTimer(60 * Math.pow(2, nextAttempt - 1));
     } catch (error) {
       Toast.show({
-        title: t("common.error"),
-        description: t("profile.personal_info.otp_send_error"),
-        status: "error",
-        duration: 3000,
+        type: 'error',
+        text1: t("common.error"),
+        text2: t("profile.personal_info.otp_send_error"),
+        position: 'top'
       });
     }
   };
@@ -242,75 +215,110 @@ const PersonalInfo = () => {
     field,
     placeholder,
     keyboardType = "default",
-    editable = true
+    editable = true,
+    icon = null
   ) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{t(label)}</Text>
-      <TextInput
-        style={[styles.input,{color:editable?"#000":"#ccc"}]}
-        placeholder={t(placeholder)}
-        placeholderTextColor="#ccc"
-        value={field === "email" ? user.email : userData[field]}
-        onChangeText={(text) => setUserData({ ...userData, [field]: text })}
-        keyboardType={keyboardType}
-        editable={editable}
-      />
+    <View style={styles.uberInputContainer}>
+      <Text style={styles.uberInputLabel}>{t(label)}</Text>
+      <View style={styles.uberInputWrapper}>
+        {icon && (
+          <View style={styles.uberInputIconContainer}>
+            <MaterialCommunityIcons name={icon} size={20} color="#8E8E93" />
+          </View>
+        )}
+        <TextInput
+          style={[
+            styles.uberInput,
+            { color: editable ? "#000" : "#8E8E93" },
+            !editable && styles.uberInputDisabled
+          ]}
+          placeholder={t(placeholder)}
+          placeholderTextColor="#8E8E93"
+          value={field === "email" ? user.email : userData[field]}
+          onChangeText={(text) => setUserData({ ...userData, [field]: text })}
+          keyboardType={keyboardType}
+          editable={editable}
+        />
+        {!editable && (
+          <View style={styles.uberInputLockContainer}>
+            <MaterialCommunityIcons name="lock-outline" size={16} color="#8E8E93" />
+          </View>
+        )}
+      </View>
     </View>
   );
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
-      ]}
-    >
+    <SafeAreaView style={styles.uberContainer}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
-     
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.mainContainer}>
-            <Header
-              style={{ paddingTop: 0 }}
-              title={t("profile.personal_info.title")}
-            />
+          <View style={styles.uberMainContainer}>
+            {/* Modern Header */}
+            <View style={styles.uberSectionHeader}>
+              <TouchableOpacity 
+                style={styles.uberBackButton}
+                onPress={() => navigation.goBack()}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons 
+                  name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
+                  size={24} 
+                  color="#000" 
+                />
+              </TouchableOpacity>
+              
+                 <Text style={styles.uberSectionTitle}>{t("profile.personal_info.title")}</Text>
+                 
+              <View style={styles.uberHeaderSpacer} />
+            </View>
            
             <ScrollView
-              contentContainerStyle={styles.scrollContainer}
+              style={styles.uberScrollView}
+              contentContainerStyle={styles.uberScrollContainer}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              <View style={styles.stepContainer}>
-                <View style={styles.formContainer}>
-                  {renderInput(
-                    "profile.personal_info.email",
-                    "email",
-                    "profile.personal_info.email_placeholder",
-                    "email-address",
-                    false
-                  )}
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>{t("profile.personal_info.phone")}</Text>
+              {/* Personal Information Section */}
+              <View style={styles.uberFormSection}>
+                <View style={styles.uberSectionHeaderInline}>
+                  <MaterialCommunityIcons name="account-outline" size={24} color="#000" />
+                  <Text style={styles.uberSectionHeaderTitle}>
+                    {t("profile.personal_info.section_title", "Personal Information")}
+                  </Text>
+                </View>
+
+                {renderInput(
+                  "profile.personal_info.email",
+                  "email",
+                  "profile.personal_info.email_placeholder",
+                  "email-address",
+                  false,
+                  "email-outline"
+                )}
+
+                <View style={styles.uberInputContainer}>
+                  <Text style={styles.uberInputLabel}>{t("profile.personal_info.phone")}</Text>
+                  <View style={styles.uberInputWrapper}>
+                    
                     <PhoneInput
                       ref={phoneInputRef}
                       autoFormat
-                      style={[styles.input,{
-
-                        flexDirection:I18nManager.isRTL? "row-reverse":"row",
-                        textAlign: I18nManager.isRTL ? 'right' : 'left',
-
-                        
-                      }]}
+                      style={[
+                        styles.uberPhoneInput,
+                        {
+                          flexDirection: I18nManager.isRTL ? "row-reverse" : "row",
+                          textAlign: I18nManager.isRTL ? 'right' : 'left',
+                        }
+                      ]}
                       initialCountry="tn"
-                      textStyle={{ color: "#000" }}
+                      textStyle={{ color: "#000", fontSize: 16 }}
                       textProps={{
-                      
-                          paddingHorizontal:I18nManager.isRTL ?10:4,
-                      
+                        paddingHorizontal: I18nManager.isRTL ? 10 : 4,
                         placeholder: t("profile.personal_info.phone_placeholder"),
-                        placeholderTextColor: "#ccc",
+                        placeholderTextColor: "#8E8E93",
                       }}
                       value={userData.phoneNumber}
                       onChangePhoneNumber={(number) => {
@@ -318,43 +326,56 @@ const PersonalInfo = () => {
                       }}
                       onPressFlag={() => setFlagsVisible(true)}
                     />
-                    <CountryPicker
-                      withFilter
-                      withFlag
-                      withCallingCode
-                      placeholder=""
-                      onSelect={onSelectCountry}
-                      visible={isFlagsVisible}
-                      onClose={() => setFlagsVisible(false)}
-                      translation={I18nManager.isRTL? "ar":"fr"}
-                      renderCountryFilter={renderCountryFilter}
-                       
-                        modalProps={{
-                          presentationStyle: 'pageSheet',
-                        }}
-                        withCloseButton={false}
-                       
-                      />
                   </View>
-                 
+                  <CountryPicker
+                    withFilter
+                    withFlag
+                    withCallingCode
+                    placeholder=""
+                    onSelect={onSelectCountry}
+                    visible={isFlagsVisible}
+                    onClose={() => setFlagsVisible(false)}
+                    translation={I18nManager.isRTL ? "ar" : "fr"}
+                    renderCountryFilter={renderCountryFilter}
+                    modalProps={{
+                      presentationStyle: 'pageSheet',
+                    }}
+                    withCloseButton={false}
+                  />
                 </View>
+              </View>
+
+              {/* Information Notice */}
+              <View style={styles.uberNoticeContainer}>
+                <View style={styles.uberNoticeIconContainer}>
+                  <MaterialCommunityIcons name="information-outline" size={20} color="#007AFF" />
+                </View>
+                <Text style={styles.uberNoticeText}>
+                  {t("profile.personal_info.notice", "Changes to your phone number will require verification via SMS.")}
+                </Text>
               </View>
             </ScrollView>
           </View>
         </TouchableWithoutFeedback>
 
-        <View style={styles.buttonContainer}>
+        {/* Modern Action Button */}
+        <View style={styles.uberActionContainer}>
           <TouchableOpacity
-            style={[styles.nextButton, (isLoading || !isDataChanged || isUpdateBlocked) && styles.loginButtonDisabled]}
+            style={[
+              styles.uberActionButton,
+              (isLoading || !isDataChanged ) && styles.uberActionButtonDisabled
+            ]}
             onPress={handleSaveChanges}
-            disabled={isLoading || !isDataChanged || isUpdateBlocked}
+            disabled={isLoading || !isDataChanged }
+            activeOpacity={0.8}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : isUpdateBlocked ? (
-              <Text style={styles.nextButtonText}>{t("common.please_wait")} ({formatTime(timer)})</Text>
+              <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Text style={styles.nextButtonText}>{t("common.edit")}</Text>
+              <>
+                <MaterialCommunityIcons name="content-save-outline" size={20} color="#fff" />
+                <Text style={styles.uberActionButtonText}>{t("common.save_changes", "Save Changes")}</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>

@@ -1,16 +1,18 @@
 import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView, PanResponder, Platform, AppState } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Animated, Dimensions, Modal, TextInput, ScrollView, PanResponder, Platform, AppState, Alert } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../utils/colors';
 import OrderCancelConfirmationModal from './OrderCancelConfirmationModal';
 import OrderCancellationReasonSheet from './OrderCancellationReasonSheet';
 import OrderReportProblemModal from './OrderReportProblemModal';
+
 import { useNavigation } from '@react-navigation/native';
 import api from '../../../utils/api';
 import BackgroundTimer from 'react-native-background-timer';
-import { ref, update, off } from 'firebase/database';
 import db from '../../../utils/firebase';
+ 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const CARD_HEIGHT = Platform.OS === 'ios' ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.47;
 
@@ -43,6 +45,8 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   const [params, setParams] = useState({});
   const timerRef = useRef(null);
   const navigation = useNavigation();
+  
+  
   const cancellationReasons = [
     'Driver is taking too long',
     'Driver is not moving / stuck',
@@ -73,6 +77,9 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   const carModel = driver?.vehicule?.mark || 'Toyota Camry';
   const carPlate = driver?.vehicule?.matriculation || 'DEF 456';
   const driverRating = driver.rating || '5.0';
+
+  
+ 
 
   const handlePressIn = useCallback(() => {
     Animated.spring(scaleAnim, {
@@ -105,7 +112,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
   };
 
   const handleSubmitCancellation = async (reason) => {
-    update(ref(db, `rideRequests/${order.requestId}`), {commandStatus: "Canceled_by_client",});
+            db.ref(`rideRequests/${order.requestId}`).update({commandStatus: "Canceled_by_client",});
 
     setShowReasonSheet(false);
     setSelectedReason(null);
@@ -384,15 +391,10 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
                 <View style={styles.driverInfo}>
                   <View style={styles.driverNameRow}>
                     <Text style={styles.driverName}>{driverName}</Text>
-                    {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
-                      <TouchableOpacity 
-                        style={styles.callButtonCircle}
-                        onPress={onCallDriver}
-                        onPressIn={handlePressIn}
-                        onPressOut={handlePressOut}
-                      >
-                        <Ionicons name="call" size={20} color="#fff" />
-                      </TouchableOpacity>
+                    {["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
+                      <View style={styles.actionButtonsContainer}>
+                        
+                      </View>
                     )}
                   </View>
                   <View style={styles.ratingContainer}>
@@ -530,16 +532,7 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
                 <View style={styles.driverInfo}>
                   <View style={styles.driverNameRow}>
                     <Text style={styles.driverName}>{driverName}</Text>
-                    {!["Canceled_by_client", "Canceled_by_driver", "Completed"].includes(order?.commandStatus) && (
-                      <TouchableOpacity 
-                        style={styles.callButtonCircle}
-                        onPress={onCallDriver}
-                        onPressIn={handlePressIn}
-                        onPressOut={handlePressOut}
-                      >
-                        <Ionicons name="call" size={20} color="#fff" />
-                      </TouchableOpacity>
-                    )}
+                    
                   </View>
                   <View style={styles.ratingContainer}>
                     <Ionicons name="star" size={16} color="#FFB800" />
@@ -587,8 +580,9 @@ const OrderBottomCard = ({ order, onCallDriver, refresh }) => {
       <OrderReportProblemModal
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
-        order={order}
       />
+
+      {/* VoIP Call Screen - Removed modal approach, now uses navigation */}
     </Animated.View>
   );
 };
@@ -705,6 +699,25 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign:"left"
   },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chatButtonCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    position: 'relative',
+  },
   callButtonCircle: {
     width: 40,
     height: 40,
@@ -717,6 +730,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  unreadBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   ratingContainer: {
     flexDirection: 'row',

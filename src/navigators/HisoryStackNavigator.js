@@ -3,7 +3,6 @@ import { createStackNavigator } from "@react-navigation/stack";
  import Historique from "../screens/Historique";
 import Order from "../screens/Order";
 import Rating from "../screens/Rating";
-
 const Stack = createStackNavigator();
 
   const HisoryStackNavigator = () => {
@@ -39,6 +38,7 @@ const Stack = createStackNavigator();
           gestureEnabled: false 
         }}
       />
+      
     </Stack.Navigator>
   );
 }; 

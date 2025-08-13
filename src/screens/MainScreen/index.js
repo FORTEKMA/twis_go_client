@@ -8,10 +8,13 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
- 
+ Text,
+
   Keyboard,
   StatusBar
 } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import {localStyles} from "./localStyles"
 import DriverMarker from '../../components/DriverMarker';
 import MapView, {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
@@ -26,11 +29,11 @@ import api from '../../utils/api';
 import { useTranslation } from 'react-i18next';
 import CustomAlert from '../../components/CustomAlert';
 import Geolocation from '@react-native-community/geolocation';
-import { ref , onValue, off, query, orderByChild, equalTo } from 'firebase/database';
-import db from '../../utils/firebase';
+import { realtimeDb } from '../../utils/firebase'; // Changed import
+import { ref, onValue, off } from 'firebase/database'; // Import ref, onValue, off
  import PickupLocation from './components/PickupLocation';
 import DropoffLocation from './components/DropoffLocation';
-import LottieView from 'lottie-react-native';
+ import LottieView from 'lottie-react-native';
 import {API_GOOGLE} from "@env"
 import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -108,6 +111,19 @@ const MainScreen = () => {
   const [shouldRepositionLottie, setShouldRepositionLottie] = useState(false);
   const [stepComponentHeight, setStepComponentHeight] = useState(0);
   const [activationDate, setActivationDate] = useState(null);
+  const [expandedSteps, setExpandedSteps] = useState({
+    3: true, // ChooseVehicle starts expanded
+    4: true, // ConfirmRide starts expanded
+    5: true, // SearchDrivers starts expanded
+  });
+
+  // Toggle step expansion
+  const toggleStepExpansion = (stepNumber) => {
+    setExpandedSteps(prev => ({
+      ...prev,
+      [stepNumber]: !prev[stepNumber]
+    }));
+  };
 
   // Map region state
   const [mapRegion, setMapRegion] = useState({
@@ -250,11 +266,7 @@ const MainScreen = () => {
 
   // Optimized Firebase listener
   useEffect(() => {
-    const driversQuery = query(
-      ref(db, 'drivers'),
-      orderByChild('isActive'),
-      equalTo(true)
-    );
+    const driversRef = ref(realtimeDb, 'drivers');
   
     let isSubscribed = true;
   
@@ -271,7 +283,7 @@ const MainScreen = () => {
       });
     }, 1000); // 1 update per second max
   
-    const unsubscribe = onValue(driversQuery, snapshot => {
+    const unsubscribe = onValue(driversRef, snapshot => {
       if (!isSubscribed) return;
   
       try {
@@ -300,8 +312,7 @@ const MainScreen = () => {
   
     return () => {
       isSubscribed = false;
-      // No built-in cancel with custom throttle, so we just stop updates via isSubscribed
-      off(driversQuery, unsubscribe);
+      off(driversRef, 'value', unsubscribe);
     };
   }, [formData?.pickupAddress]);
 
@@ -534,14 +545,9 @@ const MainScreen = () => {
           dispatch(setMainScreenStep(nextStep));
         }
         
-        if (step === 1) {
-          setFormData(prev => ({
-            ...prev,
-            dropAddress: formData?.pickupAddress,
-          }));
-        }
+       
         
-        if (step === 2 || step === 3) {
+        if ( step === 3) {
           if (formData?.pickupAddress?.latitude && formData?.pickupAddress?.longitude && 
               formData?.dropAddress?.latitude && formData?.dropAddress?.longitude) {
             mapRef?.current?.fitToCoordinates([{
@@ -605,7 +611,6 @@ const MainScreen = () => {
  
     try {
       const response = await axios.get(url);
-     
       if (response.data.status === 'OK') {
         const address = response?.data?.results[0]?.formatted_address;
         const location = {
@@ -692,8 +697,8 @@ const MainScreen = () => {
       const coord = await mapRef.current.coordinateForPoint(screenPoint);
       handleRegionChange(coord);
       setTempMapRegion(region);
-      const newZoomLevel = getZoomLevel(region);
-    setCurrentZoomLevel(newZoomLevel);
+    //   const newZoomLevel = getZoomLevel(region);
+    // setCurrentZoomLevel(newZoomLevel);
       return coord;
     } catch (err) {
       console.warn("Failed to get coordinate for point:", err);
@@ -797,7 +802,7 @@ if (activeDateStr) setActivationDate(activeDateStr);
   }, []);
 
   const renderStep = () => {
-    const bottomOffset = getBottomOffset(step, token, isKeyboardVisible, keyboardHeight);
+  
 
     const handleStepLayout = (event) => {
       const { height } = event.nativeEvent.layout;
@@ -812,7 +817,7 @@ if (activeDateStr) setActivationDate(activeDateStr);
           localStyles.stepContainer,
           stepAnimatedStyle,
           {
-            bottom: bottomOffset,
+            bottom: 0,
           },
         ]}>
         <View style={localStyles.stepContent} onLayout={handleStepLayout}>
@@ -834,10 +839,19 @@ if (activeDateStr) setActivationDate(activeDateStr);
             />
           )}
           {step === 3 && (
-            <ChooseVehicle formData={formData} goNext={goNext} goBack={goBack} />
+           
+              <ChooseVehicle formData={formData} goNext={goNext} goBack={goBack} />
+        
           )}
           {step === 4 && (
-            <ConfirmRide handleReset={handleReset} formData={formData} goNext={goNext} goBack={goBack} />
+             
+              <ConfirmRide 
+                handleReset={handleReset} 
+                formData={formData} 
+                goNext={goNext} 
+                goBack={goBack}
+              />
+         
           )}
           {step === 4.5 && (
             <LoginStep 
@@ -847,7 +861,9 @@ if (activeDateStr) setActivationDate(activeDateStr);
             />
           )}
           {step === 5 && (
-            <SearchDrivers goBack={goBack} formData={formData} />
+           
+              <SearchDrivers goBack={goBack} formData={formData} />
+            
           )}
         </View>
       </Animated.View>
@@ -906,7 +922,7 @@ if (activeDateStr) setActivationDate(activeDateStr);
         ref={mapRef}
         style={styles.mapContainer}
         provider={PROVIDER_GOOGLE}
-        region={mapRegion}
+      region={mapRegion}
         zoomEnabled
         tracksViewChanges={false}
        
@@ -969,7 +985,7 @@ if (activeDateStr) setActivationDate(activeDateStr);
             }}
             mode='DRIVING'
             apikey={API_GOOGLE}
-            strokeWidth={7}
+            strokeWidth={3}
             strokeColor="#999"
             onReady={result => {
               if (backInterval.current) {
@@ -988,7 +1004,7 @@ if (activeDateStr) setActivationDate(activeDateStr);
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} style={localStyles.container}>
+    <TouchableWithoutFeedback   style={localStyles.container}>
       <View 
         style={{flex: 1}}  
         onLayout={(event) => {
@@ -1005,6 +1021,10 @@ if (activeDateStr) setActivationDate(activeDateStr);
           });
         }}
       >
+
+
+
+
         {activationDate && <ActivationCountdown targetDate={activationDate} />}  
         {renderMap()}
         
@@ -1058,7 +1078,15 @@ if (activeDateStr) setActivationDate(activeDateStr);
         />  
         
         {renderStep()}
+        <TouchableOpacity 
+            style={localStyles.uberHeaderButton}
+            onPress={() => navigation.openDrawer()}
+            activeOpacity={0.7}
+          >
+            <Icon name="menu" size={24} color="#000" />
+          </TouchableOpacity>
       </View>
+      
     </TouchableWithoutFeedback>
   );
 };
