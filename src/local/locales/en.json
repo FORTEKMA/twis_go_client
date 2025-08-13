@@ -836,7 +836,13 @@
     "history": "History",
     "notifications": "Notifications",
     "profile": "Profile",
-    "update_available": "Update Available"
+    "update_available": "Update Available",
+    "chats": "Chats"
+  },
+  "coming_soon": {
+    "title": "Coming Soon",
+    "heading": "We’re working on it!",
+    "subtitle": "This feature will be available in an upcoming update."
   },
   "tracking": {
     "driver": "Driver",

@@ -854,7 +854,13 @@
     "history": "السجل",
     "notifications": "الإشعارات",
     "profile": "الملف الشخصي",
-    "update_available": "التحديث متاح"
+    "update_available": "التحديث متاح",
+    "chats": "الدردشات"
+  },
+  "coming_soon": {
+    "title": "قريباً",
+    "heading": "نحن نعمل على ذلك!",
+    "subtitle": "سيتم توفير هذه الميزة في تحديث قادم."
   },
   "tracking": {
     "driver": "السائق",

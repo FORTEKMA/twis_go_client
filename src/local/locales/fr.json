@@ -872,7 +872,13 @@
     "history": "Historique",
     "notifications": "Notifications",
     "profile": "Profil",
-    "update_available": "Mise à jour disponible"
+    "update_available": "Mise à jour disponible",
+    "chats": "Discussions"
+  },
+  "coming_soon": {
+    "title": "Bientôt Disponible",
+    "heading": "Nous y travaillons !",
+    "subtitle": "Cette fonctionnalité sera disponible dans une prochaine mise à jour."
   },
   "tracking": {
     "driver": "Chauffeur",
