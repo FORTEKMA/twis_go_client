@@ -15,19 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import Mapbox, {
-  MapView,
-  Camera,
-  PointAnnotation,
-  ShapeSource,
-  LineLayer,
-  SymbolLayer,
-  FillLayer,
-  CircleLayer,
-  RasterLayer,
-  Light
-} from '@rnmapbox/maps';
-import { TRACKING_MAP_STYLE, MAP_PERFORMANCE_SETTINGS, MAPBOX_ACCESS_TOKEN } from '../../utils/mapboxConfig';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { API_GOOGLE } from '@env';
 import api from '../../utils/api';
 import { colors } from '../../utils/colors'; // Assuming colors are defined here, will override
@@ -36,29 +24,12 @@ import DriverMarker from '../../components/DriverMarker';
 import { RouteOptimizer, DriverMovementTracker, MapPerformanceUtils, NavigationRouteManager } from '../../utils/mapUtils';
 import { getDistance } from 'geolib';
 
-// Ensure Mapbox access token is set
-Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
+// Using Google provider via react-native-maps
 
 const { width, height } = Dimensions.get('window');
 
-// Enhanced 3D Street Style Configuration
-const STREET_STYLE_3D_CONFIG = {
-  pitch: 60, // 3D viewing angle
-  bearing: 0, // Initial compass bearing
-  zoom: 17, // Close-up street level zoom
-  animationDuration: 1500,
-  followingZoom: 18,
-  navigationZoom: 19,
-  buildingExtrusionHeight: 'height', // Use building height data
-  roadWidth: 8,
-  routeWidth: 6,
-  shadowIntensity: 0.7,
-  ambientLightIntensity: 0.4,
-  directionalLightIntensity: 0.6,
-  buildingOpacity: 0.8,
-  roadOpacity: 0.9,
-  labelVisibility: true,
-};
+// Camera animation duration
+const CAMERA_ANIMATION_DURATION = 1000;
 
 // Helper function to decode Google's polyline format
 const decodePolyline = (encoded) => {
@@ -145,14 +116,13 @@ const TrackingScreen = ({ route }) => {
   const [estimatedArrival, setEstimatedArrival] = useState(null);
   const [routeDistance, setRouteDistance] = useState(null);
   const [routeUpdateKey, setRouteUpdateKey] = useState(0);
-  const [streetViewMode, setStreetViewMode] = useState(true);
-  const [cameraFollowBearing, setCameraFollowBearing] = useState(0);
+  
   const [isFocusingOnAllCoordinates, setIsFocusingOnAllCoordinates] = useState(false);
   const [routeInstructions, setRouteInstructions] = useState([]);
   
   // Map refs
   const mapRef = useRef(null);
-  const cameraRef = useRef(null);
+  
   const routeUpdateTimeoutRef = useRef(null);
   const driverMarkerRef = useRef(null);
   
@@ -167,17 +137,15 @@ const TrackingScreen = ({ route }) => {
   
   // Enhanced throttled camera update with 3D capabilities
   const throttledCameraUpdate = useRef(
-    MapPerformanceUtils.throttle((coordinate, options = {}) => {
-      if (cameraRef.current && mapReady) {
-        const defaultOptions = {
-          centerCoordinate: coordinate,
-          zoomLevel: streetViewMode ? STREET_STYLE_3D_CONFIG.followingZoom : 15,
-          pitch: streetViewMode ? STREET_STYLE_3D_CONFIG.pitch : 0,
-          bearing: options.bearing || cameraFollowBearing,
-          animationDuration: STREET_STYLE_3D_CONFIG.animationDuration,
+    MapPerformanceUtils.throttle((center, options = {}) => {
+      if (mapRef.current && mapReady && center) {
+        const camera = {
+          center,
+          pitch: 0,
+          heading: options.bearing || 0,
+          zoom: 16,
         };
-        
-        cameraRef.current.setCamera({ ...defaultOptions, ...options });
+        mapRef.current.animateCamera(camera, { duration: CAMERA_ANIMATION_DURATION });
       }
     }, 500)
   ).current;
@@ -198,9 +166,9 @@ const TrackingScreen = ({ route }) => {
   // Enhanced route regeneration with 3D street style
   useEffect(() => {
     if (order && driverPosition) {
-      generateEnhanced3DRouteBasedOnStatus(order, driverPosition).catch(console.error);
+      generateRouteBasedOnStatus(order, driverPosition).catch(console.error);
     }
-  }, [order?.commandStatus, driverPosition, streetViewMode]);
+  }, [order?.commandStatus, driverPosition]);
 
   // Focus on all coordinates when map is ready and data is loaded
   useEffect(() => {
@@ -252,11 +220,6 @@ const TrackingScreen = ({ route }) => {
           setDriverIsMoving(trackedPosition.isMoving);
           setDriverPosition(newPosition);
           
-          // Update camera bearing based on driver movement direction
-          if (trackedPosition.isMoving && trackedPosition.bearing !== undefined) {
-            setCameraFollowBearing(trackedPosition.bearing);
-          }
-          
           // Update estimated arrival
           updateEstimatedArrival(newPosition);
           
@@ -267,19 +230,15 @@ const TrackingScreen = ({ route }) => {
             }
             
             routeUpdateTimeoutRef.current = setTimeout(() => {
-              generateEnhanced3DRouteBasedOnStatus(order, newPosition).catch(console.error);
+              generateRouteBasedOnStatus(order, newPosition).catch(console.error);
             }, 800);
           }
           
-          // Enhanced camera following with 3D street view
-          if (isFollowingDriver && mapReady && streetViewMode) {
-            throttledCameraUpdate([newPosition.longitude, newPosition.latitude], {
-              bearing: newPosition.heading || cameraFollowBearing,
-              pitch: STREET_STYLE_3D_CONFIG.pitch,
-              zoomLevel: STREET_STYLE_3D_CONFIG.navigationZoom,
+          // Camera follow
+          if (isFollowingDriver && mapReady) {
+            throttledCameraUpdate({ latitude: newPosition.latitude, longitude: newPosition.longitude }, {
+              bearing: newPosition.heading || 0,
             });
-          } else if (isFollowingDriver && mapReady) {
-            throttledCameraUpdate([newPosition.longitude, newPosition.latitude]);
           }
         }
       });
@@ -489,66 +448,16 @@ const TrackingScreen = ({ route }) => {
 
   const toggleFollowDriver = () => {
     setIsFollowingDriver(!isFollowingDriver);
-    if (!isFollowingDriver && driverPosition && cameraRef.current) {
-      const options = streetViewMode ? {
-        bearing: cameraFollowBearing,
-        pitch: STREET_STYLE_3D_CONFIG.pitch,
-        zoomLevel: STREET_STYLE_3D_CONFIG.navigationZoom,
-      } : {};
-      throttledCameraUpdate([driverPosition.longitude, driverPosition.latitude], options);
-    }
-  };
-
-  const toggle3DStreetView = () => {
-    setStreetViewMode(!streetViewMode);
-    if (driverPosition && cameraRef.current) {
-      const newPitch = !streetViewMode ? STREET_STYLE_3D_CONFIG.pitch : 0;
-      const newZoom = !streetViewMode ? STREET_STYLE_3D_CONFIG.navigationZoom : 15;
-      
-      cameraRef.current.setCamera({
-        pitch: newPitch,
-        zoomLevel: newZoom,
-        animationDuration: 1000,
-      });
+    if (!isFollowingDriver && driverPosition && mapRef.current) {
+      throttledCameraUpdate({ latitude: driverPosition.latitude, longitude: driverPosition.longitude });
     }
   };
 
   const focusOnDriver = () => {
-    if (driverPosition && cameraRef.current) {
-      const options = streetViewMode ? {
-        bearing: cameraFollowBearing,
-        pitch: STREET_STYLE_3D_CONFIG.pitch,
-        zoomLevel: STREET_STYLE_3D_CONFIG.navigationZoom,
-      } : {};
-      throttledCameraUpdate([driverPosition.longitude, driverPosition.latitude], options);
+    if (driverPosition && mapRef.current) {
+      throttledCameraUpdate({ latitude: driverPosition.latitude, longitude: driverPosition.longitude });
     }
   };
-
-  // Calculate optimal zoom level based on bounds
-  const calculateOptimalZoom = useCallback((bounds) => {
-    if (!bounds) return 15;
-    
-    const latDiff = bounds.north - bounds.south;
-    const lngDiff = bounds.east - bounds.west;
-    const maxDiff = Math.max(latDiff, lngDiff);
-    
-    if (maxDiff > 0.1) return 10;
-    if (maxDiff > 0.05) return 12;
-    if (maxDiff > 0.01) return 14;
-    if (maxDiff > 0.005) return 16;
-    if (maxDiff > 0.001) return 18;
-    return 20;
-  }, []);
-
-  // Calculate center point from bounds
-  const calculateCenterFromBounds = useCallback((bounds) => {
-    if (!bounds) return null;
-    
-    const centerLng = (bounds.west + bounds.east) / 2;
-    const centerLat = (bounds.south + bounds.north) / 2;
-    
-    return [centerLng, centerLat];
-  }, []);
 
   // Focus map on all coordinates (driver, pickup, dropoff)
   const focusOnAllCoordinates = useCallback(() => {
@@ -582,27 +491,17 @@ const TrackingScreen = ({ route }) => {
     // If we have coordinates, fit them to the map
     if (coordinates.length > 0) {
       if (coordinates.length === 1) {
-        // Single point - center on it with appropriate zoom
-        cameraRef.current?.setCamera({
-          centerCoordinate: coordinates[0],
-          zoomLevel: streetViewMode ? STREET_STYLE_3D_CONFIG.zoom : 15,
-          pitch: streetViewMode ? STREET_STYLE_3D_CONFIG.pitch : 0,
-          animationDuration: 1500,
-        });
+        mapRef.current.animateCamera({
+          center: coordinates[0],
+          zoom: 16,
+          pitch: 0,
+          heading: 0,
+        }, { duration: 1500 });
       } else {
-        // Multiple points - calculate bounds and set camera
-        const bounds = MapPerformanceUtils.calculateBounds(coordinates, 0.2);
-        if (bounds) {
-          const centerCoordinate = calculateCenterFromBounds(bounds);
-          const zoomLevel = calculateOptimalZoom(bounds);
-          
-          cameraRef.current?.setCamera({
-            centerCoordinate,
-            zoomLevel: streetViewMode ? Math.min(zoomLevel, STREET_STYLE_3D_CONFIG.zoom) : zoomLevel,
-            pitch: streetViewMode ? STREET_STYLE_3D_CONFIG.pitch : 0,
-            animationDuration: 1500,
-          });
-        }
+        mapRef.current.fitToCoordinates(coordinates, {
+          edgePadding: { top: 100, right: 60, bottom: 60, left: 60 },
+          animated: true,
+        });
       }
     }
     
@@ -610,7 +509,7 @@ const TrackingScreen = ({ route }) => {
     setTimeout(() => {
       setIsFocusingOnAllCoordinates(false);
     }, 1600);
-  }, [mapReady, driverPosition, order, streetViewMode, calculateCenterFromBounds, calculateOptimalZoom]);
+  }, [mapReady, driverPosition, order]);
 
  
   // Calculate route progress based on driver position
@@ -726,231 +625,80 @@ const TrackingScreen = ({ route }) => {
         <View style={styles.headerRight} />
       </View>
       
-      {/* Enhanced 3D Map View */}
+      {/* Map View */}
       <View style={styles.mapContainer}>
         <MapView
           ref={mapRef}
           style={styles.map}
-          styleURL={streetViewMode ? "mapbox://styles/mapbox/streets-v11" : "mapbox://styles/mapbox/streets-v11"}
-          onDidFinishLoadingMap={() => setMapReady(true)}
-          compassEnabled={true}
-          compassViewPosition={3}
-          compassViewMargins={{ x: 20, y: 100 }}
-          scaleBarEnabled={false}
-          logoEnabled={false}
-          attributionEnabled={false}
+          provider={PROVIDER_GOOGLE}
+          onMapReady={() => setMapReady(true)}
+          showsCompass={true}
           pitchEnabled={true}
           rotateEnabled={true}
           scrollEnabled={true}
           zoomEnabled={true}
         >
-          {/* Enhanced 3D Lighting */}
-          <Light style={{
-            anchor: 'viewport',
-            color: '#ffffff',
-            intensity: STREET_STYLE_3D_CONFIG.ambientLightIntensity,
-            position: [1.5, 90, 80]
-          }} />
-          
-          {/* Additional directional light for 3D effect */}
-          {streetViewMode && (
-            <Light style={{
-              anchor: 'viewport',
-              color: '#ffffff',
-              intensity: STREET_STYLE_3D_CONFIG.directionalLightIntensity,
-              position: [0, 45, 45]
-            }} />
-          )}
-          
-          {/* Enhanced Camera with 3D capabilities */}
-          <Camera
-            ref={cameraRef}
-            zoomLevel={streetViewMode ? STREET_STYLE_3D_CONFIG.zoom : 15}
-            pitch={streetViewMode ? STREET_STYLE_3D_CONFIG.pitch : 0}
-            bearing={cameraFollowBearing}
-            animationDuration={STREET_STYLE_3D_CONFIG.animationDuration}
-            followUserLocation={false}
-            followUserMode="none"
-          />
 
-          {/* Enhanced Route Display */}
-          {routeCoordinates && routeCoordinates.geometry && (
-            <ShapeSource
-              key={`route-${routeUpdateKey}`}
-              id="routeSource"
-              shape={routeCoordinates}
-            >
-              {/* Route background/glow effect */}
-              <LineLayer
-                id="routeBackground"
-                style={{
-                  lineColor: '#ffffff',
-                  lineWidth: getRouteWidth(streetViewMode) + 4,
-                  lineOpacity: 0.3,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                }}
-              />
-              
-              {/* Main route line */}
-              <LineLayer
-                id="routeLine"
-                style={{
-                  lineColor: getRouteColor(order?.commandStatus, streetViewMode),
-                  lineWidth: getRouteWidth(streetViewMode),
-                  lineOpacity: 0.9,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                  lineGradient: streetViewMode ? [
-                    'interpolate',
-                    ['linear'],
-                    ['line-progress'],
-                    0, '#000000',
-                    0.5, '#333333',
-                    1, '#000000'
-                  ] : [
-                    'interpolate',
-                    ['linear'],
-                    ['line-progress'],
-                    0, getRouteColor(order?.commandStatus, false),
-                    0.5, '#0056CC',
-                    1, getRouteColor(order?.commandStatus, false)
-                  ]
-                }}
-              />
-              
-              {/* Route shadow for 3D effect */}
-              {streetViewMode && (
-                <LineLayer
-                  id="routeShadow"
-                  style={{
-                    lineColor: 'rgba(0, 0, 0, 0.3)',
-                    lineWidth: getRouteWidth(streetViewMode) + 2,
-                    lineOpacity: 0.5,
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                    lineTranslate: [2, 2]
-                  }}
-                />
-              )}
-              
-              {/* Route direction arrows */}
-              <SymbolLayer
-                id="routeArrows"
-                style={{
-                  symbolPlacement: 'line',
-                  symbolSpacing: 200,
-                  symbolAvoidEdges: true,
-                  iconImage: 'arrow-icon',
-                  iconSize: streetViewMode ? 0.8 : 1,
-                  iconAllowOverlap: false,
-                  iconIgnorePlacement: false,
-                  iconRotationAlignment: 'map',
-                  iconTextFit: 'both',
-                  iconTextFitPadding: [2, 2, 2, 2],
-                  textField: '▶',
-                  textSize: 12,
-                  textColor: streetViewMode ? '#ffffff' : getRouteColor(order?.commandStatus, false),
-                  textHaloColor: streetViewMode ? '#000000' : '#ffffff',
-                  textHaloWidth: 1,
-                }}
-              />
-            </ShapeSource>
+          {/* Route polyline */}
+          {Array.isArray(routeCoordinates) && routeCoordinates.length > 1 && (
+            <Polyline
+              coordinates={routeCoordinates}
+              strokeColor={getRouteColor(order?.commandStatus)}
+              strokeWidth={getRouteWidth()}
+            />
           )}
 
-          {/* Route progress indicator */}
-          {routeCoordinates && routeCoordinates.geometry && driverPosition && (
-            <ShapeSource
-              id="routeProgressSource"
-              shape={{
-                type: 'Feature',
-                geometry: {
-                  type: 'LineString',
-                  coordinates: routeCoordinates.geometry.coordinates.slice(
-                    0, 
-                    Math.floor(routeCoordinates.geometry.coordinates.length * calculateRouteProgress(routeCoordinates, driverPosition))
-                  )
-                },
-                properties: {
-                  progress: calculateRouteProgress(routeCoordinates, driverPosition)
-                }
-              }}
-            >
-           
-            </ShapeSource>
-          )}
+          {/* Route progress indicator removed for simplicity */}
 
-          {/* Enhanced Driver Marker */}
+          {/* Driver Marker */}
           {driverPosition && (
-            <PointAnnotation
-              key="driverMarker"
-              id="driverMarker"
-              ref={driverMarkerRef}
-              coordinate={[driverPosition.longitude, driverPosition.latitude]}
+            <Marker
+              identifier="driverMarker"
+              coordinate={{ latitude: driverPosition.latitude, longitude: driverPosition.longitude }}
             >
               <DriverMarker
                 angle={driverPosition.angle || 0}
                 type={driverPosition.type || 1}
                 isMoving={driverIsMoving}
-                is3D={streetViewMode}
-                onLoad={() => {
-                  driverMarkerRef.current.refresh();
-               
-                }}
+                is3D={false}
+                onLoad={() => {}}
               />
-            </PointAnnotation>
+            </Marker>
           )}
 
           {/* Pickup Location Marker */}
           {order?.pickUpAddress?.coordonne && (
-            <PointAnnotation
-              key="pickupMarker"
-              id="pickupMarker"
-              coordinate={[
-                order.pickUpAddress.coordonne.longitude,
-                order.pickUpAddress.coordonne.latitude
-              ]}
+            <Marker
+              identifier="pickupMarker"
+              coordinate={{
+                latitude: order.pickUpAddress.coordonne.latitude,
+                longitude: order.pickUpAddress.coordonne.longitude,
+              }}
             >
               <View style={[styles.locationMarker, styles.pickupMarker]}>
                 <MaterialCommunityIcons name="map-marker" size={30} color="#000000" />
               </View>
-            </PointAnnotation>
+            </Marker>
           )}
 
           {/* Dropoff Location Marker */}
           {order?.dropOfAddress?.coordonne && (
-            <PointAnnotation
-              key="dropoffMarker"
-              id="dropoffMarker"
-              coordinate={[
-                order.dropOfAddress.coordonne.longitude,
-                order.dropOfAddress.coordonne.latitude
-              ]}
+            <Marker
+              identifier="dropoffMarker"
+              coordinate={{
+                latitude: order.dropOfAddress.coordonne.latitude,
+                longitude: order.dropOfAddress.coordonne.longitude,
+              }}
             >
               <View style={[styles.locationMarker, styles.dropoffMarker]}>
                 <MaterialCommunityIcons name="flag-checkered" size={30} color="#000000" />
               </View>
-            </PointAnnotation>
+            </Marker>
           )}
         </MapView>
 
-        {/* Enhanced Control Panel */}
+        {/* Control Panel */}
         <View style={styles.controlPanel}>
-          <TouchableOpacity
-            style={[styles.controlButton, streetViewMode && styles.controlButtonActive]}
-            onPress={toggle3DStreetView}
-          >
-            <MaterialCommunityIcons 
-              name="rotate-3d-variant" 
-              size={24} 
-              color={streetViewMode ? '#000000' : '#666666'} 
-            />
-            {streetViewMode && (
-              <View style={styles.controlButtonIndicator}>
-                <Text style={styles.controlButtonIndicatorText}>{t('tracking.three_d')}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
           
           <TouchableOpacity
             style={[styles.controlButton, isFollowingDriver && styles.controlButtonActive]}
@@ -977,7 +725,7 @@ const TrackingScreen = ({ route }) => {
  
     
 
-      {/* Enhanced Status Indicator */}
+      {/* Status Indicator */}
       <View style={styles.statusIndicator}>
         <View style={[
           styles.statusDot,
@@ -986,12 +734,7 @@ const TrackingScreen = ({ route }) => {
         <Text style={styles.statusText}>
           {driverIsMoving ? t('tracking.driver_moving') : t('tracking.driver_stopped')}
         </Text>
-        {streetViewMode && (
-          <View style={styles.status3DIndicator}>
-            <MaterialCommunityIcons name="rotate-3d-variant" size={12} color="#000000" />
-            <Text style={styles.status3DText}>{t('tracking.three_d')}</Text>
-          </View>
-        )}
+        
         {isFocusingOnAllCoordinates && (
           <View style={styles.statusFocusIndicator}>
             <MaterialCommunityIcons name="map-marker-multiple" size={12} color="#007AFF" />
