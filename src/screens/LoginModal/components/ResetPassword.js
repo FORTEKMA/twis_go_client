@@ -211,7 +211,7 @@ const ResetPassword = ({route}) => {
             </Text>
             <TouchableOpacity
               style={{
-                backgroundColor: '#0c0c0c',
+                backgroundColor: '#F37A1D',
                 paddingVertical: 12,
                 paddingHorizontal: 30,
                 borderRadius: 8,

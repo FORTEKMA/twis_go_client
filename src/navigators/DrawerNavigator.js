@@ -457,7 +457,7 @@ const CustomDrawerContent = ({ navigation, state }) => {
         </TouchableOpacity>
         
         <View style={styles.appInfo}>
-          <Text style={styles.appVersion}>Tawsilet v{appVersion}</Text>
+          <Text style={styles.appVersion}>TawsiGO v{appVersion}</Text>
           {updateAvailable && (
             <TouchableOpacity 
               style={styles.updateButton}

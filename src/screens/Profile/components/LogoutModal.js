@@ -34,7 +34,7 @@ const LogoutModal = ({ isVisible, onClose, onLogout }) => {
           ]}
         >
           <View style={styles.modalIconContainer}>
-            <Icon name="logout" size={40} color="#0c0c0c" />
+            <Icon name="logout" size={40} color="#18365A" />
           </View>
           <Text style={styles.modalTitle}>{t('profile.logout.title')}</Text>
           <Text style={styles.modalMessage}>

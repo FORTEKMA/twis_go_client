@@ -79,7 +79,7 @@ export const   localStyles = StyleSheet.create({
       width: 20, 
       height: 20, 
       borderRadius: 10,
-      backgroundColor: '#030303',
+      backgroundColor: '#F37A1D',
       borderWidth: 2,
       borderColor: 'white',
       justifyContent: 'center',
@@ -94,7 +94,7 @@ export const   localStyles = StyleSheet.create({
     dropoffMarker: {
       width: 20, 
       height: 20, 
-      backgroundColor: '#030303',
+      backgroundColor: '#F37A1D',
       borderWidth: 2,
       borderColor: 'white',
       justifyContent: 'center',
@@ -136,7 +136,7 @@ export const   localStyles = StyleSheet.create({
     clusterMarker: {
       width: 20,
       height: 20,
-      backgroundColor: '#030303',
+      backgroundColor: '#F37A1D',
       borderRadius: 10,
       justifyContent: 'center',
       alignItems: 'center'

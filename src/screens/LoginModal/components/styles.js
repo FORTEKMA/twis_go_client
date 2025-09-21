@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   loginButton: {
-    backgroundColor: '#1E232C',
+    backgroundColor: '#F37A1D',
     height: 64,
     borderRadius: 8,
     justifyContent: 'center',
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginButtonDisabled: {
-    backgroundColor: '#1E232C80',
+    backgroundColor: '#F37A1D80',
   },
   loginText: {
     color: '#fff',
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   btn: {
     width: '100%',
     paddingVertical: 16,
-    backgroundColor: '#030303',
+    backgroundColor: '#F37A1D',
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,

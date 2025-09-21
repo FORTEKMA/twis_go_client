@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>fr</string>
 	<key>CFBundleDisplayName</key>
-	<string>Tawsilet</string>
+	<string>TawsiGO</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -54,7 +54,7 @@
 	<key>FacebookClientToken</key>
 	<string>CLIENT-TOKEN</string>
 	<key>FacebookDisplayName</key>
-	<string>Tawsilet</string>
+	<string>TawsiGO</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -69,11 +69,11 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>We need your location to show you the nearest Tawsilet services</string>
+	<string>We need your location to show you the nearest TawsiGO services</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We need your location to show you the nearest Tawsilet services</string>
+	<string>We need your location to show you the nearest TawsiGO services</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to show you the nearest Tawsilet services</string>
+	<string>We need your location to show you the nearest TawsiGO services</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to your photo library to update your profile image</string>
   <key>ITSAppUsesNonExemptEncryption</key>

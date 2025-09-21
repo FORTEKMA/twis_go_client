@@ -16,7 +16,7 @@ const UpdateBlockScreen = ({ storeUrl, maintenanceMessage, isMaintenance }) => {
       <Text style={styles.subtitle}>
         {isMaint
           ? maintenanceMessage || t('maintenance_message') || 'The app is under maintenance. Please try again later.'
-          : t('update_required_message') || 'A new version of the app is available. Please update to continue using Tawsilet Driver.'}
+          : t('update_required_message') || 'A new version of the app is available. Please update to continue using TawsiGO Driver.'}
       </Text>
       {!isMaint && (
         <TouchableOpacity
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     paddingVertical: 16,
     paddingHorizontal: 48,
     borderRadius: 30,

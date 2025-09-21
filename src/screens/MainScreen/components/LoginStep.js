@@ -125,7 +125,7 @@ else {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right":"arrow-left"} size={28} color="#0c0c0c" />
+          <MaterialCommunityIcons name={I18nManager.isRTL?"arrow-right":"arrow-left"} size={28} color="#18365A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('login.needToLogin')}</Text>
        
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   switchTextActive: {
-    color: '#0c0c0c',
+    color: '#18365A',
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -354,14 +354,14 @@ const styles = StyleSheet.create({
 
     paddingTop:10,
     borderWidth:3,
-    borderColor:"#0c0c0c",
+    borderColor:"#F37A1D",
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 0,
     width:"100%"
   },
   registerButtonText: {
-    color: '#0c0c0c',
+    color: '#18365A',
     fontSize: 16,
     fontWeight: '600',
   },

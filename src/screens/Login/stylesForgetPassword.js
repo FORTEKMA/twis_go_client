@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   loginButton: {
-    backgroundColor: "#0c0c0c",
+    backgroundColor: "#F37A1D",
     height: 64,
     borderRadius: 8,
     justifyContent: "center",
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginButtonDisabled: {
-    backgroundColor: "#0c0c0c80",
+    backgroundColor: "#F37A1D80",
   },
   loginText: {
     color: "#fff",
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   btn: {
-    backgroundColor: "#0c0c0c",
+    backgroundColor: "#F37A1D",
     height: 50,
     borderRadius: 8,
     justifyContent: "center",

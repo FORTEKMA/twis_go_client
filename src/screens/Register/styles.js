@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   },
   btn: {
     padding: 20,
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     borderRadius: 20,
     marginTop: 30,
   },

@@ -73,7 +73,7 @@ export const styles = StyleSheet.create({
   },
   nextButton: {
     flex: 1,
-    backgroundColor: '#030303',
+    backgroundColor: '#F37A1D',
     borderRadius: 44,
     paddingVertical: hp(2),
     marginLeft: wp(2),
@@ -99,7 +99,7 @@ export const styles = StyleSheet.create({
   },
   btn: {
     padding: 20,
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     width: '100%',
     borderRadius: 5,
     borderRightWidth: 5,

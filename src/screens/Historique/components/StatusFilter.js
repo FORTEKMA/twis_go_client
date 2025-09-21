@@ -61,8 +61,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activeFilterButton: {
-    backgroundColor: "#0c0c0c",
-    borderColor: "#0c0c0c",
+    backgroundColor: "#F37A1D",
+    borderColor: "#F37A1D",
   },
   filterText: {
     color: "#000",

@@ -29,7 +29,7 @@ const LanguageConfirmationModal = ({ isVisible, onClose, onConfirm, selectedLang
               <Text style={[styles.modalButtonText, { textAlign: "center" }]}>{t('common.cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.languageButton, { backgroundColor: '#0c0c0c', flex: 1, alignItems: "center", justifyContent: "center" }]}
+              style={[styles.languageButton, { backgroundColor: '#F37A1D', flex: 1, alignItems: "center", justifyContent: "center" }]}
               onPress={onConfirm}
             >
               <Text style={[styles.modalButtonText, { textAlign: "center" ,color:"#fff"}]}>{t('common.yes')}</Text>
