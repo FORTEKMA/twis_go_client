@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, memo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions, Image, I18nManager, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder, Dimensions, Image, I18nManager, ActivityIndicator, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
@@ -36,6 +36,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
   const isSearchingRef = useRef(true);
   const requestRef = useRef(null);
   const processedDriversRef = useRef(new Set()); // Persist processed drivers
+  const timedOutDriversRef = useRef(new Set()); // Persist drivers who timed out/ignored requests
   const [redZones, setRedZones] = useState([]);
   const [inRedZone, setInRedZone] = useState(false);
   const [redZonesChecked, setRedZonesChecked] = useState(false);
@@ -43,6 +44,9 @@ const SearchDriversComponent = ({ goBack, formData }) => {
   const [searchProgress, setSearchProgress] = useState(0);
   const searchStartTime = useRef(Date.now());
   const [avatarUrls, setAvatarUrls] = useState([]);
+  const [driversNotified, setDriversNotified] = useState(0);
+  const [driverMessages, setDriverMessages] = useState([]);
+  const counterScaleAnim = useRef(new Animated.Value(1)).current;
   
   // Animation values
   const slideAnim = useRef(new Animated.Value(300)).current;
@@ -51,6 +55,9 @@ const SearchDriversComponent = ({ goBack, formData }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
   const rippleAnim = useRef(new Animated.Value(0)).current;
+  const radarSweepAnim = useRef(new Animated.Value(0)).current;
+  const radarBlipAnim = useRef(new Animated.Value(0)).current;
+  const avatarMovementAnim = useRef(new Animated.Value(0)).current;
 
   // Generate random avatar URLs on component mount
   useEffect(() => {
@@ -96,67 +103,75 @@ const SearchDriversComponent = ({ goBack, formData }) => {
   }, []);
 
   const startSearchAnimations = () => {
-    // Pulse animation for search indicator
+    // Radar sweep animation
+    Animated.loop(
+      Animated.timing(radarSweepAnim, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Radar blip animation for detected drivers
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.2,
+        Animated.timing(radarBlipAnim, {
+          toValue: 1,
           duration: 1000,
           useNativeDriver: true,
         }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
+        Animated.timing(radarBlipAnim, {
+          toValue: 0,
           duration: 1000,
           useNativeDriver: true,
         }),
       ])
     ).start();
 
-    // Ripple animation
+    // Avatar movement animation - avatars move along the radar circles
     Animated.loop(
-      Animated.timing(rippleAnim, {
+      Animated.timing(avatarMovementAnim, {
         toValue: 1,
-        duration: 2000,
+        duration: 8000, // 8 seconds for a full rotation
         useNativeDriver: true,
       })
+    ).start();
+
+    // Pulse animation for center
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
     ).start();
   };
 
   // Start progress animation when search begins
   const startProgressAnimation = () => {
-    // Reset progress animation
-    progressAnim.setValue(0);
-    
-    // Start progress animation with search duration
-    Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: 30000, // 30 seconds search - sync with search timeout
-      useNativeDriver: false,
-    }).start();
+    // Progress animation removed - no longer needed
   };
 
   // Start fast progress animation when no driver found
   const startFastProgressAnimation = () => {
-    // Use a simple approach - just complete the progress in 5 seconds
-    Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: 5000, // 5 seconds to complete
-      useNativeDriver: false,
-    }).start((finished) => {
-      if (finished) {
-        // Go back first, then show toast
-        goBack();
-        // Show toast after a short delay to ensure navigation is complete
-        setTimeout(() => {
-          Toast.show({
-            type: 'error',
-            text1: t('common.no_driver_accepted'),
-            visibilityTime: 2000,
-            onPress: () => {}
-          });
-        }, 500);
-      }
-    });
+    // Go back immediately and show toast
+    goBack();
+    // Show toast after a short delay to ensure navigation is complete
+    setTimeout(() => {
+      Toast.show({
+        type: 'error',
+        text1: t('common.no_driver_accepted'),
+        visibilityTime: 2000,
+        onPress: () => {}
+      });
+    }, 500);
   };
 
   // Track step view
@@ -229,30 +244,48 @@ const SearchDriversComponent = ({ goBack, formData }) => {
     fetchParameters();
   }, []);
 
-  const generateCenteredPositions = (avatarUrls) => {
-    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-  
-    const verticalMin = screenHeight * 0.3;
-    const verticalMax = screenHeight * 0.6;
-    const horizontalMin = screenWidth * 0.25;
-    const horizontalMax = screenWidth * 0.75;
+  const generateRadarPositions = (avatarUrls) => {
+    // Radar container is 240x240, so center is at 120, 120
+    const radarCenterX = 120;
+    const radarCenterY = 120;
+    // Radar rings are sized as ring * 80, so radii are 40, 80, 120
+    const radarRingRadii = [40, 80, 120]; // Actual radar ring radii
   
     return avatarUrls.map((url, i) => {
-      const top = Math.floor(Math.random() * (verticalMax - verticalMin)) + verticalMin;
-      const left = Math.floor(Math.random() * (horizontalMax - horizontalMin)) + horizontalMin;
+      // Choose a random radar ring to position the avatar on
+      const ringIndex = Math.floor(Math.random() * radarRingRadii.length);
+      const ringRadius = radarRingRadii[ringIndex];
+      
+      // Generate positions on the radar circles
+      const angle = (i * 90) + Math.random() * 30; // Spread around circle with some randomness
+      const distance = ringRadius; // Position avatars exactly on the circle
+      
+      const x = radarCenterX + Math.cos(angle * Math.PI / 180) * distance;
+      const y = radarCenterY + Math.sin(angle * Math.PI / 180) * distance;
   
       return {
-        top,
-        left,
+        x,
+        y,
         avatar: url,
         key: i,
+        angle,
+        distance,
+        ringIndex,
       };
     });
   };
 
-  const handleCancelSearch = () => {
-    // Stop progress animation
-    progressAnim.stopAnimation();
+  const handleCancelSearch = async () => {
+    // Update request status to canceled_search
+    if (requestRef.current) {
+      try {
+        await update(ref(realtimeDb, `rideRequests/${requestRef.current.key}`), {
+          status: 'canceled_search'
+        });
+      } catch (error) {
+        console.error('Error updating request status to canceled_search:', error);
+      }
+    }
     
     trackBookingStepBack('search_drivers');
     trackRideCancelled('user_cancelled', {
@@ -299,7 +332,8 @@ const SearchDriversComponent = ({ goBack, formData }) => {
         createdAt: Date.now(),
         user: user,
         pickupAddress: formData.pickupAddress,
-         dropAddress: formData.dropAddress,
+        dropAddress: formData.dropAddress,
+        dropoffAddress: formData.dropAddress,
         vehicleType: formData.vehicleType,
         notifiedDrivers: {},
         price: formData.price,
@@ -326,8 +360,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
             clearTimeout(currentDriverTimeout);
           }
           
-          // Stop progress animation
-          progressAnim.stopAnimation();
+          // Progress animation removed
          
           // Track driver found
           trackDriverFound(data.driverId, {
@@ -376,6 +409,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
             }
             
             processedDriversRef.current.add(currentDriverId);
+            timedOutDriversRef.current.add(currentDriverId); // Add to timeout tracking for explicit rejections too
             setDriversIdsNotAccepted(prev => {
               if (!prev.includes(currentDriverId)) {
                 return [...prev, currentDriverId];
@@ -410,11 +444,13 @@ const SearchDriversComponent = ({ goBack, formData }) => {
       // Function to process drivers with immediate rejection detection
       const processDrivers = async (drivers) => {
         const newDrivers = drivers.filter(driver =>
-          !processedDriversRef.current.has(driver.id) && !driversIdsNotAccepted.includes(driver.id)
+          !processedDriversRef.current.has(driver.id) && 
+          !driversIdsNotAccepted.includes(driver.id) &&
+          !timedOutDriversRef.current.has(driver.id)
         );
-        console.log('Processed drivers:', Array.from(processedDriversRef.current));
-        console.log('DriversIdsNotAccepted:', driversIdsNotAccepted);
-        console.log('New drivers to process:', newDrivers.map(d => d.id));
+        
+        
+        
         
         for (const driver of newDrivers) {
          
@@ -422,7 +458,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
             break;
           }
           
-          if (driversIdsNotAccepted.includes(driver.id)) {
+          if (driversIdsNotAccepted.includes(driver.id) || timedOutDriversRef.current.has(driver.id)) {
             continue;
           }
 
@@ -446,10 +482,40 @@ const SearchDriversComponent = ({ goBack, formData }) => {
               };
 
               const notificationRed = await sendNotificationToDrivers(notificationData);
-              console.log("Notification sent successfully to driver:", driver.id);
+              
+              // Add driver viewing message
+              setDriversNotified(prev => prev + 1);
+              setDriverMessages(prev => {
+                const isFirstDriver = prev.length === 0;
+                const message = isFirstDriver 
+                  ? t('common.one_driver_viewing')
+                  : t('common.another_driver_viewing');
+                
+                const newMessage = {
+                  id: Date.now() + Math.random(),
+                  text: message,
+                  timestamp: Date.now()
+                };
+                
+                // Animate counter scale on update
+                Animated.sequence([
+                  Animated.timing(counterScaleAnim, {
+                    toValue: 1.2,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }),
+                  Animated.timing(counterScaleAnim, {
+                    toValue: 1,
+                    duration: 150,
+                    useNativeDriver: true,
+                  }),
+                ]).start();
+                
+                return [...prev, newMessage];
+              });
             }
           } catch (notificationError) {
-            console.log("notificationError", notificationError.response || notificationError.message);
+            
             // Handle notification error silently and move to next driver
             processedDriversRef.current.add(driver.id);
             continue;
@@ -459,10 +525,11 @@ const SearchDriversComponent = ({ goBack, formData }) => {
 
           // Set timeout for current driver
           currentDriverTimeout = setTimeout(async () => {
-            console.log('[Timeout Triggered] For driver:', driver.id);
-            console.log('isSearchingRef.current:', isSearchingRef.current, 'accepted:', accepted);
+            
+            
             if (isSearchingRef.current && accepted === null) {
               processedDriversRef.current.add(driver.id);
+              timedOutDriversRef.current.add(driver.id); // Add to timeout tracking
               setDriversIdsNotAccepted(prev => {
                 if (!prev.includes(driver.id)) {
                   return [...prev, driver.id];
@@ -471,33 +538,40 @@ const SearchDriversComponent = ({ goBack, formData }) => {
               });
 
               if (requestRef.current) {
-                console.log('[Timeout] Setting notifiedDrivers', driver.id, 'to false');
+                
                 await update(ref(realtimeDb, `rideRequests/${requestRef.current.key}/notifiedDrivers`), {
                   [driver.id]: false
+                 
+                });
+                await update(ref(realtimeDb, `rideRequests/${requestRef.current.key}/silencedDrivers`), {
+                  [driver.documentId]: true                 
                 });
               }
 
               // Increment rejected_command_number for the driver (timeout case)
               try {
                 const userRes = await api.get(`users/${driver.id}`);
-                const oldRejectedCount = userRes.data?.rejected_command_number || 0;
+                const oldRejectedCount = userRes.data?.rejected_command_number|| 0;
+                console.log("availablePoints",userRes.data.availablePoints);
+                console.log("parameters.ignoreRequestDeduction",parameters.ignoreRequestDeduction);
                 await api.put(`users/${driver.id}`, {
+                  availablePoints:userRes.data.availablePoints - parameters.ignoreRequestDeduction,
                   rejected_command_number: Number(oldRejectedCount) + 1,
                 });
-                console.log('[Timeout] Updated rejected_command_number for driver:', driver.id);
+                
               } catch (err) {
                 console.error('[Timeout] Failed to update rejected_command_number after timeout:', err);
               }
               
               // Process next driver after timeout
               if (processNextDriver) {
-                console.log('[Timeout] Calling processNextDriver for driver:', driver.id);
+                
                 processNextDriver();
               }
             } else {
-              console.log('[Timeout] Timeout fired but search stopped or driver already accepted. Driver:', driver.id);
+              
             }
-          }, 40000);
+          }, 22000);
 
           // Wait for either rejection (handled by listener) or timeout
           await new Promise((resolve) => {
@@ -507,10 +581,10 @@ const SearchDriversComponent = ({ goBack, formData }) => {
           if (!isSearchingRef.current || accepted !== null) break;
         }
       };
-    
-      // Main search loop
+ 
+      // Main search loop - infinite loop to prevent no driver found
       const maxRadius = parameters?.min_radius_search || 4; // Fallback to 4 if not defined
-      while (accepted === null && radius <= maxRadius && isSearchingRef.current) {
+      while (accepted === null && isSearchingRef.current) {
         if (!isSearchingRef.current) {
           break;
         }
@@ -522,53 +596,59 @@ const SearchDriversComponent = ({ goBack, formData }) => {
      
         try {
           let url = `/drivers-in-radius?radius=${radius}&latitude=${formData?.pickupAddress?.latitude}&longitude=${formData?.pickupAddress?.longitude}&vehicleType=${formData?.vehicleType?.id}`;
-           
+           console.log("url",url);  
           
           const response = await api.get(url);
           drivers = response.data || [];
-          console.log(`Found ${drivers.length} drivers in radius ${radius}`);
+           
         } catch (error) {
           console.error(`Error fetching drivers for radius ${radius}:`, error.response?.data || error.message);
           radius += 1;
+          // Reset radius to 0 when it exceeds maxRadius for infinite search
+          if (radius > maxRadius) {
+            radius = 0;
+            // Clear processed drivers to allow re-searching, but keep timed out drivers excluded
+            processedDriversRef.current.clear();
+            setDriversIdsNotAccepted([]);
+            // Note: timedOutDriversRef is NOT cleared to prevent re-contacting drivers who ignored requests
+          }
           continue;
         }
 
         if (drivers.length > 0) {
           const newDrivers = drivers.filter(driver =>
-            !processedDriversRef.current.has(driver.id) && !driversIdsNotAccepted.includes(driver.id)
+            !processedDriversRef.current.has(driver.id) && 
+            !driversIdsNotAccepted.includes(driver.id) &&
+            !timedOutDriversRef.current.has(driver.id)
           );
           if (newDrivers.length > 0) {
             await processDrivers(drivers);
           } else {
             // All drivers in this radius are already processed, increase radius
             radius += 1;
+            // Reset radius to 0 when it exceeds maxRadius for infinite search
+            if (radius > maxRadius) {
+              radius = 0;
+              // Clear processed drivers to allow re-searching, but keep timed out drivers excluded
+              processedDriversRef.current.clear();
+              setDriversIdsNotAccepted([]);
+              // Note: timedOutDriversRef is NOT cleared to prevent re-contacting drivers who ignored requests
+            }
           }
         } else {
           radius += 1;
+          // Reset radius to 0 when it exceeds maxRadius for infinite search
+          if (radius > maxRadius) {
+            radius = 0;
+            // Clear processed drivers to allow re-searching, but keep timed out drivers excluded
+            processedDriversRef.current.clear();
+            setDriversIdsNotAccepted([]);
+            // Note: timedOutDriversRef is NOT cleared to prevent re-contacting drivers who ignored requests
+          }
         }
       }
     
-      if (accepted === null && isSearchingRef.current) {
-        if (requestRef.current && !accepted) {
-          off(requestRef.current);
-        }
-        
-        // Track no driver found
-        trackRideCancelled('no_driver_found', {
-          search_duration: Date.now() - searchStartTime.current,
-          max_radius: maxRadius,
-          pickup_address: formData?.pickupAddress,
-          drop_address: formData?.dropAddress,
-          final_radius: radius,
-          drivers_notified: Object.keys(processedDriversRef.current).length
-        });
-        
-      
-        setDriversIdsNotAccepted([]);
-        
-        // Start fast progress animation and wait for completion before going back
-        startFastProgressAnimation();
-      }
+      // Note: No driver found logic removed since we now have infinite search loop
 
       if (unsubscribe) {
         unsubscribe();
@@ -580,20 +660,19 @@ const SearchDriversComponent = ({ goBack, formData }) => {
         clearTimeout(currentDriverTimeout);
       }
     } catch (error) {
-      console.log("dddd",error)
+      
               if (requestRef.current) {
           off(requestRef.current);
         }
       
-      // Stop progress animation
-      progressAnim.stopAnimation();
+      // Progress animation removed
       
       // Track search error
       trackRideCancelled('search_error', {
         error_message: error.message,
         search_duration: Date.now() - searchStartTime.current
       });
-      
+      console.log("error",error);
       Toast.show({
         type: 'error',
         text1: t('common.error'),
@@ -605,44 +684,49 @@ const SearchDriversComponent = ({ goBack, formData }) => {
 
   // Start driver search
   useEffect(() => {
-    console.log("SearchDrivers useEffect triggered");
-    console.log("Parameters loaded:", parameters);
-    console.log("Form data:", formData);
+    
+    
+    
     if(inRedZone){
-      console.log("In red zone, skipping searchDrivers and showing search UI for 30s");
+      
       return;
     } 
     
     // Only start searching when parameters are loaded and avatarUrls are ready
     if (parameters && !inRedZone && avatarUrls.length > 0) {
-      console.log("Starting searchDrivers function");
-      setDrivers(generateCenteredPositions(avatarUrls));
+      
+      setDrivers(generateRadarPositions(avatarUrls));
       setSearchStep(1);
       startProgressAnimation(); // Start progress animation
       searchDrivers();
     } else {
-      console.log("Parameters not loaded yet, waiting...");
+      
     }
 
     return () => {
-      console.log("SearchDrivers cleanup - stopping search");
+      
       // Stop all ongoing operations
       isSearchingRef.current = false;
       stepRef.current = 0;
       // Clear any pending timeouts
       clearTimeout();
       
-      // Stop progress animation
-      progressAnim.stopAnimation();
+      // Progress animation removed
       
-      // Check if the request exists and its status before removing
+      // Check if the request exists and its status before updating
       if (requestRef.current) {
-        get(requestRef.current).then((snapshot) => {
+        get(requestRef.current).then(async (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.val();
-            // Only remove if the request wasn't accepted
+            // Only update status if the request wasn't accepted
             if (data.status !== 'accepted') {
-              remove(requestRef.current);
+              try {
+                await update(ref(realtimeDb, `rideRequests/${requestRef.current.key}`), {
+                  status: 'not_found'
+                });
+              } catch (error) {
+                console.error('Error updating request status to not_found:', error);
+              }
             }
           }
           // Always remove the listener
@@ -658,107 +742,135 @@ const SearchDriversComponent = ({ goBack, formData }) => {
         return (
           <View style={searchStyles.contentContainer}>
             <Text style={searchStyles.title}>
-              {t('preparing_search', 'Preparing your request...')}
+              {t('preparing_search', 'Initializing radar...')}
             </Text>
-            <ActivityIndicator size="large" color="#000" style={searchStyles.loader} />
+            <ActivityIndicator size="large" color="#000000" style={searchStyles.loader} />
           </View>
         );
       
       case 1:
         return (
           <View style={searchStyles.contentContainer}>
-            {/* Animated Search Indicator */}
-            <View style={searchStyles.searchIndicatorContainer}>
-              {/* Ripple effects */}
-              {[0, 1, 2].map((index) => (
-                <Animated.View
-                  key={index}
-                  style={[
-                    searchStyles.ripple,
-                    {
-                      opacity: rippleAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0.8, 0],
-                      }),
-                      transform: [
-                        {
-                          scale: rippleAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.5, 2],
-                          }),
-                        },
-                      ],
-                      animationDelay: index * 700,
-                    },
-                  ]}
-                />
-              ))}
-              
-              {/* Central search icon */}
+            {/* Radar Display */}
+            <View style={searchStyles.radarContainer}>
+              {/* Radar Background Circles */}
+              <View style={searchStyles.radarBackground}>
+                {[1, 2, 3].map((ring) => (
+                  <View
+                    key={ring}
+                    style={[
+                      searchStyles.radarRing,
+                      {
+                        width: ring * 80,
+                        height: ring * 80,
+                        borderRadius: ring * 40,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+
+              {/* Radar Sweep Line */}
               <Animated.View
                 style={[
-                  searchStyles.searchIcon,
+                  searchStyles.radarSweep,
+                  {
+                    transform: [
+                      {
+                        rotate: radarSweepAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0deg', '360deg'],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              />
+
+              {/* Center Point */}
+              <Animated.View
+                style={[
+                  searchStyles.radarCenter,
                   {
                     transform: [{ scale: pulseAnim }],
                   },
                 ]}
               >
-                <MaterialCommunityIcons name="car" size={40} color="#fff" />
+                <MaterialCommunityIcons name="crosshairs-gps" size={24} color="#000000" />
               </Animated.View>
-            </View>
 
-            <Text style={searchStyles.title}>
-              {t('searching_drivers', 'Searching for drivers')}
-            </Text>
-            
-            <Text style={searchStyles.subtitle}>
-              {t('finding_best_driver', 'Finding the best driver for you...')}
-            </Text>
-
-            {/* Progress Bar */}
-            <View style={searchStyles.progressContainer}>
-              <Animated.View
-                style={[
-                  searchStyles.progressBar,
-                  {
-                    width: progressAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0%', '100%'],
-                    }),
-                  },
-                ]}
-              />
-            </View>
-
-            {/* Driver Avatars Animation */}
-            <View style={searchStyles.driversContainer}>
-              {avatarUrls.map((url, index) => (
+              {/* Driver Blips */}
+              {drivers.map((driver, index) => (
                 <Animated.View
-                  key={index}
+                  key={driver.key}
                   style={[
-                    searchStyles.driverAvatar,
+                    searchStyles.radarBlip,
                     {
-                      opacity: progressAnim.interpolate({
-                        inputRange: [index * 0.25, (index + 1) * 0.25],
-                        outputRange: [0.3, 1],
-                        extrapolate: 'clamp',
+                      left: driver.x - 15,
+                      top: driver.y - 15,
+                      opacity: radarBlipAnim.interpolate({
+                        inputRange: [0, 0.5, 1],
+                        outputRange: [0.3, 1, 0.3],
                       }),
                       transform: [
                         {
-                          scale: progressAnim.interpolate({
-                            inputRange: [index * 0.25, (index + 1) * 0.25],
-                            outputRange: [0.8, 1],
-                            extrapolate: 'clamp',
+                          scale: radarBlipAnim.interpolate({
+                            inputRange: [0, 0.5, 1],
+                            outputRange: [0.8, 1.2, 0.8],
+                          }),
+                        },
+                        {
+                          rotate: avatarMovementAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['0deg', `${360 * (index + 1)}deg`],
                           }),
                         },
                       ],
                     },
                   ]}
                 >
-                  <Image source={{ uri: url }} style={searchStyles.avatarImage} />
+                  <View style={searchStyles.blipInner}>
+                    <Image source={{ uri: driver.avatar }} style={searchStyles.blipImage} />
+                  </View>
+                  <View style={searchStyles.blipPulse} />
                 </Animated.View>
               ))}
             </View>
+
+            {/* Driver Messages */}
+            {driverMessages.length > 0 && (
+              <View style={searchStyles.driverMessagesContainer}>
+                <ScrollView 
+                  style={searchStyles.messagesScrollView}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled={true}
+                >
+                  {driverMessages.map((message, index) => (
+                    <Animated.View
+                      key={message.id}
+                      style={[
+                        searchStyles.driverMessage,
+                        {
+                          transform: [{ scale: counterScaleAnim }],
+                          opacity: fadeAnim,
+                        }
+                      ]}
+                    >
+                      <MaterialCommunityIcons 
+                        name="eye" 
+                        size={14} 
+                        color="#666666" 
+                        style={searchStyles.messageIcon}
+                      />
+                      <Text style={searchStyles.messageText}>
+                        {message.text}
+                      </Text>
+                    </Animated.View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
           </View>
         );
       
@@ -773,10 +885,10 @@ const SearchDriversComponent = ({ goBack, formData }) => {
                 },
               ]}
             >
-              <MaterialCommunityIcons name="check-circle" size={80} color="#4CAF50" />
+              <MaterialCommunityIcons name="check-circle" size={80} color="#000000" />
               
               <Text style={searchStyles.successTitle}>
-                {t('driver_found', 'Driver Found!')}
+                {t('driver_found', 'Target Acquired!')}
               </Text>
               
               {accepted?.driver_data && (
@@ -863,7 +975,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
           <MaterialCommunityIcons 
             name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
             size={28} 
-            color="#000" 
+            color="#000000" 
           />
         </TouchableOpacity>
         
@@ -905,7 +1017,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
 const searchStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     paddingTop: 20,
   },
@@ -926,7 +1038,7 @@ const searchStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: '#000000',
   },
   mainContent: {
     flex: 1,
@@ -936,34 +1048,76 @@ const searchStyles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  searchIndicatorContainer: {
+  radarContainer: {
     position: 'relative',
-    width: 120,
-    height: 120,
+    width: 240,
+    height: 240,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 40,
+    alignSelf: 'center',
   },
-  ripple: {
+  radarBackground: {
     position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 2,
-    borderColor: '#000',
-  },
-  searchIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  radarRing: {
+    position: 'absolute',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: 'transparent',
+  },
+  radarSweep: {
+    position: 'absolute',
+    width: 4,
+    height: 120,
+    backgroundColor: '#000000',
+    transformOrigin: 'bottom center',
+  },
+  radarCenter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  radarBlip: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  blipInner: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#000000',
+  },
+  blipImage: {
+    width: '100%',
+    height: '100%',
+  },
+  blipPulse: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: '#000000',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -972,19 +1126,6 @@ const searchStyles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'center',
     marginBottom: 40,
-  },
-  progressContainer: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    marginBottom: 40,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#000',
-    borderRadius: 2,
   },
   driversContainer: {
     flexDirection: 'row',
@@ -1012,7 +1153,7 @@ const searchStyles = StyleSheet.create({
   successTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: '#000000',
     marginTop: 24,
     marginBottom: 32,
   },
@@ -1029,7 +1170,7 @@ const searchStyles = StyleSheet.create({
   driverName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000',
+    color: '#000000',
     marginBottom: 8,
   },
   ratingContainer: {
@@ -1043,7 +1184,7 @@ const searchStyles = StyleSheet.create({
   rating: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000',
+    color: '#000000',
     marginLeft: 4,
   },
   successMessage: {
@@ -1053,17 +1194,20 @@ const searchStyles = StyleSheet.create({
   },
   cancelContainer: {
     paddingBottom: 20,
+    marginTop: 20,
   },
   cancelButton: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
+     backgroundColor: '#000000',
+        borderRadius: 12,
+        paddingVertical: 16,
+        alignItems: 'center',
+        marginTop: 'auto',
+        marginBottom: Platform.OS === 'ios' ? 34 : 24,
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#FFFFFF',
   },
   redZoneContainer: {
     flex: 1,
@@ -1087,15 +1231,56 @@ const searchStyles = StyleSheet.create({
     marginBottom: 40,
   },
   backButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#000000',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 32,
+    marginBottom: 20,
   },
   backButtonText: {
-    color: '#fff',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  driverMessagesContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+    height: 80,
+    width: '100%',
+  },
+  messagesScrollView: {
+    width: '100%',
+    maxHeight: 80,
+  },
+  driverMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    marginBottom: 4,
+    marginHorizontal: 20,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  messageIcon: {
+    marginRight: 6,
+  },
+  messageText: {
+    fontSize: 12,
+    color: '#333333',
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'left',
   },
 });
 

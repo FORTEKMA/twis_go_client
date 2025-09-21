@@ -3,9 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
-  SafeAreaView,
   TextInput,
   Platform,
   StatusBar,
@@ -13,12 +11,14 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import styles from "../stylesForgetPassword";
 import { useDispatch } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import api from "../../../utils/api"
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { styles as loginStyles } from "../styles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -30,6 +30,7 @@ const ForgotPassword = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     validateEmail();
@@ -93,86 +94,79 @@ const ForgotPassword = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
-      <KeyboardAvoidingView 
+    <View style={[styles.container]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView 
+        {/* Header with safe top padding */}
+        <View style={{ paddingTop: insets.top }}>
+          <View style={loginStyles.header}>
+            <TouchableOpacity style={loginStyles.closeButton} onPress={() => navigation.goBack()}>
+              <Icon name="close" size={24} color="#000000" />
+            </TouchableOpacity>
+            <View style={{ width: 40, height: 40 }} />
+          </View>
+        </View>
+
+        <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={{ paddingTop: 40 }}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back-outline" size={25} color="black" />
-            </TouchableOpacity>
+          <View style={loginStyles.content}>
+            <Text style={styles.title}>{t("auth.forgotPassword")}</Text>
 
-            {/* <Image
-              style={{ width: "100%", height: "44%" }}
-              source={require("../../../assets/emailStep.png")}
-              resizeMode="contain"
-            /> */}
-
-            <View style={{ paddingHorizontal: 24 }}>
-              <Text style={styles.title}>{t("auth.forgotPassword")}</Text>
- 
-              <View>
-                <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  placeholder={t("auth.enterEmail")}
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    setErrors({ ...errors, email: null });
-                    setErr(false);
-                    setSent(false);
-                  }}
-                  placeholderTextColor="#ccc"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  editable={!loading}
-                />
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.loginButton, 
-                  (!isEmailValid || loading) && styles.loginButtonDisabled
-                ]}
-                onPress={handleForgetPassword}
-                disabled={!isEmailValid || loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[
-                    styles.loginText,
-                    (!isEmailValid || loading) && styles.loginTextDisabled
-                  ]}>
-                    {t("common.confirm")}
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              {sent && !err && (
-                <Text style={[styles.sentMessage, { color: "#4CAF50" }]}>
-                  {t("email.status.email_200")}
-                </Text>
-              )}
-              {err && (
-                <Text style={[styles.sentMessage, { color: "#FF3B30" }]}>
-                  {t("email.status.email_err")}
-                </Text>
-              )}
+            <View>
+              <TextInput
+                style={[styles.input, errors.email && styles.inputError]}
+                placeholder={t("auth.enterEmail")}
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setErrors({ ...errors, email: null });
+                  setErr(false);
+                  setSent(false);
+                }}
+                placeholderTextColor="#ccc"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!loading}
+              />
+              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
             </View>
+
+            {sent && !err && (
+              <Text style={[styles.sentMessage, { color: "#4CAF50" }]}>
+                {t("email.status.email_200")}
+              </Text>
+            )}
+            {err && (
+              <Text style={[styles.sentMessage, { color: "#FF3B30" }]}>
+                {t("email.status.email_err")}
+              </Text>
+            )}
           </View>
         </ScrollView>
+
+        {/* Fixed Footer Submit Button with safe bottom padding */}
+        <View style={[loginStyles.submitButtonContainer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <TouchableOpacity
+            style={[loginStyles.btn, (!isEmailValid || loading) && loginStyles.btnDisabled]}
+            onPress={handleForgetPassword}
+            disabled={!isEmailValid || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={loginStyles.btnText}>
+                {t("common.confirm")}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

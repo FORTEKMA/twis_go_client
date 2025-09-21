@@ -190,7 +190,7 @@ export const logOut = createAsyncThunk('user/logout', async thunkApi => {
 export const sendVerify = createAsyncThunk(
   'user/sendverify',
   async (data) => {
-  console.log("data",data)
+ 
     try {
       let response = await api.post(`/codes/send-OTP`, data);
       console.log("response",response.data)

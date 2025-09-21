@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import DeviceInfo from 'react-native-device-info';
 import { checkVersion } from "react-native-check-version";
+import { useSelector } from 'react-redux';
 
 const Help = () => {
   const navigation = useNavigation();
@@ -16,6 +17,7 @@ const Help = () => {
   const [buildNumber, setBuildNumber] = React.useState('1');
   const [latestVersion, setLatestVersion] = React.useState(null);
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
+  const currentUser = useSelector((state) => state.user.user);
 
   React.useEffect(() => {
     const getVersionInfo = async () => {
@@ -126,10 +128,11 @@ const Help = () => {
   );
 
   return (
-    <SafeAreaView style={styles.uberContainer}>
+    <SafeAreaView style={[styles.uberContainer, { backgroundColor: '#FFFFFF' }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.uberMainContainer}>
         {/* Modern Header */}
-        <View style={styles.uberSectionHeader}>
+        <View style={[styles.uberSectionHeader, { backgroundColor: '#FFFFFF' }]}>
           <TouchableOpacity 
             style={styles.uberBackButton}
             onPress={() => navigation.goBack()}
@@ -168,7 +171,7 @@ const Help = () => {
               'ticket-outline',
               t('tickets.title', 'Support Tickets'),
               t('tickets.description', 'Create and manage support tickets'),
-              () => navigation.navigate("TicketScreen"),
+              () => currentUser ? navigation.navigate("TicketScreen") :navigation.navigate('NewTicketScreen'),
               "#007AFF"
             )}
           </View>

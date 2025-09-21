@@ -1,4 +1,4 @@
-package com.fortekma.tawsilet;
+package com.twisgo;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

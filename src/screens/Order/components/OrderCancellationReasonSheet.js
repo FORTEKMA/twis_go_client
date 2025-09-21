@@ -4,6 +4,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { colors } from '../../../utils/colors';
 import api from '../../../utils/api';
+import db from '../../../utils/firebase';
+import { ref as dbRef, update } from 'firebase/database';
  const OrderCancellationReasonSheet = ({
   visible,
   onClose,
@@ -28,6 +30,9 @@ import api from '../../../utils/api';
             cancelReason: selectedReason === 'Other' ? otherReason : selectedReason}
             
         })
+        if (order?.requestId) {
+          await update(dbRef(db, `rideRequests/${order.requestId}`), { commandStatus: 'Canceled_by_client' });
+        }
         onSubmit(selectedReason);
        
     }
@@ -108,46 +113,49 @@ import api from '../../../utils/api';
 const styles = StyleSheet.create({
   bottomSheetOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'flex-end',
   },
   bottomSheetContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
     maxHeight: '80%',
+    borderTopWidth: 1,
+    borderColor: '#E5E5E5',
   },
   bottomSheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   bottomSheetTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#222',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    width:"60%"
   },
   reasonsList: {
     maxHeight: '100%',
   },
   reasonItem: {
-    paddingVertical: 16,
+    paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 12,
     marginBottom: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: '#E5E5E5',
   },
   reasonItemSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   reasonText: {
-    fontSize: 16,
-    color: '#222',
+    fontSize: 14,
+    color: '#000',
   },
   reasonTextSelected: {
     color: '#fff',
@@ -157,20 +165,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   otherReasonInput: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 12,
     minHeight: 100,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#E5E5E5',
+    color: '#000',
   },
   submitButton: {
     backgroundColor: colors.primary,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 8,
   },
   submitButtonDisabled: {
     opacity: 0.5,

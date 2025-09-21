@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { View, TextInput, StyleSheet } from "react-native";
 import { colors } from "../../../utils/colors";
 import { useTranslation } from "react-i18next";
@@ -6,11 +6,17 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export const SearchInput = ({ setFilter }) => {
   const [searchText, setSearchText] = useState("");
+  const debounceRef = useRef(null);
   const { t } = useTranslation();
 
   const handleSearch = (text) => {
     setSearchText(text);
-    setFilter(text);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setFilter(text);
+    }, 300);
   };
 
   return (
@@ -23,6 +29,9 @@ export const SearchInput = ({ setFilter }) => {
           placeholderTextColor="#999"
           value={searchText}
           onChangeText={handleSearch}
+          blurOnSubmit={false}
+          returnKeyType="search"
+          autoCorrect={false}
         />
       </View>
     </View>

@@ -114,19 +114,36 @@ const Login = ({ navigation }) => {
       } else {
         if (result.user.blocked) {
           trackLoginFailure('google', 'account_blocked');
+          console.log("dddd")
           Toast.show({
             type: 'error',
             text1: t('common.error'),
             text2: t('auth.account_blocked'),
             position: 'top',
-            visibilityTime: 3000
+            visibilityTime: 3000,
+            
+            
+            onPress: () => {}
           });
 
           return;
         }
         trackLoginSuccess('google', { complete_profile: true });
         OneSignal.login(String(result.user.id));
-        dispatch(userRegister(result));
+      const dispRes=  await dispatch(userRegister(result));
+     
+      if(dispRes?.payload?.error=="invalid_role"){
+        Toast.show({
+          text1: t('auth.invalid_account'),
+          text2: t('auth.account_not_for_app'),
+          placement: "top",
+          type: "error",
+          duration: 3000,
+          onPress: () => {}
+        });
+      }
+      else 
+        navigation.navigate('MainScreen');
       }
 
     } catch (error) {
@@ -161,7 +178,20 @@ const Login = ({ navigation }) => {
         }
         trackLoginSuccess('apple', { complete_profile: true });
         OneSignal.login(String(result.user.id));
-        dispatch(userRegister(result));
+      const dispRes=  await dispatch(userRegister(result));
+      
+      if(dispRes?.payload?.error=="invalid_role"){
+        Toast.show({
+          text1: t('auth.invalid_account'),
+          text2: t('auth.account_not_for_app'),
+          placement: "top",
+          type: "error",
+          duration: 3000,
+          onPress: () => {}
+        });
+      }
+      else 
+        navigation.navigate('MainScreen');
       }
 
     } catch (error) {

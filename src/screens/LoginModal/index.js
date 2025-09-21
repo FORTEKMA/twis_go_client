@@ -132,7 +132,18 @@ const LoginModal = ({ visible, onClose }) => {
         }
         trackLoginSuccess('google', { complete_profile: true });
         OneSignal.login(String(result.user.id));
-        dispatch(userRegister(result));
+       const dispRes=  await dispatch(userRegister(result));
+        
+       if(dispRes?.payload?.error=="invalid_role"){
+         Toast.show({
+           title: t('auth.invalid_account'),
+           description: t('auth.account_not_for_app'),
+           placement: "top",
+           status: "error",
+           duration: 3000
+         });
+       }
+       
       }
       
     } catch (error) {

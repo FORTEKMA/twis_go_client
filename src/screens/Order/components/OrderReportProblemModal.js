@@ -69,31 +69,33 @@ const OrderReportProblemModal = ({ visible, onClose, order }) => {
       avoidKeyboard
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.reportModalContainer}>
-          <View style={styles.reportModalHeader}>
-            <Text style={styles.reportModalTitle}>{t('history.card.report_problem')}</Text>
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('history.card.report_problem')}</Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
           <TextInput
-            style={styles.reportTextArea}
+            style={styles.textArea}
             multiline
             numberOfLines={6}
             placeholder={t('history.card.report_placeholder')}
             value={reportText}
             onChangeText={setReportText}
             textAlignVertical="top"
+            placeholderTextColor="#999"
           />
           <TouchableOpacity 
-            style={[styles.submitReportButton, isLoading && styles.submitReportButtonDisabled]}
+            style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
             disabled={isLoading}
+            activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.submitReportButtonText}>{t('history.card.submit_report')}</Text>
+              <Text style={styles.submitButtonText}>{t('history.card.submit_report')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -107,48 +109,46 @@ const styles = StyleSheet.create({
     margin: 0,
     justifyContent: 'flex-end',
   },
-  reportModalContainer: {
+  card: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     padding: 20,
     maxHeight: '80%',
+    borderTopWidth: 1,
+    borderColor: '#E5E5E5',
   },
-  reportModalHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  reportModalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#222',
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
   },
-  reportTextArea: {
+  textArea: {
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#E5E5E5',
     borderRadius: 12,
     padding: 12,
-    fontSize: 16,
-    minHeight: 150,
-    marginBottom: 20,
-     color:"#000"
+    fontSize: 14,
+    minHeight: 140,
+    marginBottom: 12,
+    color: '#000'
   },
-  submitReportButton: {
+  submitButton: {
     backgroundColor: colors.primary,
-    borderRadius: 16,
-    paddingVertical: 16,
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 10,
   },
-  submitReportButtonDisabled: {
+  submitButtonDisabled: {
     opacity: 0.7,
   },
-  rateButton: {
-    backgroundColor: colors.secondary,
-  },
-  submitReportButtonText: {
+  submitButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,

@@ -65,24 +65,40 @@ export class NavigationRouteManager {
   setRoute(coordinates, instructions = []) {
     this.routeCoordinates = coordinates;
     this.routeInstructions = instructions;
+
+    // Normalize coordinates to [lng, lat] arrays for internal calculations
+    const normalizedCoordinates = Array.isArray(coordinates)
+      ? coordinates.map((c) => {
+          // Already in [lng, lat]
+          if (Array.isArray(c) && c.length >= 2 && typeof c[0] === 'number' && typeof c[1] === 'number') {
+            return c;
+          }
+          // Convert from { latitude, longitude }
+          if (c && typeof c === 'object' && typeof c.latitude === 'number' && typeof c.longitude === 'number') {
+            return [c.longitude, c.latitude];
+          }
+          // Fallback to [0,0]
+          return [0, 0];
+        })
+      : [];
     
     // Generate route steps from coordinates if instructions not provided
-    if (instructions.length === 0 && coordinates.length > 1) {
-      this.routeSteps = this.generateRouteStepsFromCoordinates(coordinates);
+    if (instructions.length === 0 && normalizedCoordinates.length > 1) {
+      this.routeSteps = this.generateRouteStepsFromCoordinates(normalizedCoordinates);
     } else {
       this.routeSteps = instructions.map((instruction, index) => ({
         index,
         instruction: instruction.instruction || instruction,
         distance: instruction.distance || '0 m',
         bearing: instruction.bearing || 0,
-        coordinate: coordinates[index] || [0, 0],
-        nextCoordinate: coordinates[index + 1] || coordinates[index] || [0, 0],
+        coordinate: normalizedCoordinates[index] || [0, 0],
+        nextCoordinate: normalizedCoordinates[index + 1] || normalizedCoordinates[index] || [0, 0],
         maneuver: instruction.maneuver || 'straight'
       }));
     }
     
     // Calculate route metrics
-    this.routeDistance = this.calculateRouteDistance(coordinates);
+    this.routeDistance = this.calculateRouteDistance(normalizedCoordinates);
     this.routeDuration = this.estimateRouteDuration(this.routeDistance);
     
     return {

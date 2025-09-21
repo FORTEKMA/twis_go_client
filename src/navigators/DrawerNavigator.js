@@ -29,8 +29,11 @@ import HisoryStackNavigator from './HisoryStackNavigator';
 import ProfileStack from './ProfileStack';
 import HomeStackNavigator from './HomeNavigation';
 import LogoutModal from '../screens/Profile/components/LogoutModal';
+import LanguageModal from '../screens/Profile/components/LanguageModal';
+import LanguageConfirmationModal from '../screens/Profile/components/LanguageConfirmationModal';
 import { colors } from '../utils/colors';
 import { logOut,getCurrentUser } from '../store/userSlice/userSlice';
+import { changeLanguage } from '../local';
  
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const Drawer = createDrawerNavigator();
@@ -43,6 +46,9 @@ const CustomDrawerContent = ({ navigation, state }) => {
   const [appVersion, setAppVersion] = useState('1.0.0');
    const [updateAvailable, setUpdateAvailable] = useState(false);
   const [latestVersion, setLatestVersion] = useState(null);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
   
   useEffect(() => { 
     dispatch(getCurrentUser());
@@ -115,6 +121,29 @@ const CustomDrawerContent = ({ navigation, state }) => {
     setLogoutModalVisible(false);
   };
 
+  // Language change handlers
+  const handleLanguageSelect = (language, needsConfirmation) => {
+    if (needsConfirmation) {
+      setSelectedLanguage(language);
+      setShowConfirmationModal(true);
+    } else {
+      changeLanguage(language);
+    }
+  };
+
+  const handleConfirmLanguageChange = () => {
+    if (selectedLanguage) {
+      changeLanguage(selectedLanguage);
+      setSelectedLanguage(null);
+    }
+    setShowConfirmationModal(false);
+  };
+
+  const handleCancelLanguageChange = () => {
+    setSelectedLanguage(null);
+    setShowConfirmationModal(false);
+  };
+
   const handleUpdate = async () => {
     try {
       const versionCheck = await checkVersion();
@@ -171,14 +200,14 @@ const CustomDrawerContent = ({ navigation, state }) => {
       badge: null,
     },
     
-    {
-      name: 'Chats',
-      label: t('drawer.chats', 'Chats'),
-      icon: 'message-text-outline',
-      iconType: 'MaterialCommunityIcons',
-      guestAllowed: false,
-      badge: null,
-    },
+    // {
+    //   name: 'Chats',
+    //   label: t('drawer.chats', 'Chats'),
+    //   icon: 'message-text-outline',
+    //   iconType: 'MaterialCommunityIcons',
+    //   guestAllowed: false,
+    //   badge: null,
+    // },
     {
       name: 'Historique',
       label: t('drawer.history', 'History'),
@@ -303,7 +332,22 @@ const CustomDrawerContent = ({ navigation, state }) => {
               ]}
               onPress={() => {
                 if (handleGuestAction(item.name, item.label)) {
-                  navigation.navigate(item.name);
+                  switch(item.name){
+                    case 'Historique':
+                      navigation.navigate('Historique', { screen: 'Historique' });
+                      break;
+                    case 'Notifications':
+                      navigation.navigate('Notifications', { screen: 'Notifications' });
+                      break;
+                    case 'Profile':
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Profile', params: { screen: 'Profile' } }],
+                      });
+                      break;
+                    default:
+                      navigation.navigate(item.name);
+                  }
                 }
               }}
               activeOpacity={isDisabled ? 1 : 0.7}
@@ -334,6 +378,43 @@ const CustomDrawerContent = ({ navigation, state }) => {
           );
         })}
         
+        {/* Sub Buttons */}
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => setShowLanguageModal(true)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons name="translate" size={24} color="#8E8E93" />
+            </View>
+            <Text style={styles.menuItemText}>
+              {t('drawer.change_language', 'Change Language')}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => {
+            navigation.closeDrawer();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Profile', params: { screen: 'Help' } }],
+            });
+          }}
+          activeOpacity={0.7}
+        >
+          <View style={styles.menuItemContent}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons name="help-circle-outline" size={24} color="#8E8E93" />
+            </View>
+            <Text style={styles.menuItemText}>
+              {t('drawer.help', 'Help & Support')}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
         {/* Guest Sign In Prompt */}
         {isGuest && (
           <View style={styles.guestPromptContainer}>
@@ -401,6 +482,19 @@ const CustomDrawerContent = ({ navigation, state }) => {
         onClose={handleLogoutCancel}
         onLogout={handleLogoutConfirm}
       />
+
+      {/* Language Modals */}
+      <LanguageModal
+        isVisible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
+        onLanguageSelect={handleLanguageSelect}
+      />
+      <LanguageConfirmationModal
+        isVisible={showConfirmationModal}
+        onClose={handleCancelLanguageChange}
+        onConfirm={handleConfirmLanguageChange}
+        selectedLanguage={selectedLanguage}
+      />
     </SafeAreaView>
   );
 };
@@ -436,18 +530,19 @@ const DrawerNavigator = () => {
         }}
       />
       
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="Chats"
         component={ComingSoon}
         options={{
           drawerLabel: 'Chats',
         }}
-      />
+      /> */}
       <Drawer.Screen
         name="Historique"
         component={HisoryStackNavigator}
         options={{
           drawerLabel: 'History',
+          unmountOnBlur: true,
         }}
       />
       <Drawer.Screen
@@ -518,27 +613,31 @@ const styles = StyleSheet.create({
   userDetails: {
     marginLeft: wp(3),
     flex: 1,
+    alignItems: 'flex-start',
    },
   
   userName: {
     fontSize: hp(2.4),
     fontWeight: '700',
-    color: '#FFFFFF',
+   
     marginBottom: 4,
-    color:"#000"
+    color:"#000",
+    
   },
   
   userEmail: {
     fontSize: hp(1.5),
-    color: 'rgba(255, 255, 255, 0.9)',
+   
     marginBottom: 2,
-       color:"#000"
+ color:"#000",
+    
   },
   
   userPhone: {
     fontSize: hp(1.5),
     
-    color:"#000"
+    color:"#000",
+    
   },
   
   signInPrompt: {

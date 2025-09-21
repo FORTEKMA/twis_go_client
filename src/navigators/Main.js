@@ -3,7 +3,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {useDispatch, useSelector} from 'react-redux';
 import {getCurrentUser} from '../store/userSlice/userSlice';
 import AuthStack from './AuthStack';
-import DrawerNavigator from './DrawerNavigator'; // Changed from TabNavigator to DrawerNavigator
+import DrawerNavigator from './DrawerNavigator'; 
 import {createStackNavigator} from '@react-navigation/stack';
 import Onboarding from '../screens/Onboarding';
 import Rating from "../screens/Rating"

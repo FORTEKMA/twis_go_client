@@ -138,6 +138,8 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+    flexWrap: 'wrap',
+    width: '90%',
   },
   statusDot: {
     width: 8,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform,TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform, TextInput, Keyboard } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
@@ -31,10 +31,28 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
   const [pickupAddress, setPickupAddress] = useState(formData?.pickupAddress || {});
   const inputRef = useRef(null);
   const [isLocationInTunisia, setIsLocationInTunisia] = useState(true);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   
   // Track step view
   useEffect(() => {
     trackBookingStepViewed(1, 'Pickup Location');
+  }, []);
+
+  // Keyboard listeners for iOS optimization
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+      });
+      const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
+        setKeyboardHeight(0);
+      });
+
+      return () => {
+        keyboardWillShowListener?.remove();
+        keyboardWillHideListener?.remove();
+      };
+    }
   }, []);
   
   useEffect(() => {
@@ -61,6 +79,8 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
         details.geometry.location.lat,
         details.geometry.location.lng
       ));
+
+      inputRef.current?.blur();
       
       // Track location selection
       trackPickupLocationSelected(newAddress, {
@@ -117,46 +137,66 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
         <Text style={localStyles.uberSubtitle}>{t('location.drag_map_instruction', 'Drag map to move pin')}</Text>
       </View>
 
-      {/* Uber-style Search Input */}
-      <View style={localStyles.uberContent}>
-            
-            <GooglePlacesAutocomplete
-              predefinedPlacesAlwaysVisible={false}
-              placeholder={t('location.where_from', 'Where from?')}
-              debounce={300} 
-              onPress={handleLocationSelect}
-              textInputContainer={localStyles.searchContainer}
-             
-               textInputProps={{
-                style:localStyles.inputWrapper,
-                placeholder:formData?.pickupAddress?.address ? formData?.pickupAddress?.address : t('location.where_from', 'Where from?'),
-                placeholderTextColor:"#8E8E93",
-               ref:inputRef, 
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={localStyles.scrollContent}
+        contentContainerStyle={localStyles.scrollContentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={localStyles.uberContent}>
+          <GooglePlacesAutocomplete
+            predefinedPlacesAlwaysVisible={false}
+            placeholder={t('location.where_from', 'Where from?')}
+            debounce={Platform.OS === 'ios' ? 200 : 300}
+            onPress={handleLocationSelect}
+            textInputContainer={localStyles.searchContainer}
+            requestUrl={{
+              useOnPlatform: 'web',
+              url: Platform.OS === 'ios' ? 'https://cors-anywhere.herokuapp.com/https://maps.googleapis.com/maps/api' : undefined,
+            }}
+            textInputProps={{
+              style: localStyles.inputWrapper,
+              placeholder: formData?.pickupAddress?.address ? formData?.pickupAddress?.address : t('location.where_from', 'Where from?'),
+              placeholderTextColor: "#8E8E93",
+              ref: inputRef,
+              autoCorrect: false,
+              autoCapitalize: 'none',
+              keyboardType: Platform.OS === 'ios' ? 'default' : 'default',
+              returnKeyType: 'search',
+              blurOnSubmit: true,
+            }}
+            renderLeftButton={() => {
+              return (
+                <MaterialCommunityIcons style={localStyles.leftIcon} name="circle" size={12} color="#000" />
+              )
+            }}
+            query={{
+              key: API_GOOGLE,
+              language: 'en',
+              components: 'country:tn',
+              types: 'establishment|geocode',
+            }}
+            styles={{
+              description: localStyles.description,
+              textInput: {
                 
-               }}
-               renderLeftButton={()=>{
-                return (
-                  <MaterialCommunityIcons style={localStyles.leftIcon} name="circle" size={12} color="#000" />
-                )
-               }}
+                color: '#000',
             
-              query={{
-                key: API_GOOGLE,
-                language: 'en',
-                components: 'country:tn',
-              }}
-              styles={{
-               
-                 
-                description: localStyles.description,
-              }}
-              fetchDetails={true}
-              enablePoweredByContainer={false}
-              minLength={2}
-            />
-            
-            
-        {/* Uber-style Continue Button */}
+              },
+            }}
+            fetchDetails={true}
+            enablePoweredByContainer={false}
+            minLength={2}
+            timeout={20000}
+            keepResultsAfterBlur={true}
+            listUnderlayColor="transparent"
+          />
+        </View>
+      </ScrollView>
+      
+      {/* Fixed Continue Button */}
+      <View style={localStyles.buttonContainer}>
         <TouchableOpacity
           style={[
             localStyles.uberButton,
@@ -172,7 +212,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
             {t('location.set_pickup_location', 'Set pickup location')}
           </Text>
         </TouchableOpacity>
-        </View>
+      </View>
     </View>
   );
 };
@@ -202,9 +242,20 @@ const localStyles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'center',
   },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
   uberContent: {
     paddingHorizontal: 24,
     flex: 1,
+  },
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
+    backgroundColor: '#fff',
   },
   searchContainer: {
     marginBottom: 24,
@@ -221,6 +272,7 @@ const localStyles = StyleSheet.create({
     flex:1,
     marginBottom:15,
     paddingLeft:30,
+    color:"#000"
   },
   leftIcon: {
     marginRight: 12,
@@ -281,9 +333,6 @@ const localStyles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: Platform.OS === 'ios' ? 34 : 24,
-   
   },
   uberButtonDisabled: {
     backgroundColor: '#E5E5EA',

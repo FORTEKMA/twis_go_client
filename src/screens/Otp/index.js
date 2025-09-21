@@ -166,7 +166,7 @@ const Otp = ({ route, navigation }) => {
         data.handleLoginSuccess();
       }
       
-      navigation.pop(2);
+      navigation.navigate('MainScreen');
     } catch (error) {
       console.error('Profile update failed:', error);
       trackOtpVerification(false, { error: 'profile_update_failed' });
@@ -202,7 +202,7 @@ const Otp = ({ route, navigation }) => {
         data.handleLoginSuccess();
       }
       
-      navigation.pop(2);
+      navigation.navigate('MainScreen');
     } catch (error) {
       console.error('Registration failed:', error.response);
       trackOtpVerification(false, { error: 'registration_failed' });
@@ -230,13 +230,18 @@ const Otp = ({ route, navigation }) => {
       return;
     }
     handleOneSignalLogin(userData.id);
-    
+    console.log("userData",userData)
     dispatch(userRegister({
       user: userData,
       jwt: userData.authToken
     }));
 
-    navigation.navigate('Home');
+    // If an upstream flow provided a success callback (e.g., LoginStep), invoke it
+    if (route?.params?.handleLoginSuccess) {
+      try { route.params.handleLoginSuccess(); } catch (e) {}
+    }
+
+    navigation.navigate('MainScreen');
 
     // trackOtpVerification(true, { action: 'login' });
     // trackLoginSuccess('phone', { phone_verified: true });

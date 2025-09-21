@@ -82,7 +82,23 @@ useEffect(()=>{
       dispatch(updateHasReview(null))
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [
+          {
+            name: 'Main',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'Home',
+                  state: {
+                    index: 0,
+                    routes: [{ name: 'MainScreen' }],
+                  },
+                },
+              ],
+            },
+          },
+        ],
       });
       Toast.show({
         type: 'success',
@@ -98,23 +114,59 @@ useEffect(()=>{
   };
  
   const showCommentSection = selectedTags[0] === 'Other';
- 
+
+  const handleBackPress = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Main',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'Home',
+                  state: {
+                    index: 0,
+                    routes: [{ name: 'MainScreen' }],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      });
+    }
+  };
+  
   return (
-    <SafeAreaView style={[styles.safeArea, {backgroundColor: colors.primary, flex: 1}]}> 
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.primary}}>
-            <View style={{backgroundColor: 'white', borderRadius: 18, padding: 28, width: '92%', maxWidth: 400, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12, elevation: 4}}>
-              <Text style={{fontSize: 22, fontWeight: '600', color: '#222', marginBottom: 18, textAlign: 'center'}}>{t('rating.title')}</Text>
-               <StarRatingSection
+          <View style={styles.container}>
+            <View style={styles.header}>
+              <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+                <Icon name="chevron-back" size={24} color={colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>{t('rating.title')}</Text>
+              <View style={styles.backButton} />
+            </View>
+
+            <View style={styles.content}>
+              <StarRatingSection
                 rating={rating}
                 setRating={setRating}
                 existingRating={order?.review?.data?.score}
               />
-              <Text style={{fontSize: 16, color: colors.gray, marginTop: 10, marginBottom: 2, textAlign: 'center'}}>{t('rating.leave_feedback')}</Text>
+              <Text style={{fontSize: 14, color: colors.gray, textAlign: 'center'}}>
+                {t('rating.leave_feedback')}
+              </Text>
               <FeedbackTags selectedTags={selectedTags} setSelectedTags={setSelectedTags} />
               {selectedTags[0] === 'Other' && (
                 <CommentSection

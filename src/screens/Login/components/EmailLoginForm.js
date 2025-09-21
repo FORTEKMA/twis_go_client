@@ -64,10 +64,11 @@ const EmailLoginForm = ({ onLoginSuccess, hideForgetPassword }) => {
       if (result?.payload?.error) {
         setLoginError(t('login.invalidCredentials'));
       } else {
-        navigation.goBack();
+        
         if (onLoginSuccess) {
           onLoginSuccess();
         }
+        else navigation.goBack();
 
       }
     } catch (error) {

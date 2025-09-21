@@ -237,8 +237,8 @@ const Historique = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+    <SafeAreaView style={[styles.container, { backgroundColor: '#FFFFFF' }] }>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
       {/* Header */}
       <Animated.View style={[styles.header, { opacity: fadeAnim }]}>
@@ -266,16 +266,29 @@ const Historique = ({ navigation }) => {
 
       {/* Content */}
       <View style={styles.content}>
+      
         <FlatList
           style={styles.flatList}
           data={newOrders}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           renderItem={renderItem}
           onEndReachedThreshold={0.5}
-          ListHeaderComponent={renderHeader}
+          ListHeaderComponent={renderHeader()}
           onEndReached={handleEndReached}
           scrollEventThrottle={16}
-          ListEmptyComponent={!loading ? renderEmptyState : null}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+          ListEmptyComponent={
+            loading
+              ? (
+                <View style={styles.placeholdersContainer}>
+                  {[1, 2, 3].map((index) => (
+                    <LoadingPlaceholder key={index} />
+                  ))}
+                </View>
+              )
+              : renderEmptyState()
+          }
           ListFooterComponent={
             loading && newOrders.length > 0 ? (
               <View style={styles.loadingFooter}>
@@ -298,14 +311,8 @@ const Historique = ({ navigation }) => {
       </View>
 
    
-      {/* Loading Placeholders */}
-      {loading && newOrders.length === 0 && (
-        <View style={styles.placeholdersContainer}>
-          {[1, 2, 3].map((index) => (
-            <LoadingPlaceholder key={index} />
-          ))}
-        </View>
-      )}
+    
+     
     </SafeAreaView>
   );
 };
@@ -471,9 +478,11 @@ const styles = StyleSheet.create({
   },
   // Loading placeholder styles
   placeholdersContainer: {
-    flex: 1,
+    
     paddingHorizontal: 20,
     paddingTop: 20,
+   
+     
   },
   loadingPlaceholder: {
     marginBottom: 16,

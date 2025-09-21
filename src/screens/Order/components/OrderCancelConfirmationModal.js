@@ -13,25 +13,23 @@ const OrderCancelConfirmationModal = ({ visible, onClose, onConfirm }) => {
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>{t('history.card.cancel_confirmation')}</Text>
-          <Text style={styles.modalText}>{t('history.card.cancel_message')}</Text>
-          <View style={styles.modalButtons}>
-
-
-            <TouchableOpacity 
-              style={[styles.modalButton, styles.modalButtonPrimary]}
+        <View style={styles.card}>
+          <Text style={styles.title}>{t('history.card.cancel_confirmation')}</Text>
+          <Text style={styles.description}>{t('history.card.cancel_message')}</Text>
+          <View style={styles.buttonsRow}>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonSecondary]}
               onPress={onClose}
+              activeOpacity={0.8}
             >
-              <Text style={styles.modalButtonTextPrimary}>{t('common.no')}</Text>
+              <Text style={[styles.buttonText, styles.buttonSecondaryText]}>{t('common.no')}</Text>
             </TouchableOpacity>
-
-
-            <TouchableOpacity 
-              style={[styles.modalButton, styles.modalButtonSecondary]}
+            <TouchableOpacity
+              style={[styles.button, styles.buttonPrimary]}
               onPress={onConfirm}
+              activeOpacity={0.8}
             >
-              <Text style={styles.modalButtonTextSecondary}>{t('common.yes')}</Text>
+              <Text style={[styles.buttonText, styles.buttonPrimaryText]}>{t('common.yes')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -43,58 +41,62 @@ const OrderCancelConfirmationModal = ({ visible, onClose, onConfirm }) => {
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  modalContent: {
+  card: {
+    width: '100%',
+    maxWidth: 420,
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 24,
-    width: '85%',
-    maxWidth: 400,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#222',
-    marginBottom: 12,
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
     textAlign: 'center',
+    marginBottom: 8,
   },
-  modalText: {
-    fontSize: 16,
+  description: {
+    fontSize: 14,
     color: '#666',
-    marginBottom: 24,
     textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
   },
-  modalButtons: {
+  buttonsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 12,
   },
-  modalButton: {
+  button: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  modalButtonPrimary: {
+  buttonPrimary: {
     backgroundColor: colors.primary,
   },
-  modalButtonSecondary: {
-    backgroundColor: '#f8f9fa',
+  buttonSecondary: {
+    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#E5E5E5',
   },
-  modalButtonTextPrimary: {
+  buttonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  buttonPrimaryText: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
   },
-  modalButtonTextSecondary: {
-    color: '#666',
-    fontWeight: '600',
-    fontSize: 16,
+  buttonSecondaryText: {
+    color: '#000',
   },
 });
 

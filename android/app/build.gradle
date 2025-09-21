@@ -74,13 +74,13 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.fortekma.tawsilet"
+    namespace "com.twisgo"
     defaultConfig {
-        applicationId "com.fortekma.tawsilet"
+        applicationId "com.twisgo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
-        versionName "1.5.1"
+        versionCode 18
+        versionName "1.5.5"
         
         
     }

@@ -338,7 +338,7 @@ const OtpModal = ({
       marginLeft: 12,
     },
   };
-  console.log("timer",timer);
+  
 
   return (
     <Modal 

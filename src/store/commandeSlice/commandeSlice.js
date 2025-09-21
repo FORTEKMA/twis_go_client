@@ -55,7 +55,7 @@ export const getUserOrdersById = createAsyncThunk(
     try {
      
        const response = await api.get(
-        `/commands?filters[client][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`);
+        `/commands?filters[client][documentId]=${id}${commandStatuses}&filters[refNumber][$containsi]=${filter}&populate[0]=driver&populate[1]=pickUpAddress&populate[2]=dropOfAddress&populate[3]=pickUpAddress.coordonne&populate[4]=dropOfAddress.coordonne&populate[5]=client&populate[6]=review&sort=createdAt:desc&pagination[pageSize]=${pageSize}&pagination[page]=${currentPage}`);
        
       return { data: response.data.data, meta: response.data.meta };
     } catch (error) {

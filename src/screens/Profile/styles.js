@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
   },
   uberProfileSection: {
     backgroundColor: '#fff',
-    paddingHorizontal: 24,
+    paddingHorizontal: 14,
     paddingVertical: 32,
     marginBottom: 16,
   },
@@ -126,7 +126,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F8F8F8',
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     paddingVertical: 8,
     borderRadius: 20,
    flex:1,

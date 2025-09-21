@@ -8,16 +8,17 @@ import {
   TouchableOpacity,
   Linking,
   ActivityIndicator,
- Text,
-
+  Image,
+  Text,
   Keyboard,
-  StatusBar
+  StatusBar,
+  KeyboardAvoidingView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {localStyles} from "./localStyles"
-import DriverMarker from '../../components/DriverMarker';
-import MapView, {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
+import ClusterMapView from 'react-native-map-clustering';
+import {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import {useDispatch, useSelector} from 'react-redux';
  import {styles} from './styles';
@@ -28,6 +29,7 @@ import LoginStep from './components/LoginStep';
 import api from '../../utils/api';
 import { useTranslation } from 'react-i18next';
 import CustomAlert from '../../components/CustomAlert';
+import UpdateBlockScreen from '../../components/UpdateBlockScreen';
 import Geolocation from '@react-native-community/geolocation';
 import { realtimeDb } from '../../utils/firebase'; // Changed import
 import { ref, onValue, off } from 'firebase/database'; // Import ref, onValue, off
@@ -60,6 +62,7 @@ import {
   GEOLOCATION_OPTIONS,
   LOTTIE_DIMENSIONS,
   getLottieViewPosition,
+  getMapCenterPosition,
   filterNearbyDriversGeoFire,
   getBottomOffset,
   getAnimationTiming
@@ -77,7 +80,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("screen");
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 
 import mapStyle from '../../utils/googleMapStyle';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
  
  
@@ -87,7 +90,7 @@ const MainScreen = () => {
    const token = useSelector(state => state?.user?.token);
    const { t } = useTranslation();
   const settingsList = useSelector(selectSettingsList);
-  
+ 
   // State management
   const [step, setStep] = useState(1);
   const [currentZoomLevel, setCurrentZoomLevel] = useState(0);
@@ -116,6 +119,7 @@ const MainScreen = () => {
     4: true, // ConfirmRide starts expanded
     5: true, // SearchDrivers starts expanded
   });
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   // Toggle step expansion
   const toggleStepExpansion = (stepNumber) => {
@@ -149,6 +153,11 @@ const MainScreen = () => {
   const hasTriggeredHaptic = useRef(false);
   // Additions: refs for debouncing and throttling
   const regionDebounceRef = useRef(null);
+  const mapRegionDebounceRef = useRef(null);
+  const focusedCenterRef = useRef({ latitude: mapRegion.latitude, longitude: mapRegion.longitude });
+  const zoomRef = useRef(currentZoomLevel);
+  // Track if login was initiated from inline step 4.5 to avoid token-effect interference
+  const inlineLoginRef = useRef(false);
 
   // Helper function to calculate zoom level from region
   const getZoomLevel = (region) => {
@@ -269,19 +278,71 @@ const MainScreen = () => {
     const driversRef = ref(realtimeDb, 'drivers');
   
     let isSubscribed = true;
-  
+    const lastSigRef = { current: '' };
+
     const throttledUpdate = throttle((activeDrivers) => {
       requestAnimationFrame(() => {
         if (!isSubscribed) return;
   
-        if (formData?.pickupAddress?.latitude) {
-          const nearby = filterNearbyDriversGeoFire(activeDrivers, formData?.pickupAddress);
-          setFilteredDrivers(nearby);
-        } else {
-          setFilteredDrivers(activeDrivers);
-        }
+        const computeSig = (driversObj) => {
+          // Build a stable signature from uid and rounded coords to 5 decimals (~1m precision)
+          const parts = Object.entries(driversObj)
+            .map(([uid, d]) => `${uid}:${d.latitude?.toFixed(5)},${d.longitude?.toFixed(5)}`)
+            .sort();
+          return parts.join('|');
+        };
+
+        // Compute dynamic radius (km) from current zoom level; tighter radius at higher zooms
+        const computeRadiusKm = () => {
+          const z = zoomRef.current || 15;
+          // Approximate: map 10..20 zoom to 15km..1km
+          const clamped = Math.max(10, Math.min(20, z));
+          const t = (clamped - 10) / 10; // 0..1
+          return Math.max(1, 15 - 14 * t);
+        };
+
+        const center = focusedCenterRef.current;
+        const radiusKm = computeRadiusKm();
+
+        const haversineKm = (a, b) => {
+          const toRad = (x) => (x * Math.PI) / 180;
+          const R = 6371;
+          const dLat = toRad(b.latitude - a.latitude);
+          const dLon = toRad(b.longitude - a.longitude);
+          const la1 = toRad(a.latitude);
+          const la2 = toRad(b.latitude);
+          const h =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(la1) * Math.cos(la2) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          return 2 * R * Math.asin(Math.sqrt(h));
+        };
+
+        // Filter to drivers within radius of focused center
+        const nearbyEntries = Object.entries(activeDrivers).filter(([, d]) =>
+          typeof d.latitude === 'number' && typeof d.longitude === 'number' &&
+          haversineKm(center, { latitude: d.latitude, longitude: d.longitude }) <= radiusKm
+        );
+
+        // Cap to nearest N to avoid huge sets
+        const MAX_NEARBY = 1000;
+        const sortedByDistance = nearbyEntries
+          .map(([uid, d]) => ({ uid, d, dist: haversineKm(center, { latitude: d.latitude, longitude: d.longitude }) }))
+          .sort((a, b) => a.dist - b.dist)
+          .slice(0, MAX_NEARBY);
+
+        const source = sortedByDistance.reduce((acc, { uid, d }) => {
+          acc[uid] = d;
+          return acc;
+        }, {});
+        
+
+        const sig = computeSig(source);
+        if (sig === lastSigRef.current) return; // no material change
+        lastSigRef.current = sig;
+        setFilteredDrivers(source);
       });
-    }, 1000); // 1 update per second max
+    }, 800); // throttle to ~0.8s for more responsive updates
   
     const unsubscribe = onValue(driversRef, snapshot => {
       if (!isSubscribed) return;
@@ -295,7 +356,8 @@ const MainScreen = () => {
             driver &&
             typeof driver.latitude === 'number' &&
             typeof driver.longitude === 'number' &&
-            driver.isFree === true
+            driver.isFree === true &&
+            driver.isActive === true
           ) {
             activeDrivers[uid] = driver;
           }
@@ -312,7 +374,8 @@ const MainScreen = () => {
   
     return () => {
       isSubscribed = false;
-      off(driversRef, 'value', unsubscribe);
+      // onValue returns an unsubscribe function; call it directly
+      unsubscribe();
     };
   }, [formData?.pickupAddress]);
 
@@ -450,6 +513,45 @@ const MainScreen = () => {
     dispatch(setMainScreenStep(step));
   }, [step, dispatch]);
 
+  // Ensure guest users cannot remain on login step (4.5); send them back to step 4
+  useEffect(() => {
+    if (!token) return;
+    if (inlineLoginRef.current) return; // ignore if inline login
+    // Defer to allow in-step login handler to transition to step 5 first
+    const id = setTimeout(() => {
+      if (stepRef.current === 4.5) {
+        animateStepTransition(4);
+        setStep(4);
+        dispatch(setMainScreenStep(4));
+      }
+    }, 120);
+    return () => clearTimeout(id);
+  }, [token]);
+
+  // Safety: if step is 4.5 and token exists (user logged in elsewhere), and not inline login, correct to step 4
+  useEffect(() => {
+    if (!token) return;
+    if (inlineLoginRef.current) return;
+    if (step === 4.5) {
+      animateStepTransition(4);
+      setStep(4);
+      dispatch(setMainScreenStep(4));
+    }
+  }, [step, token, dispatch]);
+
+  // Also fix step when screen regains focus (e.g., returned from external login screen)
+  useFocusEffect(
+    useCallback(() => {
+      if (token && stepRef.current === 4.5) {
+        inlineLoginRef.current = false;
+        animateStepTransition(4);
+        setStep(4);
+        dispatch(setMainScreenStep(4));
+      }
+      return () => {};
+    }, [token, dispatch])
+  );
+
   const handleReset = () => {
     setStep(1);
     dispatch(setMainScreenStep(1));
@@ -524,6 +626,7 @@ const MainScreen = () => {
       if (handlerNext) {
         // Check if we need to show login step
         if (step === 4 && !token) {
+          inlineLoginRef.current = true; // mark inline login
           animateStepTransition(4.5);
           setStep(4.5);
           dispatch(setMainScreenStep(4.5));
@@ -589,6 +692,7 @@ const MainScreen = () => {
 
     if (step === 4.5) {
       // If going back from login step, go back to step 4
+      inlineLoginRef.current = false; // leaving inline login
       animateStepTransition(4);
       setStep(4);
       dispatch(setMainScreenStep(4));
@@ -601,6 +705,7 @@ const MainScreen = () => {
 
   const handleLoginSuccess = () => {
     // After successful login, proceed to step 5
+    inlineLoginRef.current = false; // inline login completed
     animateStepTransition(5);
     setStep(5);
     dispatch(setMainScreenStep(5));
@@ -687,18 +792,28 @@ const MainScreen = () => {
   };
 
   const getAdjustedCenterCoordinate = async (region) => {
-    const centerOffect=Platform.OS=="android"?-30:30
-
     try {
-      const screenPoint = {
-        x: SCREEN_WIDTH / 2,
-        y: SCREEN_HEIGHT / 2 + centerOffect,
-      };
-      const coord = await mapRef.current.coordinateForPoint(screenPoint);
-      handleRegionChange(coord);
-      setTempMapRegion(region);
-    //   const newZoomLevel = getZoomLevel(region);
-    // setCurrentZoomLevel(newZoomLevel);
+      // Use the same visual center used by the Lottie overlay for perfect alignment
+      const center = getMapCenterPosition(layout, StatusBar.currentHeight || 0);
+      const screenPoint = { x: center.x, y: center.y-25 };
+
+      const coord = await mapRef.current?.coordinateForPoint(screenPoint);
+      if (coord) {
+        // Ensure downstream uses the actual visual center coordinate
+        handleRegionChange({ latitude: coord.latitude, longitude: coord.longitude });
+        focusedCenterRef.current = { latitude: coord.latitude, longitude: coord.longitude };
+      }
+
+      // Debounce temp region updates to reduce marker recalculation frequency
+      if (mapRegionDebounceRef.current) {
+        clearTimeout(mapRegionDebounceRef.current);
+      }
+      mapRegionDebounceRef.current = setTimeout(() => {
+        setTempMapRegion(region);
+      }, 120);
+      const newZoomLevel = getZoomLevel(region);
+      setCurrentZoomLevel(newZoomLevel);
+      zoomRef.current = newZoomLevel;
       return coord;
     } catch (err) {
       console.warn("Failed to get coordinate for point:", err);
@@ -793,12 +908,16 @@ const MainScreen = () => {
   }, [dispatch, settingsList]);
 
   useEffect(() => {
-    api.get('/parameters').then(response => {
-      
-      const activeDateStr = response?.data?.data[0]?.active_date;
-      
-if (activeDateStr) setActivationDate(activeDateStr);
-    });
+    api.get('/parameters')
+      .then(response => {
+        const params = response?.data?.data?.[0];
+        const activeDateStr = params?.active_date;
+        if (activeDateStr) setActivationDate(activeDateStr);
+
+        console.log("params?.app_maintenance",params?.app_maintenance)
+        if (params?.app_maintenance) setMaintenanceMode(true);
+      })
+      .catch(() => {});
   }, []);
 
   const renderStep = () => {
@@ -811,13 +930,30 @@ if (activeDateStr) setActivationDate(activeDateStr);
       }
     };
 
+    // When maintenance mode is on, replace the step content with maintenance screen/message
+    if (maintenanceMode==true) {
+      return (
+        <Animated.View
+          style={[
+            localStyles.stepContainer,
+            stepAnimatedStyle,
+            { bottom: isKeyboardVisible && Platform.OS === 'ios' ? keyboardHeight * 0.1 : 0 },
+          ]}
+        >
+          <View style={localStyles.stepContent} onLayout={handleStepLayout}>
+            <UpdateBlockScreen storeUrl={null} isMaintenance />
+          </View>
+        </Animated.View>
+      );
+    }
+
     return (
       <Animated.View
         style={[
           localStyles.stepContainer,
           stepAnimatedStyle,
           {
-            bottom: 0,
+            bottom: isKeyboardVisible && Platform.OS === 'ios' ? keyboardHeight * 0.1 : 0,
           },
         ]}>
         <View style={localStyles.stepContent} onLayout={handleStepLayout}>
@@ -853,7 +989,7 @@ if (activeDateStr) setActivationDate(activeDateStr);
               />
          
           )}
-          {step === 4.5 && (
+          {step === 4.5 && (inlineLoginRef.current || !token) && (
             <LoginStep 
               onRegisterPress={(result = {}) => navigation.navigate("Register", { handleLoginSuccess, result })} 
               onLoginSuccess={handleLoginSuccess} 
@@ -885,53 +1021,110 @@ if (activeDateStr) setActivationDate(activeDateStr);
   };
 
   
-   // Optimize marker rendering with useMemo
+   // Map of vehicle type -> iconUrl to avoid per-marker Redux access
+  const settingsMap = useMemo(() => {
+    const map = {};
+
+    (settingsList || []).forEach(s => {
+      if (s?.id != null) map[s.id] = s?.map_icon?.url;
+    });
+    return map;
+  }, [settingsList]);
+
+  // Using react-native-map-clustering; no manual clustering needed.
+
+  // Optimize marker rendering with useMemo
   const renderDriverMarkers = useMemo(() => {
-   
-     if (!tempMapRegion || currentZoomLevel < 16) return null;
-  
-    const visibleDrivers = Object.entries(filteredDrivers).filter(
-      ([, driver]) => isDriverInView(driver, tempMapRegion)
-    );
-  
-    return visibleDrivers.map(([uid, driver]) => (
-      <Marker
-        key={`driver-${uid}-${driver.latitude}-${driver.longitude}`}
-        coordinate={{
-          latitude: driver.latitude,
-          longitude: driver.longitude
-        }}
-        flat
-        anchor={{ x: 0.5, y: 0.5 }}
-        tracksViewChanges={Platform.OS === 'ios' ? null : true}
-      >
-        <DriverMarker 
-          key={`marker-${uid}-${driver.angle || 0}`}
-          type={driver.type} 
-          angle={driver.angle} 
-        />  
-      </Marker>
-    ));
-  }, [filteredDrivers, currentZoomLevel, tempMapRegion]);
+    if (!tempMapRegion) return null;
+    // Allow markers during drag for real-time visibility
+     if (isMapDragging) return null; // avoid heavy updates during gestures
+    
+  if (currentZoomLevel < 16) return null; // too zoomed out; let clusters handle display
+
+    const entries = Object.entries(filteredDrivers);
+    let visibleDrivers = entries.filter(([, driver]) => isDriverInView(driver, tempMapRegion));
+
+    // Safety: when extremely dense, sample down before handing to clustering
+    const MAX_CHILDREN = 150;
+    if (visibleDrivers.length > MAX_CHILDREN) {
+      const step = Math.ceil(visibleDrivers.length / MAX_CHILDREN);
+      visibleDrivers = visibleDrivers.filter((_, idx) => idx % step === 0);
+    }
+ 
+    return visibleDrivers.map(([uid, driver]) => {
+      
+      // Determine the driver's vehicle type key from possible fields
+      const typeKey =
+        driver?.type ??
+        driver?.typeId ??
+        driver?.vehicleTypeId ??
+        driver?.vehicleType ??
+        driver?.vehicule?.id ??
+        driver?.vehicule_id ??
+        driver?.vehiculeId ??
+        null;
+
+      const iconUrl = typeKey != null ? settingsMap[typeKey] : null;
+      // iOS ATS blocks non-HTTPS images. Fallback to bundled icon when URL is not HTTPS.
+      const isHttps = typeof iconUrl === 'string' && iconUrl.startsWith('https://');
+      const markerIcon = isHttps ? { uri: iconUrl } : require('../../assets/eco.png');
+      
+      return (
+        <Marker
+          key={`driver-${uid}`}
+          coordinate={{ latitude: driver.latitude, longitude: driver.longitude }}
+          flat
+          anchor={{ x: 0.5, y: 0.5 }}
+          tracksViewChanges={true}
+        >
+             <Image 
+               source={markerIcon}
+               defaultSource={require('../../assets/eco.png')}
+               
+               onLoad={() => {
+                 // iOS sometimes needs tracksViewChanges true briefly; we already set it true on Marker
+                 // Logging successful load for diagnostics
+                 // console.log('Marker image loaded', { uid, iconUrl });
+               }}
+               style={{ width: 50, height: 50, resizeMode: 'contain' }}
+             />
+          
+        </Marker>
+      );
+    });
+  }, [filteredDrivers, tempMapRegion, settingsMap, isMapDragging, currentZoomLevel]);
   
 
   // Update the map render function to use the memoized markers
   const renderMap = () => {
     return (
-      <MapView
+      <ClusterMapView
         ref={mapRef}
         style={styles.mapContainer}
         provider={PROVIDER_GOOGLE}
-      region={mapRegion}
+        initialRegion={mapRegion}
         zoomEnabled
         tracksViewChanges={false}
-       
+        moveOnMarkerPress={false}
+        radius={60}
+        extent={1024}
+        nodeSize={64}
+        maxZoom={20}
+        minZoom={1}
+        spiralEnabled={true}
+        cacheEnabled={false}
+        renderCluster={(cluster)=>null}
+        // Disable liteMode to keep live marker updates on Android even with many markers
+        liteMode={false}
+        clusterColor="#111827" // slate-900
+        clusterTextColor="#E5E7EB" // slate-200
+        clusterFontSize={12}
         rotateEnabled={false}
         pitchEnabled={false} 
         focusable
         customMapStyle={mapStyle}
         showsUserLocation={true}
-        showsMyLocationButton={false}
+     showsMyLocationButton={false}
         onPanDrag={handleMapDrag}
         onRegionChangeComplete={getAdjustedCenterCoordinate}
         onMapReady={() => {
@@ -971,9 +1164,9 @@ if (activeDateStr) setActivationDate(activeDateStr);
           </Marker>
         )}
 
-        {renderDriverMarkers}
+        {(step === 1 || step === 2) && renderDriverMarkers}
 
-        {formData?.pickupAddress?.latitude && formData?.dropAddress?.latitude && !isMapDragging && (
+        {formData?.pickupAddress?.latitude && formData?.dropAddress?.latitude && step>2 &&(
           <MapViewDirections
             origin={{
               latitude: formData.pickupAddress.latitude,
@@ -998,29 +1191,34 @@ if (activeDateStr) setActivationDate(activeDateStr);
           />
         )}
  
-        {routeCoords.length > 0 && <AnimatedPolyline coords={routeCoords} step={step} />}
-      </MapView>
+        {routeCoords.length > 0 && step>2 && <AnimatedPolyline coords={routeCoords} step={step} />}
+      </ClusterMapView>
     );
   };
 
   return (
-    <TouchableWithoutFeedback   style={localStyles.container}>
-      <View 
-        style={{flex: 1}}  
-        onLayout={(event) => {
-          const { width, height } = event.nativeEvent.layout;
-          if (width <= 0 || height <= 0) return;
-          
-          const statusBarHeight = StatusBar.currentHeight || 0;
-          const adjustedHeight = Platform.OS === 'android' ? height - statusBarHeight : height;
-          
-          requestAnimationFrame(() => {
-            setLayout({ width, height: adjustedHeight });
-            setIsLayoutReady(true);
-            ensureLottieViewPosition();
-          });
-        }}
-      >
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'height' : null}
+      keyboardVerticalOffset={-50}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}  style={localStyles.container}>
+        <View 
+          style={{flex: 1}}  
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            if (width <= 0 || height <= 0) return;
+            
+            const statusBarHeight = StatusBar.currentHeight || 0;
+            const adjustedHeight = Platform.OS === 'android' ? height - statusBarHeight : height;
+            
+            requestAnimationFrame(() => {
+              setLayout({ width, height: adjustedHeight });
+              setIsLayoutReady(true);
+              ensureLottieViewPosition();
+            });
+          }}
+        >
 
 
 
@@ -1085,9 +1283,10 @@ if (activeDateStr) setActivationDate(activeDateStr);
           >
             <Icon name="menu" size={24} color="#000" />
           </TouchableOpacity>
-      </View>
-      
-    </TouchableWithoutFeedback>
+        </View>
+        
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

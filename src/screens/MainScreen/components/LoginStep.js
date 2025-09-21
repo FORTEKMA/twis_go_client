@@ -16,6 +16,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { googleSignIn, appleSignIn } from '../../../services/socialAuth';
 import { userRegister } from '../../../store/userSlice/userSlice';
 import EmailLoginForm from '../../../screens/Login/components/EmailLoginForm';
+import PhoneLoginForm from '../../../screens/Login/components/PhoneLoginForm';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { 
   trackBookingStepViewed,
@@ -31,6 +32,7 @@ const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
   const dispatch = useDispatch();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('email');
 
   // Track step view
   React.useEffect(() => {
@@ -49,13 +51,14 @@ const LoginStep = ({ onLoginSuccess, onBack, onRegisterPress }) => {
       
      
       OneSignal.login(String(result.user.id));
- 
+
       if(!result.user.email||!result.user.lastName||!result.user.firstName||!result.user.phoneNumber)
          
         onRegisterPress(result)
 else  
     {
       await dispatch(userRegister(result));
+      
       trackLoginSuccess('google', { context: 'booking_flow', complete_profile: true });
       trackBookingStepCompleted(4.5, 'Login Required', { method: 'google' });
       if(result?.user?.user_role!="client"||result?.user?.blocked==true)
@@ -111,6 +114,11 @@ else {
     onRegisterPress();
   };
 
+  const handleSwitch = (method) => {
+    setLoginMethod(method);
+    trackLoginAttempt(method, { context: 'booking_flow', action: 'method_switch' });
+  };
+
   return (
     <View style={styles.container}>
       
@@ -127,8 +135,32 @@ else {
       
         
 
+      {/* Simple Email/Phone toggle */}
+      <View style={styles.switchContainer}>
+        <TouchableOpacity
+          onPress={() => handleSwitch('email')}
+          style={[styles.switchButton, loginMethod === 'email' && styles.switchButtonActive]}
+        >
+          <Text style={[styles.switchText, loginMethod === 'email' && styles.switchTextActive]}>
+            {t('login.email')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleSwitch('phone')}
+          style={[styles.switchButton, loginMethod === 'phone' && styles.switchButtonActive]}
+        >
+          <Text style={[styles.switchText, loginMethod === 'phone' && styles.switchTextActive]}>
+            {t('login.phoneNumber')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.formContainer}>
-        <EmailLoginForm hideForgetPassword={true} onLoginSuccess={handleEmailLoginSuccess} />
+        {loginMethod === 'phone' ? (
+          <PhoneLoginForm onLoginSuccess={onLoginSuccess} />
+        ) : (
+          <EmailLoginForm hideForgetPassword={true} onLoginSuccess={handleEmailLoginSuccess} />
+        )}
       </View>
 
       <View style={styles.dividerContainer}>
@@ -236,6 +268,36 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: '100%',
+  },
+  switchContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    backgroundColor: '#F7F8F9',
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E8ECF4',
+  },
+  switchButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  switchButtonActive: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E8ECF4',
+  },
+  switchText: {
+    color: '#8391A1',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  switchTextActive: {
+    color: '#0c0c0c',
   },
   dividerContainer: {
     flexDirection: 'row',

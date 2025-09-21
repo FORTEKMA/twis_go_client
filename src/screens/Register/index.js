@@ -9,16 +9,18 @@ import {
   Linking,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
   I18nManager,
   KeyboardAvoidingView,
   Platform,
+  Dimensions,
+  Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import PhoneInput from 'react-native-phone-input';
 import CountryPicker from 'react-native-country-picker-modal';
 import { useDispatch, useSelector } from 'react-redux';
-import { userRegister } from '../../store/userSlice/userSlice';
+import { userRegister, forgetPassword } from '../../store/userSlice/userSlice';
 import { styles as loginStyles } from '../Login/styles';
 import { useTranslation } from 'react-i18next';
 import api from '../../utils/api';
@@ -30,7 +32,8 @@ import {
   trackRegisterFailure,
 } from '../../utils/analytics';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
+
 
 // Constants
 const PRIMARY_COLOR = '#030303';
@@ -69,7 +72,7 @@ const VALIDATION_RULES = {
 export const getPersistentDeviceId = async () => {
   let deviceId = await EncryptedStorage.getItem('persistentDeviceId');
   if (!deviceId) {
-    deviceId = uuidv4();
+    deviceId = uuid.v4();
     await EncryptedStorage.setItem('persistentDeviceId', deviceId);
   }
   return deviceId;
@@ -80,6 +83,12 @@ const Register = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { width } = useWindowDimensions();
   const error = useSelector(state => state.user.error);
+  const insets = useSafeAreaInsets();
+
+  // Typography sizes
+  const LABEL_FONT_SIZE = 14;
+  const INFO_FONT_SIZE = 12;
+  const ERROR_FONT_SIZE = 12;
 
   // State management
   const [show, setShow] = useState(false);
@@ -95,14 +104,27 @@ const Register = ({ navigation, route }) => {
     email: getInitialEmail(),
     password: '',
   });
+  // Email verification UI state
+  const [emailCode, setEmailCode] = useState('');
+  const [isSendingEmailCode, setIsSendingEmailCode] = useState(false);
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
+  const [emailTimer, setEmailTimer] = useState(0);
+  const emailTimerRef = useRef(null);
+  // Email cooldown that doubles each time: 60s, 120s, 240s, ...
+  const [emailCooldown, setEmailCooldown] = useState(60);
 
   // Refs
   const nameRef = useRef(null);
   const phoneFieldRef = useRef(null);
   const emailRef = useRef(null);
+  const emailCodeRef = useRef(null);
   const passwordRef = useRef(null);
   const scrollViewRef = useRef(null);
   const phoneInput = useRef(null);
+  const currentScrollY = useRef(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const lastFocusedRef = useRef(null);
 
   // Helper functions
   function getInitialName() {
@@ -134,11 +156,112 @@ const Register = ({ navigation, route }) => {
     });
   }, []);
 
+  // Email timer countdown
+  useEffect(() => {
+    if (emailTimer > 0) {
+      emailTimerRef.current && clearInterval(emailTimerRef.current);
+      emailTimerRef.current = setInterval(() => {
+        setEmailTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(emailTimerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (emailTimerRef.current) clearInterval(emailTimerRef.current);
+    };
+  }, [emailTimer]);
+  // Email code handlers
+  const handleSendEmailCode = async () => {
+    // validate email before sending
+    const emailError = validateField('email', form.email || '');
+    if (emailError) {
+      setErrors(prev => ({ ...prev, email: emailError }));
+      scrollToError({ email: true });
+      return;
+    }
+
+    // Check if email already exists before sending code
+    try {
+      setIsSendingEmailCode(true);
+      
+      const emailResponse = await api.get(`/users?filters[email][$endsWithi]=${form.email.toLowerCase()}`);
+      console.log("emailResponse",emailResponse.data);
+      if (Array.isArray(emailResponse.data) && emailResponse.data.length > 0) {
+        setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
+        scrollToError({ email: true });
+        return;
+      }
+      
+      // Call API to send registration code
+      await api.post('codes/send-registration-code', {
+        email: (form.email || '').toLowerCase(),
+      });
+      setEmailCodeSent(true);
+      setEmailTimer(emailCooldown);
+      setEmailCooldown(prev => prev * 2);
+    } catch (e) {
+      console.log("error",e);
+      // surface a generic error on email field
+      setErrors(prev => ({ ...prev, email: t('register.emailCodeSendFailed') || 'Failed to send code' }));
+    } finally {
+      setIsSendingEmailCode(false);
+    }
+  };
+
+
+  // Ensure focused input is visible (not hidden by keyboard/footer)
+  const scrollToInput = useCallback((targetRef) => {
+    const measureAndScroll = () => {
+      if (!targetRef?.current || !scrollViewRef.current) return;
+      targetRef.current.measureInWindow?.((x, y, w, h) => {
+        const screenH = Dimensions.get('window').height;
+        const safeGap = 16; // breathing room above keyboard/footer
+        const obscuringBottom = screenH - keyboardHeight - Math.max(footerHeight, 0) - safeGap;
+        const fieldBottom = (y || 0) + (h || 0);
+        if (fieldBottom > obscuringBottom) {
+          const delta = fieldBottom - obscuringBottom;
+          const nextY = Math.max(currentScrollY.current + delta, 0);
+          scrollViewRef.current?.scrollTo({ y: nextY, animated: true });
+        } else if ((y || 0) < 80) {
+          const nextY = Math.max(currentScrollY.current + (y - 80), 0);
+          scrollViewRef.current?.scrollTo({ y: nextY, animated: true });
+        }
+      });
+    };
+
+
+    // Run now and again after keyboard animation settles
+    requestAnimationFrame(measureAndScroll);
+    setTimeout(measureAndScroll, Platform.OS === 'ios' ? 200 : 300);
+  }, [keyboardHeight, footerHeight]);
+
   useEffect(() => {
     if (route?.params?.number) {
       setForm(prev => ({ ...prev, phone: route.params.number }));
       phoneInput.current?.setValue(route.params.number);
     }
+  }, []);
+
+  // Keyboard listeners to track keyboard height for accurate scroll calculations
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e?.endCoordinates?.height || 0);
+      // re-ensure focused field visibility after keyboard shows
+      if (lastFocusedRef.current) {
+        setTimeout(() => scrollToInput(lastFocusedRef.current), 50);
+      }
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub?.remove?.();
+      hideSub?.remove?.();
+    };
   }, []);
 
   // Event handlers
@@ -233,6 +356,15 @@ const Register = ({ navigation, route }) => {
       }
     });
 
+    // Require email verification code if email flow initiated
+    if (shouldShowEmailField() && emailCodeSent) {
+      if (!emailCode || emailCode.trim().length === 0) {
+        newErrors.emailCode = t('register.emailCodeRequired') || 'Please enter the verification code';
+        isValid = false;
+      }
+    }
+    console.log("newErrors",newErrors);
+   
     setErrors(newErrors);
     if (!isValid) {
       scrollToError(newErrors);
@@ -248,17 +380,21 @@ const Register = ({ navigation, route }) => {
       api.get(`/users?filters[phoneNumber][$endsWith]=${form.phone.replace(/\s/g, '').replace('+', '')}`),
     ]);
 
-    const acceptedLength = route?.params?.result?.user?.email?.endsWith('@apple.com') ? 0 : 1;
+    const acceptedLength = 0;
 
     if (Array.isArray(emailResponse.data) && emailResponse.data.length > acceptedLength) {
       setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
       trackRegisterFailure('email_already_exists');
+      // bring email into view
+      scrollToError({ email: true });
       return false;
     }
 
     if (Array.isArray(phoneResponse.data) && phoneResponse.data.length > 0) {
       setErrors(prev => ({ ...prev, phone: t('register.phoneTaken') }));
       trackRegisterFailure('phone_already_exists');
+      // bring phone into view
+      scrollToError({ phone: true });
       return false;
     }
  
@@ -306,25 +442,81 @@ const Register = ({ navigation, route }) => {
 
   const handleRegistrationError = (error) => {
     setIsLoading(false);
-    
-    if (error.response?.data?.emailExists === true) {
+    const data = error?.response?.data;
+    const message = data?.error?.message || data?.message || '';
+
+    // Normalize message for matching
+    const msg = (typeof message === 'string' ? message : '').toLowerCase();
+
+    // 1) Explicit boolean flags
+    if (data?.emailExists === true) {
       trackRegisterFailure('email_already_exists');
       setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
-    } else if (error.response?.data?.phoneExists === true) {
+      scrollToError({ email: true });
+      return;
+    }
+    if (data?.phoneExists === true) {
       trackRegisterFailure('phone_already_exists');
       setErrors(prev => ({ ...prev, phone: t('register.phoneTaken') }));
-    } else if (error.response?.data?.status === 'error') {
-      trackRegisterFailure('general_error', error.response?.data?.error?.message);
+      scrollToError({ phone: true });
+      return;
+    }
+
+    // 2) Message-based detection
+    if (msg.includes('email already exists') || msg.includes('email exists')) {
+      trackRegisterFailure('email_already_exists');
+      setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
+      scrollToError({ email: true });
+      return;
+    }
+    if (msg.includes('phone already exists') || msg.includes('phone exists')) {
+      trackRegisterFailure('phone_already_exists');
+      setErrors(prev => ({ ...prev, phone: t('register.phoneTaken') }));
+      scrollToError({ phone: true });
+      return;
+    }
+
+    // 3) Field-level errors array or object
+    const errorsArr = data?.errors || data?.error?.details || [];
+    if (Array.isArray(errorsArr) && errorsArr.length > 0) {
+      let setAny = false;
+      errorsArr.forEach(e => {
+        const path = (e?.path || e?.field || '').toString().toLowerCase();
+        const msg = (e?.message || '').toLowerCase();
+        if (path.includes('email') || msg.includes('email')) {
+          setAny = true;
+          setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
+        }
+        if (path.includes('phone') || msg.includes('phone')) {
+          setAny = true;
+          setErrors(prev => ({ ...prev, phone: t('register.phoneTaken') }));
+        }
+      });
+      if (setAny) {
+        // Prefer focusing email first, else phone
+        const target = errorsArr.find(e => (e?.path || '').toString().toLowerCase().includes('email')) ? { email: true } : { phone: true };
+        scrollToError(target);
+        return;
+      }
+    }
+
+    // 4) Generic server error
+    if (data?.status === 'error' || error?.response?.status >= 400) {
+      trackRegisterFailure('general_error', message);
       Alert.alert(t('common.error'), t('register.generalError'), [
         { text: t('common.ok') },
       ]);
-    } else {
-      trackRegisterFailure('network_error', error.message);
+      return;
     }
+
+    // 5) Network or unknown error
+    trackRegisterFailure('network_error', error?.message);
   };
 
   // Submit handlers
   const handleSubmit = async () => {
+
+   
     if (!validate()) return;
 
     setIsLoading(true);
@@ -341,6 +533,25 @@ if(route?.params?.number)
     }
   }
 
+    // Verify email code before proceeding (if email field is part of the flow)
+    if (shouldShowEmailField()) {
+      if (!emailCodeSent || !emailCode?.trim()) {
+        setErrors(prev => ({ ...prev, emailCode: t('register.emailCodeRequired') || 'Please enter the verification code' }));
+        setIsLoading(false);
+        return;
+      }
+      try {
+        await api.post('codes/verify-registration-code', {
+          email: (form.email || '').toLowerCase(),
+          code: emailCode.trim(),
+        });
+      } catch (e) {
+        setIsLoading(false);
+        setErrors(prev => ({ ...prev, emailCode: t('register.invalidCode') || 'Invalid or expired verification code' }));
+        return;
+      }
+    }
+
     try {
       const deviceId = await getPersistentDeviceId();
       const response = await api.post('register/client', {
@@ -355,16 +566,19 @@ if(route?.params?.number)
         device_id:deviceId, // Add deviceId to registration payload
       });
 
-      console.log(response?.data);
-
+ 
       if(response?.data?.phoneExists==true){
         setErrors(prev => ({ ...prev, phone: t('register.phoneTaken') }));
+        // Bring phone error into view
+        scrollToError({ phone: true });
         setIsLoading(false);
         return
       }
       
       if(response?.data?.emailExists==true){
         setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
+        // Bring email error into view
+        scrollToError({ email: true });
         setIsLoading(false);
         return
       }
@@ -373,21 +587,36 @@ if(route?.params?.number)
       setIsLoading(false);
       handleRegistrationSuccess(response);
     } catch (error) {
+      console.log("error",error);
       setIsLoading(false);
-      console.log("error",error.response);
-      if(error?.response?.data?.error?.message=="Email already exists")
-        setErrors(prev => ({ ...prev, email: t('register.emailTaken') }));
-
-      
       handleRegistrationError(error);
     }
   };
 
   const handleUpdate = async () => {
+    console.log("handleUpdate");
     if (!validate()) return;
-   
+    
     const userExists = await checkUserExists();
-    if (!userExists) return;
+    console.log("userExists",userExists);
+    if (!userExists&&!["google","apple"].includes(route?.params?.result?.user.provider)) return;
+   
+    // Verify email code before proceeding when editing
+    if (shouldShowEmailField()) {
+      if (!emailCodeSent || !emailCode?.trim()) {
+        setErrors(prev => ({ ...prev, emailCode: t('register.emailCodeRequired') || 'Please enter the verification code' }));
+        return;
+      }
+      try {
+        await api.post('codes/verify-registration-code', {
+          email: (form.email || '').toLowerCase(),
+          code: emailCode.trim(),
+        });
+      } catch (e) {
+        setErrors(prev => ({ ...prev, emailCode: t('register.invalidCode') || 'Invalid or expired verification code' }));
+        return;
+      }
+    }
 
     navigation.navigate('confirmation', {
       put: true,
@@ -408,12 +637,12 @@ if(route?.params?.number)
   // Render helpers
   const renderInputField = (field, placeholder, options = {}) => (
     <View style={loginStyles.inputContainer}>
-      <Text style={[loginStyles.inputLabel, { textAlign: 'left' }]}>
+      <Text style={[loginStyles.inputLabel, { textAlign: 'left', fontSize: LABEL_FONT_SIZE }]}>
         {t(`register.${field}`)}
       </Text>
       <TextInput
         ref={options.ref}
-        style={[loginStyles.input, errors[field] && loginStyles.inputError]}
+        style={[loginStyles.input, errors[field] && loginStyles.inputError, { marginTop: 8 }]}
         placeholder={placeholder}
         placeholderTextColor="#8391A1"
         value={form[field]}
@@ -421,20 +650,121 @@ if(route?.params?.number)
         autoCapitalize={options.autoCapitalize || 'none'}
         keyboardType={options.keyboardType}
         secureTextEntry={field === 'password' ? !show : false}
+        onFocus={options.onFocus}
         {...options}
       />
       {errors[field] && (
-        <Text style={loginStyles.errorText}>{errors[field]}</Text>
+        <Text style={[loginStyles.errorText, { fontSize: ERROR_FONT_SIZE }]}>{errors[field]}</Text>
+      )}
+    </View>
+  );
+
+  const formatEmailTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const renderEmailField = () => (
+    <View style={loginStyles.inputContainer}>
+      <Text style={[loginStyles.inputLabel, { textAlign: 'left', fontSize: LABEL_FONT_SIZE }]}>
+        {t('register.email')}
+      </Text>
+      {/* Instruction under label */}
+      <Text style={{ color: '#6B7280', fontSize: INFO_FONT_SIZE, marginTop: 4 }}>
+        {t('register.emailInstruction')}
+      </Text>
+      <View style={[loginStyles.passwordInputWrapper, errors.email && loginStyles.inputError, { marginTop: 8 }]}> 
+        <TextInput
+          ref={emailRef}
+          style={[loginStyles.passwordInput]}
+          placeholder={t('register.emailPlaceholder')}
+          placeholderTextColor="#8391A1"
+          value={form.email}
+          onChangeText={v => handleChange('email', v)}
+          autoCapitalize='none'
+          keyboardType='email-address'
+          onFocus={() => { lastFocusedRef.current = emailRef; scrollToInput(emailRef); }}
+        />
+      </View>
+      {/* Send code button below input */}
+      <TouchableOpacity
+        onPress={handleSendEmailCode}
+        disabled={
+          isSendingEmailCode || emailTimer > 0 || !!validateField('email', form.email || '')
+        }
+        style={[
+          {
+            alignSelf: 'flex-start',
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            borderRadius: 12,
+            marginTop: 12,
+            backgroundColor: '#fff',
+            borderWidth: 1,
+            borderColor: (isSendingEmailCode || emailTimer > 0 || !!validateField('email', form.email || '')) ? '#E5E7EB' : PRIMARY_COLOR,
+          },
+        ]}
+      >
+        {isSendingEmailCode ? (
+          <ActivityIndicator size="small" color={PRIMARY_COLOR} />
+        ) : (
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons
+              name="mail-outline"
+              size={18}
+              color={(emailTimer > 0 || !!validateField('email', form.email || '')) ? '#9CA3AF' : PRIMARY_COLOR}
+              style={{ marginRight: 8 }}
+            />
+            <Text style={{
+              fontWeight: '700',
+              color: (emailTimer > 0 || !!validateField('email', form.email || '')) ? '#9CA3AF' : PRIMARY_COLOR,
+            }}>
+              {emailTimer > 0 ? `${t('register.codeSent')} · ${formatEmailTime(emailTimer)}` : (t('register.sendVerification') || 'Send code to email')}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      {errors.email && (
+        <Text style={[loginStyles.errorText, { marginTop: 5, fontSize: ERROR_FONT_SIZE }]}>{errors.email}</Text>
+      )}
+
+      {emailCodeSent && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={{ color: '#6B7280', fontSize: INFO_FONT_SIZE, marginBottom: 6 }}>
+            {t('register.checkSpam')}
+          </Text>
+          <Text style={[loginStyles.inputLabel, { textAlign: 'left', fontSize: LABEL_FONT_SIZE }]}>
+            {t('register.emailCode') || 'Verification code'}
+          </Text>
+          <Text style={{ color: '#6B7280', fontSize: INFO_FONT_SIZE, marginTop: 2, marginBottom: 6 }}>
+            {t('register.enterCodeHelp')}
+          </Text>
+          <TextInput
+            ref={emailCodeRef}
+            style={[loginStyles.input, errors.emailCode && loginStyles.inputError, { marginTop: 8 }]}
+            placeholder={t('register.emailCodePlaceholder') || 'Enter code'}
+            placeholderTextColor="#8391A1"
+            value={emailCode}
+            onChangeText={setEmailCode}
+            keyboardType='number-pad'
+            onFocus={() => { lastFocusedRef.current = emailCodeRef; scrollToInput(emailCodeRef); }}
+            maxLength={6}
+          />
+          {errors.emailCode && (
+            <Text style={[loginStyles.errorText, { marginTop: 5, fontSize: ERROR_FONT_SIZE }]}>{errors.emailCode}</Text>
+          )}
+        </View>
       )}
     </View>
   );
 
   const renderPasswordField = () => (
     <View style={loginStyles.inputContainer}>
-      <Text style={[loginStyles.inputLabel, { textAlign: 'left' }]}>
+      <Text style={[loginStyles.inputLabel, { textAlign: 'left', fontSize: LABEL_FONT_SIZE }]}>
         {t('register.password')}
       </Text>
-      <View style={[loginStyles.passwordInputWrapper, errors.password && loginStyles.inputError]}>
+      <View style={[loginStyles.passwordInputWrapper, errors.password && loginStyles.inputError, { marginTop: 8 }]}>
         <TextInput
           ref={passwordRef}
           style={loginStyles.passwordInput}
@@ -443,6 +773,7 @@ if(route?.params?.number)
           value={form.password}
           onChangeText={v => handleChange('password', v)}
           secureTextEntry={!show}
+          onFocus={() => { lastFocusedRef.current = passwordRef; scrollToInput(passwordRef); }}
         />
         <TouchableOpacity onPress={() => setShow(!show)} style={loginStyles.eyeIcon}>
           <Ionicons
@@ -453,17 +784,17 @@ if(route?.params?.number)
         </TouchableOpacity>
       </View>
       {errors.password && (
-        <Text style={[loginStyles.errorText, { marginTop: 5 }]}>{errors.password}</Text>
+        <Text style={[loginStyles.errorText, { marginTop: 5, fontSize: ERROR_FONT_SIZE }]}>{errors.password}</Text>
       )}
     </View>
   );
 
   const renderPhoneField = () => (
     <View ref={phoneFieldRef} style={loginStyles.inputContainer}>
-      <Text style={[loginStyles.inputLabel, { textAlign: 'left' }]}>
+      <Text style={[loginStyles.inputLabel, { textAlign: 'left', fontSize: LABEL_FONT_SIZE }]}>
         {t('register.phone')}
       </Text>
-      <View style={[loginStyles.passwordInputWrapper, errors.phone && loginStyles.inputError, { marginBottom: 0 }]}>
+      <View style={[loginStyles.passwordInputWrapper, errors.phone && loginStyles.inputError, { marginBottom: 0, marginTop: 8 }]}>
         <PhoneInput
           autoFormat
           initialCountry="tn"
@@ -488,6 +819,7 @@ if(route?.params?.number)
               flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
               paddingHorizontal: 10,
             },
+            onFocus: () => { lastFocusedRef.current = phoneFieldRef; scrollToInput(phoneFieldRef); },
           }}
           ref={phoneInput}
           value={form.phone}
@@ -495,7 +827,7 @@ if(route?.params?.number)
         />
       </View>
       {errors.phone && (
-        <Text style={[loginStyles.errorText, { marginTop: 5 }]}>{errors.phone}</Text>
+        <Text style={[loginStyles.errorText, { marginTop: 5, fontSize: ERROR_FONT_SIZE }]}>{errors.phone}</Text>
       )}
     </View>
   );
@@ -509,45 +841,70 @@ if(route?.params?.number)
   };
 
   const handleSubmitPress = () => { 
-    return route?.params?.result?.user ? handleUpdate : handleSubmit;
+    console.log("handleSubmitPress");
+    return route?.params?.result?.user ? handleUpdate() : handleSubmit();
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : null}
       >
         <View style={{ flex: 1, backgroundColor: 'white' }}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={{
-              alignSelf: 'flex-start',
-              marginLeft: 16,
-              marginTop: 16,
-              marginBottom: 8,
-            }}>
-            <Ionicons
-              name={I18nManager.isRTL ? 'arrow-forward' : 'arrow-back'}
-              size={28}
-              color={PRIMARY_COLOR}
-            />
-          </TouchableOpacity>
+          {/* Fixed header bar with safe padding */}
+          <View style={[
+            loginStyles.header,
+            {
+              borderBottomWidth: 1,
+              borderBottomColor: '#F3F4F6',
+              paddingBottom: 12,
+              paddingTop: insets.top+20 || 0,
+              backgroundColor: 'white',
+            }
+          ]}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={loginStyles.closeButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+            >
+              <Ionicons
+                name={I18nManager.isRTL ? 'arrow-forward' : 'arrow-back'}
+                size={22}
+                color={'#111827'}
+              />
+            </TouchableOpacity>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: '#111827' }}>
+              {t('register.createAccount')}
+            </Text>
+            {/* Spacer to keep title centered */}
+            <View style={{ width: 40, height: 40 }} />
+          </View>
 
           <ScrollView
             ref={scrollViewRef}
             style={{ paddingHorizontal: 10, flex: 1 }}
-            contentContainerStyle={{ paddingBottom: 20 }}>
-            <View style={loginStyles.header}>
-              <Text style={loginStyles.headerTitle}>
-                {t('register.createAccount')}
-              </Text>
-            </View>
-
+            contentContainerStyle={{ paddingBottom: Math.max((footerHeight || 0) + 40, Platform.OS === 'ios' ? 120 : 100) }}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+            onScroll={(e) => {
+              currentScrollY.current = e?.nativeEvent?.contentOffset?.y || 0;
+            }}
+            onContentSizeChange={() => {
+              if (lastFocusedRef.current) {
+                // re-check after layout changes (validation errors, etc.)
+                setTimeout(() => scrollToInput(lastFocusedRef.current), 30);
+              }
+            }}
+            scrollEventThrottle={16}
+          >
             <View style={loginStyles.formContainer}>
               {renderInputField('name', t('register.namePlaceholder'), {
                 ref: nameRef,
                 autoCapitalize: 'words',
+                onFocus: () => { lastFocusedRef.current = nameRef; scrollToInput(nameRef); },
               })}
 
               {renderPhoneField()}
@@ -564,11 +921,7 @@ if(route?.params?.number)
                 filterProps={{ placeholder: t('login.search') }}
               />
 
-              {shouldShowEmailField() &&
-                renderInputField('email', t('register.emailPlaceholder'), {
-                  ref: emailRef,
-                  keyboardType: 'email-address',
-                })}
+              {shouldShowEmailField() && renderEmailField()}
 
               {shouldShowPasswordField() && renderPasswordField()}
 
@@ -584,14 +937,17 @@ if(route?.params?.number)
             </View>
           </ScrollView>
 
-          <View style={loginStyles.submitButtonContainer}>
+          <View
+            style={loginStyles.submitButtonContainer}
+            onLayout={(e) => setFooterHeight(e?.nativeEvent?.layout?.height || 0)}
+          >
             <TouchableOpacity
               style={[
                 loginStyles.btn,
                 isLoading && loginStyles.btnDisabled,
                 { backgroundColor: PRIMARY_COLOR },
               ]}
-              onPress={handleSubmitPress()}
+              onPress={handleSubmitPress}
               disabled={isLoading}>
               {isLoading ? (
                 <ActivityIndicator size="small" color="#fff" />
@@ -604,7 +960,7 @@ if(route?.params?.number)
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

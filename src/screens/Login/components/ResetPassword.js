@@ -3,9 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
-  SafeAreaView,
   Platform,
   StatusBar,
   KeyboardAvoidingView,
@@ -21,6 +19,9 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { styles as loginStyles } from "../styles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ResetPassword = ({route}) => {
   const [password, setPassword] = useState("");
@@ -34,6 +35,7 @@ const ResetPassword = ({route}) => {
   const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
  
   const validatePassword = () => {
     const newErrors = {};
@@ -82,106 +84,144 @@ const ResetPassword = ({route}) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }]}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back-outline" size={25} color="black" />
-      </TouchableOpacity>
-
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <View style={[styles.container]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : null}
         style={{ flex: 1 }}
-      //  keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        <ScrollView 
-          contentContainerStyle={{ 
-            flexGrow: 1,
-            paddingBottom: Platform.OS === 'ios' ? 150 : 100
-          }}
-          keyboardShouldPersistTaps="handled"
+        {/* Header with safe top padding */}
+        <View style={{ paddingTop: insets.top }}>
+          <View style={loginStyles.header}>
+            <TouchableOpacity
+              style={loginStyles.closeButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Icon name="close" size={24} color="#000000" />
+            </TouchableOpacity>
+            <View style={{ width: 40, height: 40 }} />
+          </View>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+         // keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ flex: 1 }}>
-            <View style={{ height: 400 }}>
-              {/* <Image
-                style={{ width: "100%", height: "100%" }}
-                source={require("../../../assets/resetPass.png")}
-                resizeMode="contain"
-              /> */}
-            </View>
+          <View style={loginStyles.content}>
+            <Text style={styles.title}>{t("auth.resetPassword")}</Text>
 
-            <View style={{ paddingHorizontal: 24, marginTop: 20 }}>
-              <Text style={styles.title}>{t("auth.resetPassword")}</Text>
- 
-
-              <View style={[styles.passwordContainer, errors.confirmPassword && styles.passwordContainerError, { marginTop: 15 }]}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t("auth.newPassword")}
-                    value={password}
-                    onChangeText={(text) => {
-                      setPassword(text);
-                      setErrors({ ...errors, password: null });
-                    }}
-                    placeholderTextColor="#ccc"
-                    secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity style={{height:"100%",width:60,alignItems:"center",justifyContent:"center"}} onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={!showPassword ? "eye-off" : "eye"}
-                    size={20}
-                    color="gray"
-                  />
-                </TouchableOpacity>
-              </View>
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-              <View style={[styles.passwordContainer, errors.confirmPassword && styles.passwordContainerError, { marginTop: 15 }]}>
-                <TextInput
-                  style={styles.passwordInput}
-                  placeholder={t("auth.confirmPassword")}
-                  value={confirmPassword}
-                  onChangeText={(text) => {
-                    setConfirmPassword(text);
-                    setErrors({ ...errors, confirmPassword: null });
-                  }}
-                  placeholderTextColor="#ccc"
-                  secureTextEntry={!showConfirmPassword}
-                />
-                <TouchableOpacity style={{height:"100%",width:60,alignItems:"center",justifyContent:"center"}} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <Ionicons
-                    name={!showConfirmPassword ? "eye-off" : "eye"}
-                    size={20}
-                    color="gray"
-                  />
-                </TouchableOpacity>
-              </View>
-              {errors.confirmPassword && (
-                <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-              )}
-
+            <View
+              style={[
+                styles.passwordContainer,
+                errors.confirmPassword && styles.passwordContainerError,
+                { marginTop: 15 },
+              ]}
+            >
+              <TextInput
+                style={styles.passwordInput}
+                placeholder={t("auth.newPassword")}
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  setErrors({ ...errors, password: null });
+                }}
+                placeholderTextColor="#ccc"
+                secureTextEntry={!showPassword}
+              />
               <TouchableOpacity
-                style={[styles.loginButton, loading && styles.loginButtonDisabled, { marginTop: 40 }]}
-                onPress={handleResetPassword}
-                disabled={loading}
+                style={{
+                  height: "100%",
+                  width: 60,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={() => setShowPassword(!showPassword)}
               >
-                {loading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.loginText}>{t("auth.reset")}</Text>
-                )}
+                <Ionicons
+                  name={!showPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="gray"
+                />
               </TouchableOpacity>
-
-              {!sent && (
-                <Text style={[styles.sentMessage, { color: "#FF3B30" }]}>
-                  {t("email.reset_failed")}
-                </Text>
-              )}
             </View>
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
+
+            <View
+              style={[
+                styles.passwordContainer,
+                errors.confirmPassword && styles.passwordContainerError,
+                { marginTop: 15 },
+              ]}
+            >
+              <TextInput
+                style={styles.passwordInput}
+                placeholder={t("auth.confirmPassword")}
+                value={confirmPassword}
+                onChangeText={(text) => {
+                  setConfirmPassword(text);
+                  setErrors({ ...errors, confirmPassword: null });
+                }}
+                placeholderTextColor="#ccc"
+                secureTextEntry={!showConfirmPassword}
+              />
+              <TouchableOpacity
+                style={{
+                  height: "100%",
+                  width: 60,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Ionicons
+                  name={!showConfirmPassword ? "eye-off" : "eye"}
+                  size={20}
+                  color="gray"
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.confirmPassword && (
+              <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+            )}
+
+            {!sent && (
+              <Text
+                style={[
+                  styles.sentMessage,
+                  { color: "#FF3B30" },
+                ]}
+              >
+                {t("email.reset_failed")}
+              </Text>
+            )}
           </View>
         </ScrollView>
+
+        {/* Fixed Footer Submit Button with safe bottom padding */}
+        <View
+          style={[
+            loginStyles.submitButtonContainer,
+           
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              loginStyles.btn,
+              loading && loginStyles.btnDisabled,
+            ]}
+            onPress={handleResetPassword}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={loginStyles.btnText}>{t("auth.reset")}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
 
       <Modal
@@ -189,43 +229,72 @@ const ResetPassword = ({route}) => {
         transparent={true}
         animationType="fade"
       >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <View style={{
-            backgroundColor: 'white',
-            padding: 20,
-            borderRadius: 10,
-            width: '80%',
-            alignItems: 'center',
-          }}>
-            <Ionicons name="checkmark-circle" size={60} color="#4CAF50" style={{ marginBottom: 20 }} />
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 20,
+              borderRadius: 10,
+              width: "80%",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons
+              name="checkmark-circle"
+              size={60}
+              color="#4CAF50"
+              style={{ marginBottom: 20 }}
+            />
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 10,
+                textAlign: "center",
+              }}
+            >
               {t("auth.passwordResetSuccess")}
             </Text>
-            <Text style={{ fontSize: 14, color: '#666', marginBottom: 20, textAlign: 'center' }}>
+            <Text
+              style={{
+                fontSize: 14,
+                color: "#666",
+                marginBottom: 20,
+                textAlign: "center",
+              }}
+            >
               {t("auth.passwordResetSuccessMessage")}
             </Text>
             <TouchableOpacity
               style={{
-                backgroundColor: '#0c0c0c',
+                backgroundColor: "#0c0c0c",
                 paddingVertical: 12,
                 paddingHorizontal: 30,
                 borderRadius: 8,
               }}
               onPress={handleGoToLogin}
             >
-              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600' }}>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}
+              >
                 {t("auth.goToLogin")}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

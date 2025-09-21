@@ -53,7 +53,7 @@ export const Card = ({ order, refresh, index }) => {
 
   const getStatusIcon = (status) => {
     const statusIcons = {
-      'pending': 'clock-outline',
+      'pending': 'time-outline',
       'dispatched_to_partner': 'send-outline',
       'assigned_to_driver': 'person-outline',
       'driver_on_route_to_pickup': 'car-outline',
@@ -106,6 +106,8 @@ export const Card = ({ order, refresh, index }) => {
     navigation.navigate("OrderDetails", { id: order.documentId, refresh });
   };
 
+ 
+
   return (
     <Animated.View 
       style={[
@@ -142,16 +144,22 @@ export const Card = ({ order, refresh, index }) => {
               <Text style={styles.orderDate}>{formatDate(order.createdAt)}</Text>
             </View>
           </View>
-          
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.commandStatus) }]}>
-            <Ionicons 
-              name={getStatusIcon(order.commandStatus)} 
-              size={14} 
-              color="#FFFFFF" 
-            />
-            <Text style={styles.statusText} numberOfLines={1}>
-              {getStatusTranslation(order.commandStatus)}
-            </Text>
+          <View style={styles.headerRight}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.commandStatus) }]}>
+              <Ionicons 
+                name={getStatusIcon(order.commandStatus)} 
+                size={14} 
+                color="#FFFFFF" 
+              />
+              <Text style={styles.statusText} numberOfLines={1}>
+                {getStatusTranslation(order.commandStatus)}
+              </Text>
+            </View>
+            {String(order?.commandStatus || '').toLowerCase() === 'completed' && !order?.review && (
+              <View style={styles.rateTag}>
+                <Text style={styles.rateTagText}>{t('history.card.rate_trip')}</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -304,6 +312,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     maxWidth: 120,
   },
+  headerRight: {
+   // flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   statusText: {
     fontSize: 12,
     color: "#FFFFFF",
@@ -390,6 +403,20 @@ const styles = StyleSheet.create({
   footerRight: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  rateTag: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  rateTagText: {
+    color: '#000000',
+    fontSize: 12,
+    fontWeight: '700',
   },
   price: {
     fontSize: 16,

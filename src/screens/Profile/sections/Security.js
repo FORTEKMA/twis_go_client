@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, SafeAreaView, StatusBar, Keyboard, TouchableWithoutFeedback, I18nManager } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, I18nManager } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { styles } from '../styles';
 import { changePassword } from '../../../store/userSlice/userSlice';
@@ -7,11 +7,13 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Security = () => {
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -197,16 +199,15 @@ const Security = () => {
   );
 
   return (
-    <SafeAreaView style={styles.uberContainer}>
+    <View style={styles.uberContainer}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.uberMainContainer}>
             {/* Modern Header */}
-            <View style={styles.uberSectionHeader}>
+            <View style={[styles.uberSectionHeader, { paddingTop: insets.top }]}>
               <TouchableOpacity 
                 style={styles.uberBackButton}
                 onPress={() => navigation.goBack()}
@@ -228,9 +229,11 @@ const Security = () => {
 
             <ScrollView
               style={styles.uberScrollView}
-              contentContainerStyle={styles.uberScrollContainer}
+              contentContainerStyle={[styles.uberScrollContainer, { paddingBottom: 120 }]}
               showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+              keyboardShouldPersistTaps="always"
+              keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+              contentInsetAdjustmentBehavior="automatic"
             >
               {/* Password Change Section */}
               <View style={styles.uberFormSection}>
@@ -295,7 +298,6 @@ const Security = () => {
               </View>
             </ScrollView>
           </View>
-        </TouchableWithoutFeedback>
 
         {/* Modern Action Button */}
         <View style={styles.uberActionContainer}>
@@ -321,7 +323,7 @@ const Security = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 

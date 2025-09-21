@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, I18nManager, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, I18nManager, Platform, Keyboard } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
-import { getDistanceFromGoogleAPI, getDistanceFromLatLonInMeters } from '../../../utils/helpers/mapUtils';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { API_GOOGLE } from "@env";
 import { 
@@ -35,9 +34,8 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
   
   const [dropoffAddress, setDropoffAddress] = useState(formData?.dropAddress || {});
   const [isLocationValid, setIsLocationValid] = useState(true);
-  const [isDistanceValid, setIsDistanceValid] = useState(true);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
-  const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const inputRef = useRef(null);
   const isInitialLoad = useRef(true);
   const previousDropoffAddress = useRef(null);
@@ -47,21 +45,23 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
     trackBookingStepViewed(2, 'Dropoff Location');
   }, []);
 
-  // Function to validate distance using Google API
-  const validateDistance = async (pickupLat, pickupLng, dropoffLat, dropoffLng) => {
-    try {
-      setIsCalculatingDistance(true);
-      const distance = await getDistanceFromGoogleAPI(pickupLat, pickupLng, dropoffLat, dropoffLng);
-      setIsDistanceValid(distance >= 100);
-      return distance;
-    } catch (error) {
-      console.error('Error calculating distance:', error);
-      // If API fails, we'll keep the previous validation state
-      return null;
-    } finally {
-      setIsCalculatingDistance(false);
+  // Keyboard listeners for iOS optimization
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (event) => {
+        setKeyboardHeight(event.endCoordinates.height);
+      });
+      const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
+        setKeyboardHeight(0);
+      });
+
+      return () => {
+        keyboardWillShowListener?.remove();
+        keyboardWillHideListener?.remove();
+      };
     }
-  };
+  }, []);
+
 
   useEffect(() => {
     if (formData?.dropAddress) {
@@ -83,27 +83,6 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
       
       const isValid = isInTunisia(formData.dropAddress.latitude, formData.dropAddress.longitude);
       setIsLocationValid(isValid);
-      
-      // Distance check using Google API - only if address has changed
-      if (formData.pickupAddress && formData.dropAddress && hasAddressChanged) {
-        validateDistance(
-          formData.pickupAddress.latitude,
-          formData.pickupAddress.longitude,
-          formData.dropAddress.latitude,
-          formData.dropAddress.longitude
-        );
-      } else if (!hasAddressChanged && formData.pickupAddress && formData.dropAddress) {
-        // If address hasn't changed, just validate the existing distance without API call
-        const dist = getDistanceFromLatLonInMeters(
-          formData.pickupAddress.latitude,
-          formData.pickupAddress.longitude,
-          formData.dropAddress.latitude,
-          formData.dropAddress.longitude
-        );
-        setIsDistanceValid(dist >= 100);
-      } else {
-        setIsDistanceValid(true);
-      }
       
       inputRef.current?.clear();
     }
@@ -128,27 +107,6 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
       
       const isValid = isInTunisia(details.geometry.location.lat, details.geometry.location.lng);
       setIsLocationValid(isValid);
-      
-      // Distance check using Google API - only if address has changed
-      if (formData.pickupAddress && hasAddressChanged) {
-        await validateDistance(
-          formData.pickupAddress.latitude,
-          formData.pickupAddress.longitude,
-          newAddress.latitude,
-          newAddress.longitude
-        );
-      } else if (!hasAddressChanged && formData.pickupAddress) {
-        // If address hasn't changed, just validate the existing distance without API call
-        const dist = getDistanceFromLatLonInMeters(
-          formData.pickupAddress.latitude,
-          formData.pickupAddress.longitude,
-          newAddress.latitude,
-          newAddress.longitude
-        );
-        setIsDistanceValid(dist >= 100);
-      } else {
-        setIsDistanceValid(true);
-      }
       
       // Track location selection
       trackDropoffLocationSelected(newAddress, {
@@ -183,7 +141,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
   };
 
   // Check if we should show the ConfirmButton
-  const shouldShowConfirmButton = dropoffAddress.latitude && isLocationValid && isDistanceValid && !isCalculatingDistance;
+  const shouldShowConfirmButton = dropoffAddress.latitude && isLocationValid;
   
   // Check if we should show validation errors (only when user has interacted)
   const shouldShowErrors = hasUserInteracted;
@@ -202,74 +160,68 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
         </View>
       </View>
 
-      {/* Uber-style Search Input */}
-      <View style={localStyles.uberContent}>
-            
-            <GooglePlacesAutocomplete
-              predefinedPlacesAlwaysVisible={false}
-              placeholder={t('location.where_to', 'Where to?')}
-              debounce={300} 
-              onPress={handleLocationSelect}
-              textInputContainer={localStyles.searchContainer}
-             
-               textInputProps={{
-                style:localStyles.inputWrapper,
-                placeholder:formData?.dropAddress?.address ? formData?.dropAddress?.address : t('location.where_to', 'Where to?'),
-                placeholderTextColor:"#8E8E93",
-               ref:inputRef, 
-                
-               }}
-               renderLeftButton={()=>{
-                return (
-                  <MaterialCommunityIcons style={localStyles.leftIcon} name="square" size={12} color="#000" />
-                )
-               }}
-            
-              query={{
-                key: API_GOOGLE,
-                language: 'en',
-                components: 'country:tn',
-              }}
-              styles={{
-               
-                 
-                description: localStyles.description,
-              }}
-              fetchDetails={true}
-              enablePoweredByContainer={false}
-              minLength={2}
-            />
-        
-        {/* Loading State */}
-        {isCalculatingDistance && (
-          <View style={localStyles.loadingContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={localStyles.loadingText}>
-              {t('location.calculating_distance') || 'Calculating distance...'}
-            </Text>
-          </View>
-        )}
-        
-        {/* Error States */}
-        {shouldShowErrors && !isLocationValid && (
-          <View style={localStyles.errorContainer}>
-            <MaterialIcons name="error-outline" size={24} color="#ff3b30" />
-            <Text style={localStyles.errorText}>
-              {t('location.outside_tunisia') || 'This location is outside Tunisia. Please select a location within Tunisia.'}
-            </Text>
-          </View>
-        )}
-        
-        {shouldShowErrors && !isDistanceValid && !isCalculatingDistance && (
-          <View style={localStyles.errorContainer}>
-            <MaterialIcons name="error-outline" size={24} color="#ff3b30" />
-            <Text style={localStyles.errorText}>
-              {t('location.too_close') || 'The dropoff location must be at least 100 meters from the pickup location.'}
-            </Text>
-          </View>
-        )}
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={localStyles.scrollContent}
+        contentContainerStyle={localStyles.scrollContentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={localStyles.uberContent}>
+          <GooglePlacesAutocomplete
+            predefinedPlacesAlwaysVisible={false}
+            placeholder={t('location.where_to', 'Where to?')}
+            debounce={300} 
+            onPress={handleLocationSelect}
+            textInputContainer={localStyles.searchContainer}
+           
+             textInputProps={{
+              style:localStyles.inputWrapper,
+              placeholder:formData?.dropAddress?.address ? formData?.dropAddress?.address : t('location.where_to', 'Where to?'),
+              placeholderTextColor:"#8E8E93",
+             ref:inputRef, 
+              
+             }}
+             renderLeftButton={()=>{
+              return (
+                <MaterialCommunityIcons style={localStyles.leftIcon} name="square" size={12} color="#000" />
+              )
+             }}
 
-        {/* Uber-style Continue Button */}
+          
+            query={{
+              key: API_GOOGLE,
+              language: 'en',
+              components: 'country:tn',
+            }}
+            styles={{
+              textInput: {
+                
+                color: '#000',
+            
+              },
+               
+              description: localStyles.description,
+            }}
+            fetchDetails={true}
+            enablePoweredByContainer={false}
+            minLength={2}
+          />
+          
+          {/* Error States */}
+          {shouldShowErrors && !isLocationValid && (
+            <View style={localStyles.errorContainer}>
+              <MaterialIcons name="error-outline" size={24} color="#ff3b30" />
+              <Text style={localStyles.errorText}>
+                {t('location.outside_tunisia') || 'This location is outside Tunisia. Please select a location within Tunisia.'}
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Fixed Continue Button */}
+      <View style={localStyles.buttonContainer}>
         <TouchableOpacity
           style={[
             localStyles.uberButton,
@@ -326,9 +278,20 @@ const localStyles = StyleSheet.create({
     fontSize: 16,
     color: '#8E8E93',
   },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
   uberContent: {
     paddingHorizontal: 24,
     flex: 1,
+  },
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
   },
   searchContainer: {
     marginBottom: 24,
@@ -345,6 +308,7 @@ const localStyles = StyleSheet.create({
     flex:1,
     marginBottom:15,
     paddingLeft:30,
+    color:"#000"
   },
   leftIcon: {
     marginRight: 12,
@@ -400,20 +364,6 @@ const localStyles = StyleSheet.create({
   searchIconContainer: {
     marginLeft: 12,
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  loadingText: {
-    color: '#007AFF',
-    fontSize: 14,
-    marginLeft: 8,
-  },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,9 +386,6 @@ const localStyles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 'auto',
-    marginBottom: Platform.OS === 'ios' ? 34 : 24,
-  
   },
   uberButtonDisabled: {
     backgroundColor: '#E5E5EA',

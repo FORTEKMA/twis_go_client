@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		00E356F31AD99517003FC87E /* TawsiletTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TawsiletTests.m */; };
-		0831E6CCA400B3F51A178401 /* libPods-Tawsilet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 96D48FAB2E5637020AE8AD2B /* libPods-Tawsilet.a */; };
-		0E725ECB36C4D235F20FADD9 /* libPods-Tawsilet-TawsiletTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B905468A0B6429E6A0C8509 /* libPods-Tawsilet-TawsiletTests.a */; };
+		00E356F31AD99517003FC87E /* TwisGoTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* TwisGoTests.m */; };
+		0831E6CCA400B3F51A178401 /* libPods-TwisGo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 96D48FAB2E5637020AE8AD2B /* libPods-TwisGo.a */; };
+		0E725ECB36C4D235F20FADD9 /* libPods-TwisGo-TwisGoTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B905468A0B6429E6A0C8509 /* libPods-TwisGo-TwisGoTests.a */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -28,7 +28,7 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = Tawsilet;
+			remoteInfo = "TwisGo";
 		};
 		528996DF2DD2AA1E00C6E3A8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -54,31 +54,31 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		00E356EE1AD99517003FC87E /* TawsiletTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TawsiletTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* TwisGoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "TwisGoTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		00E356F21AD99517003FC87E /* TawsiletTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TawsiletTests.m; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Tawsilet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tawsilet.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Tawsilet/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Tawsilet/AppDelegate.mm; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Tawsilet/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Tawsilet/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Tawsilet/main.m; sourceTree = "<group>"; };
+		00E356F21AD99517003FC87E /* TwisGoTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "TwisGoTests.m"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* TwisGo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TwisGo.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = "TwisGo/AppDelegate.h"; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = "TwisGo/AppDelegate.mm"; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = "TwisGo/Images.xcassets"; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = "TwisGo/Info.plist"; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = "TwisGo/main.m"; sourceTree = "<group>"; };
 		40AF54BE97F1FD55322DAC90 /* libPods-OneSignalNotificationServiceExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OneSignalNotificationServiceExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4B905468A0B6429E6A0C8509 /* libPods-Tawsilet-TawsiletTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tawsilet-TawsiletTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4C75C17940B80729CE6F65DA /* Pods-Tawsilet-TawsiletTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tawsilet-TawsiletTests.debug.xcconfig"; path = "Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests.debug.xcconfig"; sourceTree = "<group>"; };
+		4B905468A0B6429E6A0C8509 /* libPods-TwisGo-TwisGoTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TwisGo-TwisGoTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4C75C17940B80729CE6F65DA /* Pods-TwisGo-TwisGoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwisGo-TwisGoTests.debug.xcconfig"; path = "Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5259FCEA2E0F17780087EC51 /* Dynamic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dynamic.swift; sourceTree = "<group>"; };
 		5259FCEC2E0F17E30087EC51 /* loading.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = loading.json; sourceTree = "<group>"; };
-		528996D52DD2A9C900C6E3A8 /* Tawsilet.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Tawsilet.entitlements; path = Tawsilet/Tawsilet.entitlements; sourceTree = "<group>"; };
+		528996D52DD2A9C900C6E3A8 /* TwisGo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = TwisGo.entitlements; path = TwisGo/TwisGo.entitlements; sourceTree = "<group>"; };
 		528996DA2DD2AA1E00C6E3A8 /* OneSignalNotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OneSignalNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		528996FC2DD2AEDD00C6E3A8 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		52958A122DD3946800A01ACE /* Tawsilet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tawsilet-Bridging-Header.h"; sourceTree = "<group>"; };
+		52958A122DD3946800A01ACE /* TwisGo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TwisGo-Bridging-Header.h"; sourceTree = "<group>"; };
 		52958A132DD3946900A01ACE /* File.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = File.swift; sourceTree = "<group>"; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Tawsilet/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		96D48FAB2E5637020AE8AD2B /* libPods-Tawsilet.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tawsilet.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		AE8F1853FC4D31772718292B /* Pods-Tawsilet.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tawsilet.debug.xcconfig"; path = "Target Support Files/Pods-Tawsilet/Pods-Tawsilet.debug.xcconfig"; sourceTree = "<group>"; };
-		C26F97CE94B347AEF2034B9F /* Pods-Tawsilet.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tawsilet.release.xcconfig"; path = "Target Support Files/Pods-Tawsilet/Pods-Tawsilet.release.xcconfig"; sourceTree = "<group>"; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = "TwisGo/LaunchScreen.storyboard"; sourceTree = "<group>"; };
+		96D48FAB2E5637020AE8AD2B /* libPods-TwisGo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TwisGo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE8F1853FC4D31772718292B /* Pods-TwisGo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwisGo.debug.xcconfig"; path = "Target Support Files/Pods-TwisGo/Pods-TwisGo.debug.xcconfig"; sourceTree = "<group>"; };
+		C26F97CE94B347AEF2034B9F /* Pods-TwisGo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwisGo.release.xcconfig"; path = "Target Support Files/Pods-TwisGo/Pods-TwisGo.release.xcconfig"; sourceTree = "<group>"; };
 		C86D64D03A5DFD02573C9745 /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.debug.xcconfig"; sourceTree = "<group>"; };
-		E0406905E8513BCFB0E35E8C /* Pods-Tawsilet-TawsiletTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tawsilet-TawsiletTests.release.xcconfig"; path = "Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests.release.xcconfig"; sourceTree = "<group>"; };
+		E0406905E8513BCFB0E35E8C /* Pods-TwisGo-TwisGoTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TwisGo-TwisGoTests.release.xcconfig"; path = "Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F46FF8EDECF20D43463B844F /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OneSignalNotificationServiceExtension.release.xcconfig"; path = "Target Support Files/Pods-OneSignalNotificationServiceExtension/Pods-OneSignalNotificationServiceExtension.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -102,7 +102,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0E725ECB36C4D235F20FADD9 /* libPods-Tawsilet-TawsiletTests.a in Frameworks */,
+				0E725ECB36C4D235F20FADD9 /* libPods-TwisGo-TwisGoTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,7 +110,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0831E6CCA400B3F51A178401 /* libPods-Tawsilet.a in Frameworks */,
+				0831E6CCA400B3F51A178401 /* libPods-TwisGo.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,13 +125,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* TawsiletTests */ = {
+		00E356EF1AD99517003FC87E /* TwisGoTests */ = {
 			isa = PBXGroup;
 			children = (
-				00E356F21AD99517003FC87E /* TawsiletTests.m */,
+				00E356F21AD99517003FC87E /* TwisGoTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = TawsiletTests;
+			path = "TwisGoTests";
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -142,10 +142,10 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* Tawsilet */ = {
+		13B07FAE1A68108700A75B9A /* TwisGo */ = {
 			isa = PBXGroup;
 			children = (
-				528996D52DD2A9C900C6E3A8 /* Tawsilet.entitlements */,
+				528996D52DD2A9C900C6E3A8 /* TwisGo.entitlements */,
 				52958A132DD3946900A01ACE /* File.swift */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
@@ -155,10 +155,10 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
-				52958A122DD3946800A01ACE /* Tawsilet-Bridging-Header.h */,
+				52958A122DD3946800A01ACE /* TwisGo-Bridging-Header.h */,
 				5259FCEA2E0F17780087EC51 /* Dynamic.swift */,
 			);
-			name = Tawsilet;
+			name = "TwisGo";
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -166,8 +166,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				40AF54BE97F1FD55322DAC90 /* libPods-OneSignalNotificationServiceExtension.a */,
-				96D48FAB2E5637020AE8AD2B /* libPods-Tawsilet.a */,
-				4B905468A0B6429E6A0C8509 /* libPods-Tawsilet-TawsiletTests.a */,
+				96D48FAB2E5637020AE8AD2B /* libPods-TwisGo.a */,
+				4B905468A0B6429E6A0C8509 /* libPods-TwisGo-TwisGoTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -182,9 +182,9 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* Tawsilet */,
+				13B07FAE1A68108700A75B9A /* TwisGo */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* TawsiletTests */,
+				00E356EF1AD99517003FC87E /* TwisGoTests */,
 				528996DB2DD2AA1E00C6E3A8 /* OneSignalNotificationServiceExtension */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
@@ -198,8 +198,8 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* Tawsilet.app */,
-				00E356EE1AD99517003FC87E /* TawsiletTests.xctest */,
+				13B07F961A680F5B00A75B9A /* TwisGo.app */,
+				00E356EE1AD99517003FC87E /* TwisGoTests.xctest */,
 				528996DA2DD2AA1E00C6E3A8 /* OneSignalNotificationServiceExtension.appex */,
 			);
 			name = Products;
@@ -210,10 +210,10 @@
 			children = (
 				C86D64D03A5DFD02573C9745 /* Pods-OneSignalNotificationServiceExtension.debug.xcconfig */,
 				F46FF8EDECF20D43463B844F /* Pods-OneSignalNotificationServiceExtension.release.xcconfig */,
-				AE8F1853FC4D31772718292B /* Pods-Tawsilet.debug.xcconfig */,
-				C26F97CE94B347AEF2034B9F /* Pods-Tawsilet.release.xcconfig */,
-				4C75C17940B80729CE6F65DA /* Pods-Tawsilet-TawsiletTests.debug.xcconfig */,
-				E0406905E8513BCFB0E35E8C /* Pods-Tawsilet-TawsiletTests.release.xcconfig */,
+				AE8F1853FC4D31772718292B /* Pods-TwisGo.debug.xcconfig */,
+				C26F97CE94B347AEF2034B9F /* Pods-TwisGo.release.xcconfig */,
+				4C75C17940B80729CE6F65DA /* Pods-TwisGo-TwisGoTests.debug.xcconfig */,
+				E0406905E8513BCFB0E35E8C /* Pods-TwisGo-TwisGoTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -221,9 +221,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* TawsiletTests */ = {
+		00E356ED1AD99517003FC87E /* TwisGoTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TawsiletTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TwisGoTests" */;
 			buildPhases = (
 				DA3F50C231CEAEEE26FAA97F /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -237,14 +237,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = TawsiletTests;
-			productName = TawsiletTests;
-			productReference = 00E356EE1AD99517003FC87E /* TawsiletTests.xctest */;
+			name = TwisGoTests;
+			productName = TwisGoTests;
+			productReference = 00E356EE1AD99517003FC87E /* TwisGoTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* Tawsilet */ = {
+		13B07F861A680F5B00A75B9A /* TwisGo */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Tawsilet" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TwisGo" */;
 			buildPhases = (
 				5A23D920D0F459BDDC0A2224 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -263,9 +263,9 @@
 			dependencies = (
 				528996E02DD2AA1E00C6E3A8 /* PBXTargetDependency */,
 			);
-			name = Tawsilet;
-			productName = Tawsilet;
-			productReference = 13B07F961A680F5B00A75B9A /* Tawsilet.app */;
+			name = "TwisGo";
+			productName = "TwisGo";
+			productReference = 13B07F961A680F5B00A75B9A /* TwisGo.app */;
 			productType = "com.apple.product-type.application";
 		};
 		528996D92DD2AA1E00C6E3A8 /* OneSignalNotificationServiceExtension */ = {
@@ -310,7 +310,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Tawsilet" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "TwisGo" */;
 			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -323,8 +323,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* Tawsilet */,
-				00E356ED1AD99517003FC87E /* TawsiletTests */,
+				13B07F861A680F5B00A75B9A /* TwisGo */,
+				00E356ED1AD99517003FC87E /* TwisGoTests */,
 				528996D92DD2AA1E00C6E3A8 /* OneSignalNotificationServiceExtension */,
 			);
 		};
@@ -390,7 +390,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Tawsilet-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-TwisGo-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -417,15 +417,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		8BD8E571C6834356E30431AB /* [CP] Embed Pods Frameworks */ = {
@@ -434,15 +434,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet/Pods-Tawsilet-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo/Pods-TwisGo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet/Pods-Tawsilet-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo/Pods-TwisGo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Tawsilet/Pods-Tawsilet-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TwisGo/Pods-TwisGo-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		911446D4C69BC0B9B14C9285 /* [CP-User] [RNFB] Core Configuration */ = {
@@ -464,15 +464,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Tawsilet-TawsiletTests/Pods-Tawsilet-TawsiletTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TwisGo-TwisGoTests/Pods-TwisGo-TwisGoTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		AA0ED719E74C1DD451C11FBB /* [CP] Copy Pods Resources */ = {
@@ -481,15 +481,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet/Pods-Tawsilet-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo/Pods-TwisGo-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Tawsilet/Pods-Tawsilet-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-TwisGo/Pods-TwisGo-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Tawsilet/Pods-Tawsilet-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-TwisGo/Pods-TwisGo-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DA3F50C231CEAEEE26FAA97F /* [CP] Check Pods Manifest.lock */ = {
@@ -507,7 +507,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Tawsilet-TawsiletTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-TwisGo-TwisGoTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -562,7 +562,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* TawsiletTests.m in Sources */,
+				00E356F31AD99517003FC87E /* TwisGoTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -589,7 +589,7 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* Tawsilet */;
+			target = 13B07F861A680F5B00A75B9A /* TwisGo */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 		528996E02DD2AA1E00C6E3A8 /* PBXTargetDependency */ = {
@@ -602,14 +602,14 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4C75C17940B80729CE6F65DA /* Pods-Tawsilet-TawsiletTests.debug.xcconfig */;
+			baseConfigurationReference = 4C75C17940B80729CE6F65DA /* Pods-TwisGo-TwisGoTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = TawsiletTests/Info.plist;
+				INFOPLIST_FILE = "TwisGoTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -621,19 +621,19 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fortekma.tawsilet;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.twisgo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tawsilet.app/Tawsilet";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TwisGo.app/TwisGo";
 			};
 			name = Debug;
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E0406905E8513BCFB0E35E8C /* Pods-Tawsilet-TawsiletTests.release.xcconfig */;
+			baseConfigurationReference = E0406905E8513BCFB0E35E8C /* Pods-TwisGo-TwisGoTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
-				INFOPLIST_FILE = TawsiletTests/Info.plist;
+				INFOPLIST_FILE = "TwisGoTests/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -645,38 +645,39 @@
 					"-lc++",
 					"$(inherited)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fortekma.tawsilet;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.twisgo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Tawsilet.app/Tawsilet";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TwisGo.app/TwisGo";
 			};
 			name = Release;
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AE8F1853FC4D31772718292B /* Pods-Tawsilet.debug.xcconfig */;
+			baseConfigurationReference = AE8F1853FC4D31772718292B /* Pods-TwisGo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Tawsilet/Tawsilet.entitlements;
-				CURRENT_PROJECT_VERSION = 2;
+				CODE_SIGN_ENTITLEMENTS = TwisGo/TwisGo.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FK9X3BLG35;
 				ENABLE_BITCODE = NO;
-				INFOPLIST_FILE = Tawsilet/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Tawsilet;
+				INFOPLIST_FILE = "TwisGo/Info.plist";
+             INFOPLIST_KEY_CFBundleDisplayName = "Twis Go";
+				INFOPLIST_KEY_CFBundleDisplayName = TwisGo;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.1.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fortekma.tawsilet;
-				PRODUCT_NAME = Tawsilet;
-				SWIFT_OBJC_BRIDGING_HEADER = "Tawsilet-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.twisgo";
+				PRODUCT_NAME = "TwisGo";
+				SWIFT_OBJC_BRIDGING_HEADER = "TwisGo-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -685,29 +686,30 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C26F97CE94B347AEF2034B9F /* Pods-Tawsilet.release.xcconfig */;
+			baseConfigurationReference = C26F97CE94B347AEF2034B9F /* Pods-TwisGo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = Tawsilet/Tawsilet.entitlements;
-				CURRENT_PROJECT_VERSION = 2;
+				CODE_SIGN_ENTITLEMENTS = TwisGo/TwisGo.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FK9X3BLG35;
-				INFOPLIST_FILE = Tawsilet/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Tawsilet;
+				INFOPLIST_FILE = "TwisGo/Info.plist";
+             INFOPLIST_KEY_CFBundleDisplayName = "Twis Go";
+				INFOPLIST_KEY_CFBundleDisplayName = TwisGo;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.5;
+				MARKETING_VERSION = 1.1.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.fortekma.tawsilet;
-				PRODUCT_NAME = Tawsilet;
-				SWIFT_OBJC_BRIDGING_HEADER = "Tawsilet-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.twisgo";
+				PRODUCT_NAME = "TwisGo";
+				SWIFT_OBJC_BRIDGING_HEADER = "TwisGo-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -749,7 +751,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fortekma.tawsilet.OneSignalNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.twisgo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -792,7 +794,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fortekma.tawsilet.OneSignalNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.twisgo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -967,7 +969,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TawsiletTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "TwisGoTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -976,7 +978,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Tawsilet" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "TwisGo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -994,7 +996,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Tawsilet" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "TwisGo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

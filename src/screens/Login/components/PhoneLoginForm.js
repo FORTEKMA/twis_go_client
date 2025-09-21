@@ -10,7 +10,7 @@ import api from '../../../utils/api';
 import Toast from 'react-native-toast-message';
 import { ActivityIndicator } from 'react-native';
 
-const PhoneLoginForm = React.memo(() => {
+const PhoneLoginForm = React.memo(({ onLoginSuccess }) => {
   const { t } = useTranslation();
   const phoneInput = useRef(null);
   const [isFlagsVisible, setIsFlagsVisible] = useState(false);
@@ -68,7 +68,7 @@ const PhoneLoginForm = React.memo(() => {
           return;
         }
       }
-      navigation.navigate('confirmation', { number });
+      navigation.navigate('confirmation', { number, handleLoginSuccess: onLoginSuccess });
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -81,7 +81,7 @@ const PhoneLoginForm = React.memo(() => {
     } finally {
       setLoading(false);
     }
-  }, [number, isPhoneNumberValid, t, navigation]);
+  }, [number, isPhoneNumberValid, t, navigation, onLoginSuccess]);
 
   return (
     <View style={styles.formContainer}>

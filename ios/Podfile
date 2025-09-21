@@ -17,7 +17,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'Tawsilet' do
+target 'TwisGo' do
   pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
 
   rn_maps_path = '../node_modules/react-native-maps'
@@ -38,7 +38,7 @@ target 'Tawsilet' do
   )
 
 
-  target 'TawsiletTests' do
+  target 'TwisGoTests' do
     inherit! :complete
     # Pods for testing
   end

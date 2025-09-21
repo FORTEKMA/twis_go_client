@@ -35,11 +35,28 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
   const [showLoader, setShowLoader] = useState({}); // Ensure loader shows for at least 1s
   const user = useSelector(state => state.user.currentUser);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isReservationActive, setIsReservationActive] = useState(false);
   
   // Track step view
   useEffect(() => {
     trackBookingStepViewed(3, 'Vehicle Selection');
   }, []);
+
+  // Fetch parameters from API
+  const fetchParameters = async () => {
+    try {
+      const paramsRes = await api.get('parameters');
+      if (paramsRes?.data?.data && paramsRes.data.data.length > 0) {
+        const parameters = paramsRes.data.data[0];
+        console.log(parameters);
+        setIsReservationActive(parameters.isReservationActive || false);
+      }
+    } catch (error) {
+      console.error('Error fetching parameters:', error);
+      // Set default value if API fails
+      setIsReservationActive(false);
+    }
+  };
 
   // Fetch vehicle options from API
   const fetchVehicleOptions = async () => {
@@ -47,7 +64,7 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
       setIsLoadingVehicles(true);
       setError(null);
       const response = await api.get('/settings?populate[0]=icon');
-   
+      
       if (response?.data?.data && Array.isArray(response?.data?.data)) {
         // Filter out vehicles where show is false
         const visibleVehicles = response?.data?.data.filter(vehicle => vehicle.show !== false);
@@ -83,6 +100,7 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
   };
 
   useEffect(() => {
+    fetchParameters();
     fetchVehicleOptions();
   }, []);
 
@@ -493,13 +511,17 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
           <View style={localStyles.bottomRow}>
             {/* Date Picker Icon Button */}
             <TouchableOpacity
-              style={localStyles.datePickerIconButton}
+              style={[
+                localStyles.datePickerIconButton,
+                !isReservationActive && localStyles.datePickerIconButtonDisabled
+              ]}
+              disabled={!isReservationActive}
               onPress={selectedDate ? clearSelectedDate : showDatePicker}
             >
               <MaterialCommunityIcons 
                 name={selectedDate ? "calendar-remove" : "calendar"} 
                 size={24} 
-                color="#000" 
+                color={isReservationActive ? "#000" : "#BDBDBD"} 
               />
             </TouchableOpacity>
 
@@ -705,6 +727,10 @@ const localStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
    
+  },
+  datePickerIconButtonDisabled: {
+    backgroundColor: '#F8F8F8',
+    opacity: 0.5,
   },
   uberButton: {
     flex: 1,

@@ -12,6 +12,7 @@ import {
   StatusBar,
   ActivityIndicator,
   KeyboardAvoidingView,
+  I18nManager,
  } from 'react-native';
 import { colors } from '../../utils/colors';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -21,6 +22,8 @@ import Toast from 'react-native-toast-message';
 import { useSelector } from 'react-redux';
 import ImagePickerModal from '../Profile/components/ImagePickerModal';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import PhoneInput from 'react-native-phone-input';
+import CountryPicker from 'react-native-country-picker-modal';
 
 const REASONS = [
   'payment_issue',
@@ -35,17 +38,35 @@ const NewTicketScreen = ({ navigation, route }) => {
   const [command, setCommand] = useState('');
   const [commands, setCommands] = useState([]);
   const [description, setDescription] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
   const [file, setFile] = useState(null);
   const [isReasonModalVisible, setIsReasonModalVisible] = useState(false);
   const [isImagePickerVisible, setIsImagePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isCommandModalVisible, setIsCommandModalVisible] = useState(false);
+  const [isFlagsVisible, setIsFlagsVisible] = useState(false);
   const { t } = useTranslation();
   const currentUser = useSelector(state => state?.user?.currentUser);
+  const token = useSelector(state => state?.user?.token);
+
+  const isGuest = !currentUser?.id || currentUser?.id === 'guest' || token === -1;
+
+  const phoneInput = React.useRef(null);
+
+  const onSelectCountry = React.useCallback((selectedCountry) => {
+    if (phoneInput.current) {
+      phoneInput.current.selectCountry(selectedCountry.cca2.toLowerCase());
+    }
+    setIsFlagsVisible(false);
+  }, []);
 
   useEffect(() => {
-    fetchUserCommands();
-  }, []);
+    // Only fetch commands for authenticated users
+    if (!isGuest) {
+      fetchUserCommands();
+    }
+  }, [isGuest]);
 
   const fetchUserCommands = async () => {
     try {
@@ -148,6 +169,34 @@ const NewTicketScreen = ({ navigation, route }) => {
   };
 
   const handleSubmit = async () => {
+    // Guest contact validation
+    if (isGuest) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!guestEmail.trim()) {
+        Toast.show({
+          type: 'error',
+          text1: t('register.emailRequired'),
+          placement: 'bottom',
+        });
+        return;
+      }
+      if (!emailRegex.test(guestEmail.trim())) {
+        Toast.show({
+          type: 'error',
+          text1: t('register.invalidEmail'),
+          placement: 'bottom',
+        });
+        return;
+      }
+      if (!guestPhone.trim()) {
+        Toast.show({
+          type: 'error',
+          text1: t('register.phoneRequired'),
+          placement: 'bottom',
+        });
+        return;
+      }
+    }
     if (!description.trim()) {
       Toast.show({
         type: 'error',
@@ -162,8 +211,8 @@ const NewTicketScreen = ({ navigation, route }) => {
     let attachmentId = null;
 
     try {
-      // Validate command if provided
-      if (command.trim()) {
+      // Validate command if provided (not for guest)
+      if (!isGuest && command.trim()) {
         const commandData = await validateCommand(command.trim());
         if (!commandData) {
           Toast.show({
@@ -192,16 +241,28 @@ const NewTicketScreen = ({ navigation, route }) => {
       }
 
       // Create ticket
+      // For guest users, append contact info to description to avoid backend schema changes
+      const finalDescription =  description.trim();
+
       const ticketData = {
         data: {
           title: t(`tickets.reasons.${reason}`),
-          description: description.trim(),
+          description: finalDescription,
           action: 'open',
-          client: currentUser.id,
           attachment: attachmentId,
-          command: commandId,
+          ...(isGuest
+            ? {
+                 
+                email: guestEmail.trim(),
+                phone: guestPhone.trim(),
+              }
+            : {
+                client: currentUser.id,
+                command: commandId,
+              }),
         },
       };
+      console.log(ticketData)
 
       const response = await api.post('tickets', ticketData);
 
@@ -215,10 +276,11 @@ const NewTicketScreen = ({ navigation, route }) => {
         if (route.params?.onSubmit) {
           route.params.onSubmit(response.data);
         }
+
         navigation.goBack();
       }
     } catch (error) {
-      console.error('Error submitting ticket:', error);
+      console.error('Error submitting ticket:', error.response);
       Toast.show({
         type: 'error',
         text1: t('tickets.submit_error'),
@@ -384,20 +446,72 @@ const NewTicketScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>
-              {t('tickets.command')}
-            </Text>
-            <TouchableOpacity
-              style={styles.reasonButton}
-              onPress={() => setIsCommandModalVisible(true)}
-            >
-              <Text style={styles.reasonButtonText}>
-                {command || t('tickets.select_command')}
+          {!isGuest && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>
+                {t('tickets.command')}
               </Text>
-              <Ionicons name="chevron-down" size={20} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={styles.reasonButton}
+                onPress={() => setIsCommandModalVisible(true)}
+              >
+                <Text style={styles.reasonButtonText}>
+                  {command || t('tickets.select_command')}
+                </Text>
+                <Ionicons name="chevron-down" size={20} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {isGuest && (
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>{t('profile.email')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={guestEmail}
+                  onChangeText={setGuestEmail}
+                  placeholder={t('profile.email_placeholder')}
+                  placeholderTextColor={colors.secondary_2}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>{t('profile.phone')}</Text>
+                <View style={styles.phoneInputWrapper}>
+                  <PhoneInput
+                    autoFormat
+                    initialCountry="tn"
+                    onPressFlag={() => setIsFlagsVisible(true)}
+                    onChangePhoneNumber={setGuestPhone}
+                    style={styles.phoneInput}
+                    textComponent={TextInput}
+                    textProps={{
+                      placeholder: t('profile.phone_placeholder'),
+                      placeholderTextColor: colors.secondary_2,
+                      style: styles.phoneText,
+                      keyboardType: 'phone-pad',
+                    }}
+                    ref={phoneInput}
+                    value={guestPhone}
+                  />
+                </View>
+              </View>
+
+              <CountryPicker
+                withFilter
+                withFlag
+                withAlphaFilter
+                withCallingCode
+                placeholder=""
+                onSelect={onSelectCountry}
+                visible={isFlagsVisible}
+                translation="fra"
+                filterProps={{ placeholder: t('login.search') }}
+              />
+            </>
+          )}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>{t('tickets.description')}</Text>
@@ -624,6 +738,30 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     color: colors.primary,
     fontSize: 14,
+  },
+  phoneInputWrapper: {
+    borderWidth: 1,
+    borderColor: colors.secondary_3,
+    borderRadius: 12,
+    backgroundColor: colors.general_2,
+    overflow: 'hidden',
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.primary,
+    paddingHorizontal: 16,
+    height: 56,
+    flexDirection: I18nManager?.isRTL ? 'row-reverse' : 'row',
+    textAlign: I18nManager?.isRTL ? 'right' : 'left',
+  },
+  phoneText: {
+    color: colors.primary,
+    flex: 1,
+    paddingHorizontal: 10,
+    height: 56,
+    fontSize: 16,
+    textAlign: I18nManager?.isRTL ? 'right' : 'left',
   },
 });
 

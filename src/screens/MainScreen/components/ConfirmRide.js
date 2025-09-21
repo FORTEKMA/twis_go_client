@@ -27,6 +27,7 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWomanValidationModal, setShowWomanValidationModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDistanceValid, setIsDistanceValid] = useState(true);
   const [womanValidationForm, setWomanValidationForm] = useState({
     user_with_cin: null,
     cinFront: null,
@@ -110,7 +111,19 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
 
   useEffect(() => {
     calculateRidePrice();
+    validateDistance();
   }, [formData]);
+
+  // Validate distance using formData.distance
+  const validateDistance = () => {
+    if (formData?.distance) {
+      // Convert distance from meters to check if it's at least 100 meters
+      const distanceInMeters = formData.distance;
+      setIsDistanceValid(distanceInMeters >= 100);
+    } else {
+      setIsDistanceValid(true);
+    }
+  };
 
   const calculateRidePrice = async () => {
     setLoading(true);
@@ -170,6 +183,7 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
           },
         }
       }
+      console.log("payload",payload);
       const res = await api.post("/commands", { data: payload });
       
       // Track successful reservation
@@ -181,7 +195,7 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
       
       setShowSuccessModal(true);
     } catch (error) {
-      console.log(error);
+      console.log(error.response);
     } finally {
       setIsLoading(false);
     }
@@ -190,6 +204,18 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
   
   const handleConfirmRide = async () => {
     console.log("dasd",formData?.vehicleType?.id);
+    
+    // Check distance validation first
+    if (!isDistanceValid) {
+      Toast.show({
+        type: 'error',
+        text1: t('confirm_ride.distance_too_close', 'Distance too close'),
+        text2: t('confirm_ride.distance_too_close_message', 'The dropoff location must be at least 100 meters from the pickup location.'),
+        visibilityTime: 3000,
+      });
+      return;
+    }
+    
     // Check if this is a women vehicle (id=4) and handle validation
     if (formData?.vehicleType?.id === 4) {
       if (!user) {
@@ -258,8 +284,8 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
     
     const selectedDate = new Date(date);
     return {
-      date: selectedDate.toISOString().split('T')[0],
-      time: selectedDate.toTimeString().split(' ')[0],
+      departDate: selectedDate.toISOString().split('T')[0],
+      deparTime: selectedDate.toTimeString().split(' ')[0],
     };
   };
 
@@ -354,6 +380,16 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
                 {formatDateTime(formData.selectedDate)}
               </Text>
             </View>
+            
+            {/* Distance validation indicator */}
+            {!isDistanceValid && (
+              <View style={localStyles.detailRow}>
+                <MaterialCommunityIcons name="alert-circle" size={20} color="#ff3b30" />
+                <Text style={[localStyles.detailText, { color: '#ff3b30' }]}>
+                  {t('confirm_ride.distance_too_close_warning', 'Distance too close - minimum 100m required')}
+                </Text>
+              </View>
+            )}
            
             
             {vehicleInfo && (
@@ -389,10 +425,10 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
           <TouchableOpacity
             style={[
               localStyles.confirmButton,
-              (isLoading || loading) && localStyles.confirmButtonDisabled
+              (isLoading || loading || !isDistanceValid) && localStyles.confirmButtonDisabled
             ]}
             onPress={handleConfirmRide}
-            disabled={isLoading || loading}
+            disabled={isLoading || loading || !isDistanceValid}
             activeOpacity={0.8}
           >
             {isLoading ? (
@@ -430,11 +466,24 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
           >
             <MaterialCommunityIcons name="check-circle" size={60} color="#4CAF50" />
             <Text style={localStyles.successTitle}>
-              {t('confirm_ride.ride_confirmed')}
+              {t('confirm_ride.reservation_success', 'Reservation Successful!')}
             </Text>
             <Text style={localStyles.successMessage}>
-              {t('confirm_ride.searching_driver')}
+              {t('confirm_ride.reservation_success_message', 'Your ride has been successfully reserved. We will notify you when a driver is assigned.')}
             </Text>
+            
+            <TouchableOpacity
+              style={localStyles.okButton}
+              onPress={() => {
+                setShowSuccessModal(false);
+                handleReset();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={localStyles.okButtonText}>
+                {t('common.ok', 'OK')}
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
         </View>
       </Modal>
@@ -460,79 +509,79 @@ const localStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 8,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#f8f9fa',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   headerContent: {
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#6c757d',
     fontWeight: '400',
   },
   content: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     flex: 1,
-    paddingTop: 24,
+    paddingTop: 16,
   },
   tripCard: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#e9ecef',
   },
   routeSection: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   routeIndicator: {
     alignItems: 'center',
-    marginRight: 16,
-    paddingTop: 8,
+    marginRight: 12,
+    paddingTop: 4,
   },
   pickupDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#000',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   routeLine: {
     width: 2,
-    height: 40,
+    height: 30,
     backgroundColor: '#dee2e6',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   dropoffDot: {
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     borderRadius: 2,
     backgroundColor: '#000',
   },
@@ -551,60 +600,59 @@ const localStyles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   locationAddress: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1a1a1a',
     fontWeight: '600',
-    lineHeight: 22,
+    lineHeight: 18,
   },
   tripDetails: {
     borderTopWidth: 1,
     borderTopColor: '#f8f9fa',
-    paddingTop: 20,
-    marginBottom: 20,
+    paddingTop: 12,
+    marginBottom: 12,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   detailText: {
-    fontSize: 15,
+    fontSize: 13,
     color: '#495057',
-    marginLeft: 12,
+    marginLeft: 10,
     fontWeight: '500',
   },
   vehicleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 12,
+    width: 32,
+    height: 32,
   },
   priceSection: {
     borderTopWidth: 1,
     borderTopColor: '#f8f9fa',
-    paddingTop: 20,
+    paddingTop: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   priceLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1a1a1a',
   },
   priceValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: '#1a1a1a',
   },
   buttonContainer: {
     marginTop: 'auto',
-    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
   },
   confirmButton: {
     backgroundColor: '#000',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -614,9 +662,9 @@ const localStyles = StyleSheet.create({
   },
   confirmButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    marginRight: 8,
+    marginRight: 6,
   },
   modalOverlay: {
     flex: 1,
@@ -626,24 +674,41 @@ const localStyles = StyleSheet.create({
   },
   successModal: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 32,
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
-    marginHorizontal: 40,
+    marginHorizontal: 32,
     borderWidth: 1,
     borderColor: '#e9ecef',
+    minWidth: 280,
   },
   successTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginTop: 16,
+    marginTop: 12,
     marginBottom: 8,
+    textAlign: 'center',
   },
   successMessage: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#6c757d',
     textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  okButton: {
+    backgroundColor: '#000',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  okButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 

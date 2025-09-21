@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, TouchableOpacity, Image, Text, Alert, Linking, View, ScrollView, I18nManager, ActivityIndicator, Platform  } from "react-native";
+import { SafeAreaView, TouchableOpacity, Image, Text, Alert, Linking, View, ScrollView, I18nManager, ActivityIndicator, Platform, StatusBar  } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
 import { differenceInMonths, differenceInDays, parseISO } from "date-fns";
@@ -207,7 +207,8 @@ try {
   };
 
   return (
-    <SafeAreaView style={styles.uberContainer}>
+    <SafeAreaView style={[styles.uberContainer, { backgroundColor: '#FFFFFF' }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       {/* Modern Header */}
       <View style={styles.uberHeader}>
         <TouchableOpacity 

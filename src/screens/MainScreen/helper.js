@@ -150,15 +150,15 @@ export const getMapCenterPosition = (layout, statusBarHeight = 0) => {
   }
 
   if (Platform.OS === 'android') {
-    const adjustedHeight = layout.height - statusBarHeight;
+    const adjustedHeight = layout.height + statusBarHeight*3;
     return {
       x: (layout.width / 2),
-      y: adjustedHeight / 2
+      y: (adjustedHeight / 2)
     };
   } else {
     return {
-      x: layout.width / 2,
-      y: layout.height / 2
+      x: (layout.width / 2),
+      y: (layout.height / 2)+50
     };
   }
 };
@@ -171,18 +171,12 @@ export const getLottieViewPosition = (layout, statusBarHeight = 0) => {
   const centerPosition = getMapCenterPosition(layout, statusBarHeight);
   const { width: lottieWidth, height: lottieHeight } = LOTTIE_DIMENSIONS;
   
-  if (Platform.OS === 'ios') {
-    return {
-      top: centerPosition.y - (lottieHeight / 2)-20,
-      left: centerPosition.x - (lottieWidth / 2)
-    };
-  } else {
-   
-    return {
-      top: centerPosition.y - (lottieHeight / 2),
-      left: centerPosition.x - (lottieWidth / 2)
-    };
-  }
+  // Position the Lottie so that its BOTTOM sits exactly on the map's visual center
+  // left remains centered horizontally
+  return {
+    top: (centerPosition.y - lottieHeight)-20,
+    left: centerPosition.x - (lottieWidth / 2)
+  };
 };
 
 // Maximum distance in kilometers for nearby drivers

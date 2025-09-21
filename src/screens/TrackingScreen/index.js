@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,21 +9,25 @@ import {
   Dimensions,
   Animated,
   Platform,
+  I18nManager,  
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { styles } from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
 import { API_GOOGLE } from '@env';
 import api from '../../utils/api';
 import { colors } from '../../utils/colors'; // Assuming colors are defined here, will override
 import db from '../../utils/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import DriverMarker from '../../components/DriverMarker';
-import { RouteOptimizer, DriverMovementTracker, MapPerformanceUtils, NavigationRouteManager } from '../../utils/mapUtils';
+import { RouteOptimizer, DriverMovementTracker, NavigationRouteManager } from '../../utils/mapUtils';
 import { getDistance } from 'geolib';
+ 
 
 // Using Google provider via react-native-maps
 
@@ -34,6 +38,9 @@ const CAMERA_ANIMATION_DURATION = 1000;
 
 // Helper function to decode Google's polyline format
 const decodePolyline = (encoded) => {
+  if (!encoded || typeof encoded !== 'string') {
+    return [];
+  }
   const poly = [];
   let index = 0, len = encoded.length;
   let lat = 0, lng = 0;
@@ -70,8 +77,16 @@ const decodePolyline = (encoded) => {
 
 // Fallback route generation for when Directions API fails
 const generateFallbackRoute = (origin, destination) => {
-  const [originLat, originLng] = origin.split(',').map(Number);
-  const [destLat, destLng] = destination.split(',').map(Number);
+  if (!origin || !destination || typeof origin !== 'string' || typeof destination !== 'string') {
+    return [];
+  }
+  const originParts = origin.split(',').map(Number);
+  const destParts = destination.split(',').map(Number);
+  if (originParts.length < 2 || destParts.length < 2 || originParts.some(isNaN) || destParts.some(isNaN)) {
+    return [];
+  }
+  const [originLat, originLng] = originParts;
+  const [destLat, destLng] = destParts;
   
   // Generate more realistic curved route with street-level precision
   const numPoints = 25; // More points for smoother curves
@@ -95,6 +110,7 @@ const generateFallbackRoute = (origin, destination) => {
 const TrackingScreen = ({ route }) => {
   const { t } = useTranslation();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   
   // Safe parameter extraction to prevent ReadableNativeMap casting error
   const orderId = route?.params?.id || route?.params || null;
@@ -120,6 +136,7 @@ const TrackingScreen = ({ route }) => {
   
   const [isFocusingOnAllCoordinates, setIsFocusingOnAllCoordinates] = useState(false);
   const [routeInstructions, setRouteInstructions] = useState([]);
+  const [isChatVisible, setIsChatVisible] = useState(false);
   
   // Map refs
   const mapRef = useRef(null);
@@ -136,20 +153,27 @@ const TrackingScreen = ({ route }) => {
   const driverTracker = useRef(new DriverMovementTracker()).current;
   const navigationManager = useRef(new NavigationRouteManager()).current;
   
-  // Enhanced throttled camera update with 3D capabilities
-  const throttledCameraUpdate = useRef(
-    MapPerformanceUtils.throttle((center, options = {}) => {
-      if (mapRef.current && mapReady && center) {
-        const camera = {
-          center,
-          pitch: 0,
-          heading: options.bearing || 0,
-          zoom: 16,
-        };
-        mapRef.current.animateCamera(camera, { duration: CAMERA_ANIMATION_DURATION });
-      }
-    }, 500)
-  ).current;
+  // Safe throttled camera update with validation
+  const lastCameraUpdateRef = useRef(0);
+  const throttledCameraUpdate = useCallback((center, options = {}) => {
+    if (!mapRef.current || !mapReady || !center) return;
+    const { latitude, longitude } = center || {};
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') return;
+    const now = Date.now();
+    if (now - lastCameraUpdateRef.current < 500) return;
+    lastCameraUpdateRef.current = now;
+    const camera = {
+      center: { latitude, longitude },
+      pitch: 0,
+      heading: typeof options.bearing === 'number' ? options.bearing : 0,
+      zoom: 16,
+    };
+    try {
+      mapRef.current.animateCamera(camera, { duration: CAMERA_ANIMATION_DURATION });
+    } catch (e) {
+      // no-op
+    }
+  }, [mapReady]);
 
   useEffect(() => {
     fetchOrder();
@@ -243,9 +267,50 @@ const TrackingScreen = ({ route }) => {
           }
         }
       });
-      return () => off(driverRef, 'value', unsubscribe);
+      // In v9 modular SDK, onValue returns an unsubscribe function
+      return () => {
+        try { unsubscribe && unsubscribe(); } catch (e) {}
+      };
     }
   }, [driver?.documentId, isFollowingDriver, mapReady, order]);
+
+  // Listen to order status updates from Firebase
+  useEffect(() => {
+    if (!order?.requestId) return;
+
+    const orderStatusRef = ref(db, `rideRequests/${order.requestId}/commandStatus`);
+    const unsubscribe = onValue(orderStatusRef, (snapshot) => {
+      const status = snapshot.val();
+      if (!status) return;
+      console.log("status",order.commandStatus,status)
+      if(order.commandStatus!=status)
+      // Navigate to order details screen instead of going back
+      navigation.navigate('Historique', { 
+        screen: 'OrderDetails', 
+        params: { id: safeOrderId } 
+      });
+      
+      // Build next order with updated status
+      const nextOrder = order ? { ...order, commandStatus: status } : order;
+      if (nextOrder) {
+        // Update state and regenerate route immediately
+        setOrder(nextOrder);
+        
+        try {
+          generateRouteBasedOnStatus(nextOrder, driverPosition).catch(console.error);
+        } catch (e) {
+          console.warn('Failed to regenerate route on status change', e);
+        }
+      } else {
+        // Fallback: conservative update
+        setOrder((prev) => (prev ? { ...prev, commandStatus: status } : prev));
+      }
+    });
+
+    return () => {
+      try { off(orderStatusRef, 'value', unsubscribe); } catch (e) {}
+    };
+  }, [order?.requestId, safeOrderId]);
 
   // Enhanced UI animations
   useEffect(() => {
@@ -356,30 +421,32 @@ const TrackingScreen = ({ route }) => {
       
       const data = await response.json();
       
-      if (data.routes && data.routes.length > 0) {
+      if (data?.routes && Array.isArray(data.routes) && data.routes.length > 0) {
         const route = data.routes[0];
-        const points = route.overview_polyline.points;
+        const points = route?.overview_polyline?.points;
         
         // Decode the polyline to get coordinates in { latitude, longitude }
         const decoded = decodePolyline(points);
-        routeCoordinates = decoded.map(([lng, lat]) => ({ latitude: lat, longitude: lng }));
+        if (decoded.length > 0) {
+          routeCoordinates = decoded.map(([lng, lat]) => ({ latitude: lat, longitude: lng }));
+        }
         
         // Calculate enhanced route metrics
-        const distance = route.legs[0].distance.value;
-        const duration = route.legs[0].duration.value;
-        const durationInTraffic = route.legs[0].duration_in_traffic?.value || duration;
-        
-        setRouteDistance(distance);
+        const leg = route?.legs && Array.isArray(route.legs) && route.legs[0] ? route.legs[0] : null;
+        if (leg?.distance?.value != null) {
+          setRouteDistance(leg.distance.value);
+        }
         
         // Enhanced turn-by-turn instructions with maneuver types
-        const steps = route.legs[0].steps.map((step, index) => ({
-          instruction: step.html_instructions.replace(/<[^>]*>/g, ''),
-          distance: step.distance.text,
-          duration: step.duration.text,
-          maneuver: step.maneuver || 'straight',
-          startLocation: step.start_location,
-          endLocation: step.end_location,
-          polyline: step.polyline.points,
+        const stepsArray = Array.isArray(leg?.steps) ? leg.steps : [];
+        const steps = stepsArray.map((step, index) => ({
+          instruction: (step?.html_instructions || '').replace(/<[^>]*>/g, ''),
+          distance: step?.distance?.text || '',
+          duration: step?.duration?.text || '',
+          maneuver: step?.maneuver || 'straight',
+          startLocation: step?.start_location,
+          endLocation: step?.end_location,
+          polyline: step?.polyline?.points || '',
           stepIndex: index,
         }));
         
@@ -436,12 +503,7 @@ const TrackingScreen = ({ route }) => {
       throttledCameraUpdate({ latitude: driverPosition.latitude, longitude: driverPosition.longitude });
     }
   };
-
-  const focusOnDriver = () => {
-    if (driverPosition && mapRef.current) {
-      throttledCameraUpdate({ latitude: driverPosition.latitude, longitude: driverPosition.longitude });
-    }
-  };
+ 
 
   // Focus map on all coordinates (driver, pickup, dropoff)
   const focusOnAllCoordinates = useCallback(() => {
@@ -542,20 +604,20 @@ const TrackingScreen = ({ route }) => {
 
   // Get route color based on status and mode
   const getRouteColor = useCallback((status, is3D = false) => {
+    // Restrict to black/white/gray palette only
     if (is3D) {
       return '#000000'; // Black for 3D mode
     }
-    
     switch (status) {
       case 'Go_to_pickup':
-        return '#FF9500'; // Orange for going to pickup
+        return '#999999'; // Gray
       case 'Picked_up':
       case 'On_route_to_delivery':
-        return '#34C759'; // Green for delivery route
+        return '#000000'; // Black
       case 'Arrived_at_pickup':
-        return '#007AFF'; // Blue for arrived at pickup
+        return '#666666'; // Dark Gray
       default:
-        return '#007AFF'; // Default blue
+        return '#000000'; // Default to black
     }
   }, []);
 
@@ -592,16 +654,16 @@ const TrackingScreen = ({ route }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={() => navigation.goBack()}
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#000000" />
+          <MaterialCommunityIcons name={I18nManager.isRTL ? "arrow-right" : "arrow-left"} size={24} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {t('tracking.title')}
@@ -623,14 +685,67 @@ const TrackingScreen = ({ route }) => {
           zoomEnabled={true}
         >
 
-          {/* Route polyline */}
-          {Array.isArray(routeCoordinates) && routeCoordinates.length > 1 && (
-            <Polyline
-              coordinates={routeCoordinates}
-              strokeColor={getRouteColor(order?.commandStatus)}
-              strokeWidth={getRouteWidth()}
-            />
-          )}
+          {/* Directions-based route */}
+          {(() => {
+            const pickup = order?.pickUpAddress?.coordonne;
+            const dropoff = order?.dropOfAddress?.coordonne;
+            const status = order?.commandStatus;
+            if (!pickup || !dropoff) return null;
+            let originObj = null;
+            let destinationObj = null;
+            switch (status) {
+              case 'Pending':
+              case 'Canceled_by_client':
+              case 'Canceled_by_partner':
+              case 'Go_to_pickup':
+                if (driverPosition) {
+                  originObj = { latitude: driverPosition.latitude, longitude: driverPosition.longitude };
+                  destinationObj = { latitude: pickup.latitude, longitude: pickup.longitude };
+                } else {
+                  originObj = { latitude: pickup.latitude, longitude: pickup.longitude };
+                  destinationObj = { latitude: dropoff.latitude, longitude: dropoff.longitude };
+                }
+                break;
+              case 'Arrived_at_pickup':
+              case 'Picked_up':
+                if (driverPosition) {
+                  originObj = { latitude: driverPosition.latitude, longitude: driverPosition.longitude };
+                  destinationObj = { latitude: dropoff.latitude, longitude: dropoff.longitude };
+                } else {
+                  originObj = { latitude: pickup.latitude, longitude: pickup.longitude };
+                  destinationObj = { latitude: dropoff.latitude, longitude: dropoff.longitude };
+                }
+                break;
+              default:
+                originObj = { latitude: pickup.latitude, longitude: pickup.longitude };
+                destinationObj = { latitude: dropoff.latitude, longitude: dropoff.longitude };
+                break;
+            }
+            if (!originObj || !destinationObj) return null;
+            return (
+              <MapViewDirections
+                origin={originObj}
+                destination={destinationObj}
+                apikey={API_GOOGLE}
+                strokeWidth={getRouteWidth()}
+                strokeColor={getRouteColor(order?.commandStatus)}
+                mode="DRIVING"
+                timePrecision="now"
+                onReady={(result) => {
+                  if (result?.coordinates?.length) {
+                    setRouteCoordinates(result.coordinates);
+                  }
+                  if (typeof result?.distance === 'number') {
+                    // result.distance is in kilometers
+                    setRouteDistance(result.distance * 1000);
+                  }
+                }}
+                onError={(msg) => {
+                  console.warn('Directions error:', msg);
+                }}
+              />
+            );
+          })()}
 
           {/* Route progress indicator removed for simplicity */}
 
@@ -704,6 +819,8 @@ const TrackingScreen = ({ route }) => {
           <TouchableOpacity style={styles.controlButton} onPress={focusOnAllCoordinates}>
             <MaterialCommunityIcons name="map-marker-multiple" size={24} color="#666666" />
           </TouchableOpacity>
+
+          
         </View>
       </View>
  
@@ -743,10 +860,11 @@ const TrackingScreen = ({ route }) => {
           </View>
         )}
       </View>
-    </SafeAreaView>
+
+       
+    </View>
   );
 };
-
 
 
 export default TrackingScreen;
