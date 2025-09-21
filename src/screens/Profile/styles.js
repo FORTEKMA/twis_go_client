@@ -836,7 +836,7 @@ export const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0c0c0c',
+    color: '#18365A',
     marginBottom: 8,
   },
   input: {
@@ -970,7 +970,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statValue: {
-    color: "#0c0c0c",
+    color: "#18365A",
     fontSize: hp(2.2),
     fontWeight: "700",
     marginTop: 5,
@@ -1000,7 +1000,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   sectionTitle: {
-    color: '#0c0c0c',
+    color: '#18365A',
     fontSize: hp(2.2),
     fontWeight: '600',
     marginBottom: 20,
@@ -1128,7 +1128,7 @@ export const styles = StyleSheet.create({
    // marginTop: 20,
   },
   faqTitle: {
-    color: '#0c0c0c',
+    color: '#18365A',
     fontSize: hp(2),
     fontWeight: '600',
     marginBottom: 15,
