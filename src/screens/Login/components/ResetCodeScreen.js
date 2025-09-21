@@ -51,7 +51,7 @@ const ResetCodeScreen = ({ route }) => {
         <View style={{ paddingTop: insets.top }}>
           <View style={loginStyles.header}>
             <TouchableOpacity style={loginStyles.closeButton} onPress={() => navigation.goBack()}>
-              <Icon name="close" size={24} color="#000000" />
+              <Icon name="close" size={24} color="#18365A" />
             </TouchableOpacity>
             <View style={{ width: 40, height: 40 }} />
           </View>
@@ -74,7 +74,7 @@ const ResetCodeScreen = ({ route }) => {
                 onTextChange={(text) => setCode(text)}
                 focusColor="#18365A"
                 focusStickBlinkingDuration={500}
-                textInputProps={{ style: { color: "#000" } }}
+                textInputProps={{ style: { color: "#18365A" } }}
                 theme={{
                   containerStyle: {
                     marginBottom: 32,
@@ -88,7 +88,7 @@ const ResetCodeScreen = ({ route }) => {
                   },
                   pinCodeTextStyle: {
                     fontSize: 20,
-                    color: "#000",
+                    color: "#18365A",
                   },
                 }}
               />

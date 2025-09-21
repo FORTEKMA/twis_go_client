@@ -80,7 +80,7 @@ const Help = () => {
     }
   };
 
-  const renderHelpOption = (icon, title, description, onPress, iconColor = "#007AFF") => (
+  const renderHelpOption = (icon, title, description, onPress, iconColor = "#F37A1D") => (
     <TouchableOpacity
       style={styles.uberHelpOption}
       onPress={onPress}
@@ -104,7 +104,7 @@ const Help = () => {
   const renderFAQItem = (question, answer) => (
     <View style={styles.uberFAQItem}>
       <View style={styles.uberFAQHeader}>
-        <Icon name="help-circle-outline" size={20} color="#007AFF" />
+        <Icon name="help-circle-outline" size={20} color="#F37A1D" />
         <Text style={styles.uberFAQQuestion}>{question}</Text>
       </View>
       <Text style={styles.uberFAQAnswer}>{answer}</Text>
@@ -141,7 +141,7 @@ const Help = () => {
             <Icon 
               name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
               size={24} 
-              color="#000" 
+              color="#18365A" 
             />
           </TouchableOpacity>
           
@@ -161,7 +161,7 @@ const Help = () => {
           {/* Quick Actions Section */}
           <View style={styles.uberFormSection}>
             <View style={styles.uberSectionHeaderInline}>
-              <Icon name="flash-outline" size={24} color="#000" />
+              <Icon name="flash-outline" size={24} color="#18365A" />
               <Text style={styles.uberSectionHeaderTitle}>
                 {t('help.quick_actions', 'Quick Actions')}
               </Text>
@@ -172,14 +172,14 @@ const Help = () => {
               t('tickets.title', 'Support Tickets'),
               t('tickets.description', 'Create and manage support tickets'),
               () => currentUser ? navigation.navigate("TicketScreen") :navigation.navigate('NewTicketScreen'),
-              "#007AFF"
+              "#F37A1D"
             )}
           </View>
 
           {/* Contact Support Section */}
           <View style={styles.uberFormSection}>
             <View style={styles.uberSectionHeaderInline}>
-              <Icon name="headset" size={24} color="#000" />
+              <Icon name="headset" size={24} color="#18365A" />
               <Text style={styles.uberSectionHeaderTitle}>
                 {t('help.contact_support', 'Contact Support')}
               </Text>
@@ -193,7 +193,7 @@ const Help = () => {
                 t('help.contact.email', 'Email Support'),
                 'support@tawsilet.com',
                 handleEmail,
-                '#007AFF'
+                '#F37A1D'
               )}
 
             
@@ -203,7 +203,7 @@ const Help = () => {
           {/* FAQ Section */}
           <View style={styles.uberFormSection}>
             <View style={styles.uberSectionHeaderInline}>
-              <Icon name="frequently-asked-questions" size={24} color="#000" />
+              <Icon name="frequently-asked-questions" size={24} color="#18365A" />
               <Text style={styles.uberSectionHeaderTitle}>
                 {t('help.faq.title', 'Frequently Asked Questions')}
               </Text>
@@ -233,7 +233,7 @@ const Help = () => {
           {/* App Information Section */}
           <View style={styles.uberFormSection}>
             <View style={styles.uberSectionHeaderInline}>
-              <Icon name="information-outline" size={24} color="#000" />
+              <Icon name="information-outline" size={24} color="#18365A" />
               <Text style={styles.uberSectionHeaderTitle}>
                 {t('help.app_info', 'App Information')}
               </Text>
@@ -272,7 +272,7 @@ const Help = () => {
                     <Text style={styles.uberAppInfoLabel}>
                       {t('help.latest_version', 'Latest Version')}
                     </Text>
-                    <Text style={[styles.uberAppInfoValue, { color: '#007AFF' }]}>
+                    <Text style={[styles.uberAppInfoValue, { color: '#F37A1D' }]}>
                       {latestVersion}
                     </Text>
                   </View>
@@ -281,7 +281,7 @@ const Help = () => {
                   
                   <TouchableOpacity
                     style={{
-                      backgroundColor: '#007AFF',
+                      backgroundColor: '#F37A1D',
                       paddingVertical: 12,
                       paddingHorizontal: 20,
                       borderRadius: 8,

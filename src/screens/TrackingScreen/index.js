@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import { tawsiGOMapStyle } from '../../utils/mapStyle';
 import MapViewDirections from 'react-native-maps-directions';
 import { API_GOOGLE } from '@env';
 import api from '../../utils/api';
@@ -604,20 +605,22 @@ const TrackingScreen = ({ route }) => {
 
   // Get route color based on status and mode
   const getRouteColor = useCallback((status, is3D = false) => {
-    // Restrict to black/white/gray palette only
     if (is3D) {
-      return '#000000'; // Black for 3D mode
+      return '#F37A1D';
     }
     switch (status) {
+      case 'Pending':
+      case 'Assigned_to_driver':
+      case 'Driver_on_route_to_pickup':
       case 'Go_to_pickup':
-        return '#999999'; // Gray
+      case 'Arrived_at_pickup':
+        return '#18365A';
       case 'Picked_up':
       case 'On_route_to_delivery':
-        return '#000000'; // Black
-      case 'Arrived_at_pickup':
-        return '#666666'; // Dark Gray
+      case 'Arrived_at_delivery':
+        return '#F37A1D';
       default:
-        return '#000000'; // Default to black
+        return '#18365A';
     }
   }, []);
 
@@ -631,7 +634,7 @@ const TrackingScreen = ({ route }) => {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#000000" />
+          <ActivityIndicator size="large" color="#F37A1D" />
           <Text style={styles.loadingText}>{t('tracking.loading')}</Text>
         </View>
       </SafeAreaView>
@@ -643,7 +646,7 @@ const TrackingScreen = ({ route }) => {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <View style={styles.errorContainer}>
-          <MaterialCommunityIcons name="alert-circle" size={64} color="#000000" />
+          <MaterialCommunityIcons name="alert-circle" size={64} color="#18365A" />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchOrder}>
             <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
@@ -663,7 +666,7 @@ const TrackingScreen = ({ route }) => {
           style={styles.backButton} 
           onPress={() => navigation.goBack()}
         >
-          <MaterialCommunityIcons name={I18nManager.isRTL ? "arrow-right" : "arrow-left"} size={24} color="#000000" />
+          <MaterialCommunityIcons name={I18nManager.isRTL ? "arrow-right" : "arrow-left"} size={24} color="#18365A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {t('tracking.title')}
@@ -677,6 +680,7 @@ const TrackingScreen = ({ route }) => {
           ref={mapRef}
           style={styles.map}
           provider={PROVIDER_GOOGLE}
+          customMapStyle={tawsiGOMapStyle}
           onMapReady={() => setMapReady(true)}
           showsCompass={true}
           pitchEnabled={true}
@@ -775,7 +779,7 @@ const TrackingScreen = ({ route }) => {
               }}
             >
               <View style={[styles.locationMarker, styles.pickupMarker]}>
-                <MaterialCommunityIcons name="map-marker" size={30} color="#000000" />
+                <MaterialCommunityIcons name="map-marker" size={30} color="#F37A1D" />
               </View>
             </Marker>
           )}
@@ -790,7 +794,7 @@ const TrackingScreen = ({ route }) => {
               }}
             >
               <View style={[styles.locationMarker, styles.dropoffMarker]}>
-                <MaterialCommunityIcons name="flag-checkered" size={30} color="#000000" />
+                <MaterialCommunityIcons name="flag-checkered" size={30} color="#18365A" />
               </View>
             </Marker>
           )}
@@ -806,7 +810,7 @@ const TrackingScreen = ({ route }) => {
             <MaterialCommunityIcons 
               name="crosshairs-gps" 
               size={24} 
-              color={isFollowingDriver ? '#000000' : '#666666'} 
+              color={isFollowingDriver ? '#F37A1D' : '#18365A'} 
             />
             {isFollowingDriver && (
               <View style={styles.controlButtonIndicator}>
@@ -817,7 +821,7 @@ const TrackingScreen = ({ route }) => {
          
           
           <TouchableOpacity style={styles.controlButton} onPress={focusOnAllCoordinates}>
-            <MaterialCommunityIcons name="map-marker-multiple" size={24} color="#666666" />
+            <MaterialCommunityIcons name="map-marker-multiple" size={24} color="#18365A" />
           </TouchableOpacity>
 
           
@@ -838,7 +842,7 @@ const TrackingScreen = ({ route }) => {
         
         {isFocusingOnAllCoordinates && (
           <View style={styles.statusFocusIndicator}>
-            <MaterialCommunityIcons name="map-marker-multiple" size={12} color="#007AFF" />
+            <MaterialCommunityIcons name="map-marker-multiple" size={12} color="#18365A" />
             <Text style={styles.statusFocusText}>{t('tracking.focusing')}</Text>
           </View>
         )}

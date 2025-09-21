@@ -35,7 +35,7 @@ const ImagePickerModal = ({ isVisible, onClose, onCameraPress, onGalleryPress })
                   <Ionicons
                     name="camera-outline"
                     size={40}
-                    color={"#000"}
+                    color={colors.secondary}
                   />
                 </View>
                 <Text style={styles.optionText}>{t('profile.image_picker.camera')}</Text>
@@ -49,7 +49,7 @@ const ImagePickerModal = ({ isVisible, onClose, onCameraPress, onGalleryPress })
                   <Ionicons
                     name="images-outline"
                     size={40}
-                    color={"#000"}
+                    color={colors.secondary}
                   />
                 </View>
                 <Text style={styles.optionText}>{t('profile.image_picker.gallery')}</Text>
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: hp(2),
-    shadowColor: '#000',
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: -2,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: hp(2.2),
     fontWeight: '600',
-    color: "#000",
+    color: colors.secondary,
     marginBottom: hp(0.5),
   },
   modalSubtitle: {
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: hp(1.6),
-    color: "#000",
+    color: colors.secondary,
     fontWeight: '500',
   },
   cancelButton: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: "#000",
+    color: colors.secondary,
     fontSize: hp(1.8),
     fontWeight: '600',
   },

@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#000000',
+    color: '#18365A',
     textAlign: 'center',
     marginBottom: 8,
     letterSpacing: -0.5,
@@ -72,10 +72,10 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     width: '50%',
     height: '100%',
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: '#F37A1D',
   },
   switchButton: {
     flex: 1,
@@ -156,7 +156,7 @@ export const styles = StyleSheet.create({
   btn: {
     width: '100%',
     paddingVertical: 18,
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D',
     borderRadius: 16,
     alignItems: 'center',
     marginTop: 8,
@@ -220,7 +220,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   registerNow: {
-    color: '#000000',
+    color: '#F37A1D',
     fontWeight: '700',
   },
   guestButton: {
@@ -250,7 +250,7 @@ export const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: '#F37A1D',
         shadowOpacity: 0.08,
         shadowRadius: 8,
         shadowOffset: { width: 0, height: -2 },

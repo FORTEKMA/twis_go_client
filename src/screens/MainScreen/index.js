@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {localStyles} from "./localStyles"
 import ClusterMapView from 'react-native-map-clustering';
+import { tawsiGOMapStyle } from '../../utils/mapStyle';
 import {Marker, PROVIDER_GOOGLE,Polyline} from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import {useDispatch, useSelector} from 'react-redux';
@@ -79,7 +80,7 @@ import ActivationCountdown from '../../components/ActivationCountdown';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("screen");
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 
-import mapStyle from '../../utils/googleMapStyle';
+
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
  
@@ -1099,6 +1100,7 @@ const MainScreen = () => {
   const renderMap = () => {
     return (
       <ClusterMapView
+        customMapStyle={tawsiGOMapStyle}
         ref={mapRef}
         style={styles.mapContainer}
         provider={PROVIDER_GOOGLE}
@@ -1122,7 +1124,7 @@ const MainScreen = () => {
         rotateEnabled={false}
         pitchEnabled={false} 
         focusable
-        customMapStyle={mapStyle}
+
         showsUserLocation={true}
      showsMyLocationButton={false}
         onPanDrag={handleMapDrag}
@@ -1179,7 +1181,7 @@ const MainScreen = () => {
             mode='DRIVING'
             apikey={API_GOOGLE}
             strokeWidth={3}
-            strokeColor="#999"
+            strokeColor="#F37A1D"
             onReady={result => {
               if (backInterval.current) {
                 setAnimatedCoords([]);
@@ -1281,7 +1283,7 @@ const MainScreen = () => {
             onPress={() => navigation.openDrawer()}
             activeOpacity={0.7}
           >
-            <Icon name="menu" size={24} color="#000" />
+            <Icon name="menu" size={24} color="#18365A" />
           </TouchableOpacity>
         </View>
         

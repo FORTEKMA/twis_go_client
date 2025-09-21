@@ -97,7 +97,7 @@ const ResetPassword = ({route}) => {
               style={loginStyles.closeButton}
               onPress={() => navigation.goBack()}
             >
-              <Icon name="close" size={24} color="#000000" />
+              <Icon name="close" size={24} color="#18365A" />
             </TouchableOpacity>
             <View style={{ width: 40, height: 40 }} />
           </View>
