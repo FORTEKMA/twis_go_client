@@ -568,7 +568,7 @@ const Order = ({ route }) => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"} size={24} color="#000" />
+          <Ionicons name={I18nManager.isRTL ? "arrow-forward" : "arrow-back"} size={24} color="#18365A" />
         </TouchableOpacity>
         
         <View style={styles.headerContent}>
@@ -663,7 +663,7 @@ const Order = ({ route }) => {
                   }}
                 >
                   <View style={[styles.locationMarker]}>
-                    <MaterialCommunityIcons name="flag-checkered" size={26} color="#000" />
+                    <MaterialCommunityIcons name="flag-checkered" size={26} color="#18365A" />
                   </View>
                 </Marker>
 
@@ -989,7 +989,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
   },
   orderNumber: {
     fontSize: 14,
@@ -1042,7 +1042,7 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
   },
   statusDotSep: {
     width: 4,
@@ -1124,7 +1124,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 16,
   },
   sectionTitle: {
@@ -1150,7 +1150,7 @@ const styles = StyleSheet.create({
   driverName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 4,
     textAlign:"left"
   },
@@ -1195,7 +1195,7 @@ const styles = StyleSheet.create({
   dropoffDot: {
     width: 12,
     height: 12,
-    backgroundColor: '#000',
+    backgroundColor: '#18365A',
   },
   locationDetails: {
     flex: 1,
@@ -1242,7 +1242,7 @@ const styles = StyleSheet.create({
   paymentValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
   },
   paymentSectionHeader: {
     flexDirection: 'row',
@@ -1305,7 +1305,7 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
   },
   totalValue: {
     fontSize: 22,

@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   sentBubble: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
     borderBottomRightRadius: 4,
   },
   receivedBubble: {
