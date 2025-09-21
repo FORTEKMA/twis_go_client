@@ -48,7 +48,7 @@ const PersonalInfo = () => {
       <View style={{ padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{t('profile.personal_info.select_country')}</Text>
         <TouchableOpacity onPress={() => setFlagsVisible(false)}>
-          <Icon name="close" size={24} color="#000" />
+          <Icon name="close" size={24} color="#18365A" />
         </TouchableOpacity>
       </View>
       <View style={{ paddingHorizontal: 20, paddingBottom: 20, paddingTop: 10,height:90 }}>
@@ -266,7 +266,7 @@ const PersonalInfo = () => {
                 <MaterialCommunityIcons 
                   name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
                   size={24} 
-                  color="#000" 
+                  color="#18365A" 
                 />
               </TouchableOpacity>
               
@@ -284,7 +284,7 @@ const PersonalInfo = () => {
               {/* Personal Information Section */}
               <View style={styles.uberFormSection}>
                 <View style={styles.uberSectionHeaderInline}>
-                  <MaterialCommunityIcons name="account-outline" size={24} color="#000" />
+                  <MaterialCommunityIcons name="account-outline" size={24} color="#18365A" />
                   <Text style={styles.uberSectionHeaderTitle}>
                     {t("profile.personal_info.section_title", "Personal Information")}
                   </Text>
@@ -348,7 +348,7 @@ const PersonalInfo = () => {
               {/* Information Notice */}
               <View style={styles.uberNoticeContainer}>
                 <View style={styles.uberNoticeIconContainer}>
-                  <MaterialCommunityIcons name="information-outline" size={20} color="#007AFF" />
+                  <MaterialCommunityIcons name="information-outline" size={20} color="#F37A1D" />
                 </View>
                 <Text style={styles.uberNoticeText}>
                   {t("profile.personal_info.notice", "Changes to your phone number will require verification via SMS.")}

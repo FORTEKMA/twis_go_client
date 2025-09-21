@@ -154,7 +154,7 @@ const ProfileSections = ({
               <Icon
                 name={showCurrentPassword ? "eye-slash" : "eye"}
                 size={20}
-                color="#000"
+                color="#18365A"
               />
             </TouchableOpacity>
           </View>
@@ -187,7 +187,7 @@ const ProfileSections = ({
               <Icon
                 name={showNewPassword ? "eye-slash" : "eye"}
                 size={20}
-                color="#000"
+                color="#18365A"
               />
             </TouchableOpacity>
           </View>
@@ -223,7 +223,7 @@ const ProfileSections = ({
               <Icon
                 name={showConfirmPassword ? "eye-slash" : "eye"}
                 size={20}
-                color="#000"
+                color="#18365A"
               />
             </TouchableOpacity>
           </View>

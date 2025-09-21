@@ -189,7 +189,7 @@ const Security = () => {
   const renderSecurityTip = (icon, title, description) => (
     <View style={styles.uberSecurityTip}>
       <View style={styles.uberSecurityTipIcon}>
-        <Icon name={icon} size={20} color="#007AFF" />
+        <Icon name={icon} size={20} color="#F37A1D" />
       </View>
       <View style={styles.uberSecurityTipContent}>
         <Text style={styles.uberSecurityTipTitle}>{title}</Text>
@@ -216,7 +216,7 @@ const Security = () => {
                 <Icon 
                   name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
                   size={24} 
-                  color="#000" 
+                  color="#18365A" 
                 />
               </TouchableOpacity>
               
@@ -238,7 +238,7 @@ const Security = () => {
               {/* Password Change Section */}
               <View style={styles.uberFormSection}>
                 <View style={styles.uberSectionHeaderInline}>
-                  <Icon name="shield-check-outline" size={24} color="#000" />
+                  <Icon name="shield-check-outline" size={24} color="#18365A" />
                   <Text style={styles.uberSectionHeaderTitle}>
                     {t('profile.security.change_password', 'Change Password')}
                   </Text>
@@ -272,7 +272,7 @@ const Security = () => {
               {/* Security Tips Section */}
               <View style={styles.uberFormSection}>
                 <View style={styles.uberSectionHeaderInline}>
-                  <Icon name="lightbulb-outline" size={24} color="#000" />
+                  <Icon name="lightbulb-outline" size={24} color="#18365A" />
                   <Text style={styles.uberSectionHeaderTitle}>
                     {t('profile.security.tips_title', 'Security Tips')}
                   </Text>

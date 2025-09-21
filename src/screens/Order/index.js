@@ -23,6 +23,7 @@ import api from '../../utils/api';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { tawsiGOMapStyle } from '../../utils/mapStyle';
 import MapViewDirections from 'react-native-maps-directions';
 import { API_GOOGLE } from '@env';
  import OrderPlaceholder from '../../components/OrderPlaceholder';
@@ -606,6 +607,7 @@ const Order = ({ route }) => {
             <View style={styles.mapCard}>
               <MapView
                 ref={mapRef}
+                customMapStyle={tawsiGOMapStyle}
                 style={styles.orderMap}
                 provider={PROVIDER_GOOGLE}
                 showsCompass
