@@ -60,7 +60,7 @@ const LanguageModal = ({ isVisible, onClose, onLanguageSelect }) => {
             style={{ position: 'absolute', right: 15, top: 15, zIndex: 1 }}
             onPress={onClose}
           >
-            <Icon name="close" size={24} color="#000" />
+            <Icon name="close" size={24} color="#18365A" />
           </TouchableOpacity>
 
           <View style={styles.modalIconContainer}>

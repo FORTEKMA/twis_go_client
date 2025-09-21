@@ -179,8 +179,8 @@ const EmailLoginForm = ({ onLoginSuccess, hideForgetPassword }) => {
             height: 20,
             borderRadius: 4,
             borderWidth: 2,
-            borderColor: rememberMe ? '#000000' : '#D1D5DB',
-            backgroundColor: rememberMe ? '#000000' : 'transparent',
+            borderColor: rememberMe ? '#F37A1D' : '#D1D5DB',
+            backgroundColor: rememberMe ? '#F37A1D' : 'transparent',
             alignItems: 'center',
             justifyContent: 'center',
           }}>

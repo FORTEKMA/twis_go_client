@@ -194,7 +194,7 @@ const OtpModal = ({
     },
     progressFill: {
       height: '100%',
-      backgroundColor: '#000000',
+      backgroundColor: '#F37A1D',
       borderRadius: 2,
     },
     titleContainer: {
@@ -203,7 +203,7 @@ const OtpModal = ({
     title: {
       fontSize: 28,
       fontWeight: '700',
-      color: '#000000',
+      color: '#18365A',
       marginBottom: 12,
       textAlign: 'center',
     },
@@ -217,7 +217,7 @@ const OtpModal = ({
     phoneNumber: {
       fontSize: 18,
       fontWeight: '600',
-      color: '#000000',
+      color: '#18365A',
       textAlign: 'center',
     },
     otpContainer: {
@@ -237,7 +237,7 @@ const OtpModal = ({
       backgroundColor: '#FFFFFF',
     },
     otpInputFocused: {
-      borderColor: '#000000',
+      borderColor: '#F37A1D',
       backgroundColor: '#FAFAFA',
     },
     otpInputError: {
@@ -247,7 +247,7 @@ const OtpModal = ({
     otpInputText: {
       fontSize: 28,
       fontWeight: '700',
-      color: '#000000',
+      color: '#18365A',
     },
     errorContainer: {
       backgroundColor: '#FFF5F5',
@@ -290,8 +290,8 @@ const OtpModal = ({
       borderColor: '#E5E5E5',
     },
     resendButtonActive: {
-      backgroundColor: '#000000',
-      borderColor: '#000000',
+      backgroundColor: '#F37A1D',
+      borderColor: '#F37A1D',
     },
     resendButtonDisabled: {
       opacity: 0.5,
@@ -310,7 +310,7 @@ const OtpModal = ({
       marginTop: 8,
     },
     continueButton: {
-      backgroundColor: '#000000',
+      backgroundColor: '#F37A1D',
       borderRadius: 16,
       paddingVertical: 18,
       alignItems: 'center',
@@ -411,7 +411,7 @@ const OtpModal = ({
               <OtpInput
                 numberOfDigits={4}
                 onTextChange={(text) => setOtp(text)}
-                focusColor="#000000"
+                focusColor="#F37A1D"
                 focusStickBlinkingDuration={500}
                 theme={{
                   containerStyle: styles.otpInputContainer,

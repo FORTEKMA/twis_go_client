@@ -225,7 +225,7 @@ const Login = ({ navigation }) => {
             style={styles.closeButton}
             onPress={() => navigation.goBack()}
           >
-            <Icon name="close" size={24} color="#000000" />
+            <Icon name="close" size={24} color="#18365A" />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -291,9 +291,9 @@ const Login = ({ navigation }) => {
                 disabled={isAppleLoading}
               >
                 {isAppleLoading ? (
-                  <ActivityIndicator size="small" color="#000000" />
+                  <ActivityIndicator size="small" color="#18365A" />
                 ) : (
-                  <FontAwesome name="apple" size={24} color="#000000" />
+                  <FontAwesome name="apple" size={24} color="#18365A" />
                 )}
                 <Text style={styles.socialButtonText}>Apple</Text>
               </TouchableOpacity>

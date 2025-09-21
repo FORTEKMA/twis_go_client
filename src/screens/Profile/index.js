@@ -216,7 +216,7 @@ try {
           onPress={() => navigation.openDrawer()}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons name="menu" size={24} color="#000" />
+          <MaterialCommunityIcons name="menu" size={24} color={colors.secondary} />
         </TouchableOpacity>
         
         <View style={styles.uberHeaderContent}>
@@ -251,7 +251,7 @@ try {
               {/* Upload Loading Overlay */}
               {isUploading && (
                 <View style={styles.uberUploadingOverlay}>
-                  <ActivityIndicator size="large" color="#000" />
+                  <ActivityIndicator size="large" color={colors.primary} />
                 </View>
               )}
               
@@ -305,7 +305,7 @@ try {
             >
               <View style={styles.uberMenuItemLeft}>
                 <View style={styles.uberMenuIconContainer}>
-                  <Ionicons name={button.icon} size={24} color="#000" />
+                  <Ionicons name={button.icon} size={24} color={colors.secondary} />
                 </View>
                 <View style={styles.uberMenuTextContainer}>
                   <Text style={styles.uberMenuItemTitle}>{button.title}</Text>
@@ -328,7 +328,7 @@ try {
           >
             <View style={styles.uberMenuItemLeft}>
               <View style={styles.uberMenuIconContainer}>
-                <Ionicons name="language-outline" size={24} color="#000" />
+                <Ionicons name="language-outline" size={24} color={colors.secondary} />
               </View>
               <View style={styles.uberMenuTextContainer}>
                 <Text style={styles.uberMenuItemTitle}>{t('profile.language.title')}</Text>
