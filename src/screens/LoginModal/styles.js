@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
   btn: {
     width: '100%',
     paddingVertical: 16,
-    backgroundColor: '#030303',
+    backgroundColor: '#F37A1D',
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
@@ -195,10 +195,10 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     width: '50%',
     height: '100%',
-    backgroundColor: '#030303',
+    backgroundColor: '#F37A1D',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#030303',
+    borderColor: '#F37A1D',
   },
   switchButton: {
     flex: 1,

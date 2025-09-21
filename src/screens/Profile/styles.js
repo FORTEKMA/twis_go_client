@@ -891,14 +891,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextButton: {
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     height: 64,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
   loginButtonDisabled: {
-    backgroundColor: '#0c0c0c80',
+    backgroundColor: '#F37A1D80',
   },
   nextButtonText: {
     color: '#fff',
@@ -930,13 +930,13 @@ export const styles = StyleSheet.create({
   arrowIcon: {
     width: 20,
     height: 20,
-    tintColor: '#0c0c0c',
+    tintColor: '#18365A',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     padding: 15,
     margin: 20,
     borderRadius: 10,
@@ -983,7 +983,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabIndicator: {
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     height: 3,
   },
   // Section Styles
@@ -1004,14 +1004,14 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   saveButton: {
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
   },
   saveButtonDisabled: {
-    backgroundColor: '#0c0c0c80',
+    backgroundColor: '#F37A1D80',
     opacity: 0.7,
   },
   saveButtonText: {
@@ -1045,7 +1045,7 @@ export const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#0c0c0c20",
+    backgroundColor: "#F37A1D20",
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -1078,7 +1078,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalButtonPrimary: {
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
   },
   modalButtonSecondary: {
     backgroundColor: '#F5F5F5',
@@ -1100,7 +1100,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,

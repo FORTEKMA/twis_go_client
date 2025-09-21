@@ -36,7 +36,7 @@ import uuid from 'react-native-uuid';
 
 
 // Constants
-const PRIMARY_COLOR = '#030303';
+const PRIMARY_COLOR = '#F37A1D';
 const INITIAL_COUNTRY = {
   cca2: 'tn',
   callingCode: '216',

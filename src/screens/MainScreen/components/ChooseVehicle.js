@@ -311,8 +311,8 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
       <>
         <View style={localStyles.container}>
           <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
-            <ActivityIndicator size="large" color="#030303" />
-            <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15 }}>
+            <ActivityIndicator size="large" color="#F37A1D" />
+            <Text style={{ fontSize: hp(1.8), color: '#18365A', marginTop: 15 }}>
               {t('common.loading')}
             </Text>
           </View>
@@ -328,12 +328,12 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
         <View style={localStyles.container}>
           <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
             <MaterialCommunityIcons name="alert-circle" size={48} color="#FF6B6B" />
-            <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+            <Text style={{ fontSize: hp(1.8), color: '#18365A', marginTop: 15, textAlign: 'center' }}>
               {error}
             </Text>
             <TouchableOpacity
               style={{
-                backgroundColor: '#030303',
+                backgroundColor: '#F37A1D',
                 paddingHorizontal: 20,
                 paddingVertical: 10,
                 borderRadius: 8,
@@ -363,7 +363,7 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
         <View style={localStyles.container}>
           <View style={{ justifyContent: 'center', alignItems: 'center', height: 300 }}>
             <MaterialCommunityIcons name="car-off" size={48} color="#BDBDBD" />
-            <Text style={{ fontSize: hp(1.8), color: '#030303', marginTop: 15, textAlign: 'center' }}>
+            <Text style={{ fontSize: hp(1.8), color: '#18365A', marginTop: 15, textAlign: 'center' }}>
               No vehicles available
             </Text>
           </View>

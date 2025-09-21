@@ -1,6 +1,6 @@
 export const colors = {
-  primary: '#0c0c0c',
-  secondary: 'rgba(243, 122, 29, 1)',
+  primary: '#F37A1D',
+  secondary: '#18365A',
   secondary_1: 'rgba(178, 181, 196, 1)',
   secondary_2: 'rgba(142, 146, 168, 1)',
   secondary_3: 'rgba(220, 223, 227, 1)',

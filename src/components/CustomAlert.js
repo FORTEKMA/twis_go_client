@@ -20,13 +20,13 @@ const CustomAlert = ({ visible, title, message, buttons, type = 'warning' }) => 
   const getIconColor = () => {
     switch (type) {
       case 'warning':
-        return '#030303';
+        return '#F37A1D';
       case 'error':
         return '#FF6B6B';
       case 'success':
         return '#4CAF50';
       default:
-        return '#030303';
+        return '#F37A1D';
     }
   };
 
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   confirmButton: {
-    backgroundColor: '#030303',
+    backgroundColor: '#F37A1D',
   },
   buttonText: {
     fontSize: hp(1.8),

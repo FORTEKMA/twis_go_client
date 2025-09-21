@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
   btn: {
-    backgroundColor: "#030303",
+    backgroundColor: "#F37A1D",
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
@@ -185,7 +185,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resendButton: {
-    borderColor: '#0c0c0c',
+    borderColor: '#F37A1D',
     flex: 1,
     borderWidth:1,
     borderRadius: 12,
@@ -195,7 +195,7 @@ export const styles = StyleSheet.create({
   },
   resendButtonDisabled: {
     opacity: 0.6,
-    borderColor: '#0c0c0c60',
+    borderColor: '#F37A1D60',
   },
   resendButtonText: {
     color: '#888',
@@ -204,7 +204,7 @@ export const styles = StyleSheet.create({
   },
   continueButton: {
     flex: 1,
-    backgroundColor: '#030303',
+    backgroundColor: '#F37A1D',
     borderRadius: 12,
     paddingVertical: 20,
     alignItems: 'center',
@@ -278,9 +278,9 @@ export const styles = StyleSheet.create({
     gap: 5
   },
   methodOptionSelected: {
-    backgroundColor: '#0c0c0c50',
+    backgroundColor: '#F37A1D50',
     borderWidth: 2,
-    borderColor: '#0c0c0c'
+    borderColor: '#F37A1D'
   },
   methodText: {
     fontSize: 16,
@@ -290,7 +290,7 @@ export const styles = StyleSheet.create({
     textAlign: 'right'
   },
   confirmButton: {
-    backgroundColor: '#0c0c0c',
+    backgroundColor: '#F37A1D',
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',

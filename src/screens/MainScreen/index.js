@@ -1240,7 +1240,7 @@ const MainScreen = () => {
               {loadingCurrentLocation ? (
                 <ActivityIndicator />
               ) : (
-                <MaterialIcons name="my-location" size={22} color="#030303" />
+                <MaterialIcons name="my-location" size={22} color="#F37A1D" />
               )}
             </TouchableOpacity>
           </Animated.View>
