@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#0c0c0c',
+    color: '#18365A',
   },
   languageButton: {
     padding: 8,

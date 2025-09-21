@@ -398,7 +398,7 @@ const ChooseVehicleComponent = ({ goNext, goBack, formData }) => {
             <MaterialCommunityIcons
               name={isMinimized ? "arrow-expand-all" : "arrow-collapse-all"}
               size={24}
-              color="#000"
+              color="#18365A"
             />
           </TouchableOpacity>
         </View>
@@ -588,7 +588,7 @@ const localStyles = StyleSheet.create({
   uberTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 4,
   },
   uberSubtitle: {
@@ -618,7 +618,7 @@ const localStyles = StyleSheet.create({
    
   },
   vehicleOptionSelected: {
-    borderColor: '#000',
+    borderColor: '#F37A1D',
     backgroundColor: '#FAFAFA',
   },
   vehicleOptionDisabled: {
@@ -661,7 +661,7 @@ const localStyles = StyleSheet.create({
   vehicleLabel: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 4,
   },
   vehicleLabelDisabled: {
@@ -687,14 +687,14 @@ const localStyles = StyleSheet.create({
   vehiclePrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 8,
   },
   selectedIndicator: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -709,7 +709,7 @@ const localStyles = StyleSheet.create({
   scheduleText: {
     marginLeft: 12,
     fontSize: 16,
-    color: '#000',
+    color: '#18365A',
     fontWeight: '500',
   },
   bottomRow: {
@@ -734,7 +734,11 @@ const localStyles = StyleSheet.create({
   },
   uberButton: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

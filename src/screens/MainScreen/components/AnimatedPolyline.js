@@ -96,7 +96,7 @@ const AnimatedPolyline = ({ coords = [], speed = 20, progress, loop = true }) =>
     <Polyline
       coordinates={animatedSegment}
       strokeWidth={3}
-      strokeColor="#000"
+      strokeColor="#F37A1D"
       lineCap="round"
       lineJoin="round"
       style={{ zIndex: 1000 }}

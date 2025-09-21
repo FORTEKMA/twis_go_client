@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
   },
   btnWrapper: {
     flex: 0.3,
-    backgroundColor: '#000',
+    backgroundColor: '#18365A',
     width: '90%',
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -137,7 +137,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeDot: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
   },
   inactiveDot: {
     backgroundColor: '#ccc',

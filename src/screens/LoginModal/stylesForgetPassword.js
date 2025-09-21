@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     textAlign: "left",
     marginTop: 20,
-    color: "#0c0c0c",
+    color: "#18365A",
   },
   input: {
     height: 64,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   recoveryTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0c0c0c",
+    color: "#18365A",
     textAlign: "center",
   },
   btn: {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   sentMessage: {
-    color: "#0c0c0c",
+    color: "#18365A",
     textAlign: "center",
     marginTop: 20,
     fontWeight: "600",

@@ -168,7 +168,7 @@ const PickupLocation = ({ formData, goNext, isMapDragging, animateToRegion }) =>
             }}
             renderLeftButton={() => {
               return (
-                <MaterialCommunityIcons style={localStyles.leftIcon} name="circle" size={12} color="#000" />
+                <MaterialCommunityIcons style={localStyles.leftIcon} name="circle" size={12} color="#F37A1D" />
               )
             }}
             query={{
@@ -233,7 +233,7 @@ const localStyles = StyleSheet.create({
   uberTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -329,7 +329,11 @@ const localStyles = StyleSheet.create({
     marginLeft: 12,
   },
   uberButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

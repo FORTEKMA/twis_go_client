@@ -151,7 +151,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
       {/* Uber-style Header with Back Button */}
       <View style={localStyles.uberHeader}>
         <TouchableOpacity onPress={handleBack} style={localStyles.backButton}>
-          <MaterialCommunityIcons name={I18nManager.isRTL ? "arrow-right" : "arrow-left"} size={24} color="#000" />
+          <MaterialCommunityIcons name={I18nManager.isRTL ? "arrow-right" : "arrow-left"} size={24} color="#18365A" />
         </TouchableOpacity>
         
         <View style={localStyles.headerTextContainer}>
@@ -184,7 +184,7 @@ const DropoffLocation = ({ formData, goNext, isMapDragging, onBack, animateToReg
              }}
              renderLeftButton={()=>{
               return (
-                <MaterialCommunityIcons style={localStyles.leftIcon} name="square" size={12} color="#000" />
+                <MaterialCommunityIcons style={localStyles.leftIcon} name="square" size={12} color="#F37A1D" />
               )
              }}
 
@@ -271,7 +271,7 @@ const localStyles = StyleSheet.create({
   uberTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 4,
   },
   uberSubtitle: {
@@ -347,7 +347,7 @@ const localStyles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     marginTop: 8,
-    shadowColor: '#000',
+    shadowColor: '#18365A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -382,7 +382,11 @@ const localStyles = StyleSheet.create({
     lineHeight: 20,
   },
   uberButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

@@ -161,7 +161,7 @@ const WomanValidationModal = ({ visible, onClose, form, setForm }) => {
               {/* Icon */}
               <View style={styles.iconContainer}>
                 <View style={styles.iconBackground}>
-                  <MaterialIcons name="verified-user" size={32} color="#4CAF50" />
+                  <MaterialIcons name="verified-user" size={32} color="#F37A1D" />
                 </View>
               </View>
 
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
   },
   imagePickerDashed: {
     borderStyle: 'dashed',
-    borderColor: '#4CAF50',
+    borderColor: '#18365A',
     backgroundColor: '#f8f9fa',
   },
   emptyImageContent: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   imagePickerText: {
-    color: '#4CAF50',
+    color: '#F37A1D',
     fontSize: hp(2.1),
     fontWeight: '600',
     marginBottom: 4,
@@ -436,14 +436,14 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 2,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#F37A1D',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    shadowColor: '#4CAF50',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

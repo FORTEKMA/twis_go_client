@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     padding: hp(2),
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: {
       width: 0,
       height: 2,

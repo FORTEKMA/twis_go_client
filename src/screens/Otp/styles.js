@@ -262,10 +262,10 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#0c0c0c'
+    color: '#18365A'
   },
   modalSubtitle: {
-    color: '#0c0c0c',
+    color: '#18365A',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12

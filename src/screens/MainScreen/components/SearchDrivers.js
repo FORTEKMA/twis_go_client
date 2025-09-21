@@ -744,7 +744,7 @@ const SearchDriversComponent = ({ goBack, formData }) => {
             <Text style={searchStyles.title}>
               {t('preparing_search', 'Initializing radar...')}
             </Text>
-            <ActivityIndicator size="large" color="#000000" style={searchStyles.loader} />
+            <ActivityIndicator size="large" color="#F37A1D" style={searchStyles.loader} />
           </View>
         );
       
@@ -1038,7 +1038,7 @@ const searchStyles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000000',
+    color: '#18365A',
   },
   mainContent: {
     flex: 1,
@@ -1072,18 +1072,18 @@ const searchStyles = StyleSheet.create({
     position: 'absolute',
     width: 4,
     height: 120,
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D',
     transformOrigin: 'bottom center',
   },
   radarCenter: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: '#F37A1D',
   },
   radarBlip: {
     position: 'absolute',
@@ -1099,7 +1099,7 @@ const searchStyles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#E0E0E0',
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D',
   },
   blipImage: {
     width: '100%',
@@ -1117,7 +1117,7 @@ const searchStyles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000000',
+    color: '#18365A',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -1153,7 +1153,7 @@ const searchStyles = StyleSheet.create({
   successTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000000',
+    color: '#18365A',
     marginTop: 24,
     marginBottom: 32,
   },
@@ -1170,7 +1170,7 @@ const searchStyles = StyleSheet.create({
   driverName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#000000',
+    color: '#18365A',
     marginBottom: 8,
   },
   ratingContainer: {
@@ -1184,7 +1184,7 @@ const searchStyles = StyleSheet.create({
   rating: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
+    color: '#18365A',
     marginLeft: 4,
   },
   successMessage: {
@@ -1197,7 +1197,11 @@ const searchStyles = StyleSheet.create({
     marginTop: 20,
   },
   cancelButton: {
-     backgroundColor: '#000000',
+     backgroundColor: '#F37A1D',
+     shadowColor: '#F37A1D',
+     shadowOpacity: 0.25,
+     shadowRadius: 6,
+     elevation: 3,
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
@@ -1231,7 +1235,11 @@ const searchStyles = StyleSheet.create({
     marginBottom: 40,
   },
   backButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 32,

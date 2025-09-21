@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -31,7 +31,7 @@ export const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
+    color: '#18365A',
     textAlign: 'center',
   },
   headerRight: {
@@ -59,12 +59,12 @@ export const styles = StyleSheet.create({
   errorText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#000000',
+    color: '#18365A',
     textAlign: 'center',
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D'
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -88,7 +88,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 12,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D'
     borderRadius: 8,
     paddingHorizontal: 4,
     paddingVertical: 1,
@@ -133,7 +133,7 @@ export const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   statusMoving: {
-    backgroundColor: '#000000',
+    backgroundColor: '#F37A1D'
   },
   statusStopped: {
     backgroundColor: '#666666',
@@ -170,7 +170,7 @@ export const styles = StyleSheet.create({
   status3DText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#18365A',
     marginLeft: 4,
   },
   statusFocusIndicator: {
@@ -209,7 +209,7 @@ export const styles = StyleSheet.create({
   locationMarker: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,

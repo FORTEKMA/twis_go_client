@@ -256,8 +256,8 @@ const Payemant = ({
                 justifyContent: 'flex-start',
                 gap: 15,
                 borderWidth: 1, // Border thickness
-                borderColor: 'black',
-                backgroundColor: '#23252F',
+                borderColor: '#18365A',
+                backgroundColor: '#18365A',
               }}>
               <Image source={money} style={{width: 30, height: 30}} />
 
@@ -280,8 +280,8 @@ const Payemant = ({
                 justifyContent: 'flex-start',
                 gap: 15,
                 borderWidth: 1, // Border thickness
-                borderColor: 'black',
-                backgroundColor: '#23252F',
+                borderColor: '#18365A',
+                backgroundColor: '#18365A',
               }}>
               <Image source={livraison} style={{width: 30, height: 30}} />
               <Text style={{color: 'white', fontSize: hp(1.7)}}>
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
 
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: {
       width: 0,
       height: 2,
