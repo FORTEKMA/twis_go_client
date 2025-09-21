@@ -209,7 +209,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
     alignItems: 'center',
     marginHorizontal: 4,
-  },
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  }
   continueButtonDisabled: {
     opacity: 0.6,
   },
@@ -294,7 +298,11 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 8,
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3
   },
   confirmButtonDisabled: {
     backgroundColor: '#F0F0F0',
