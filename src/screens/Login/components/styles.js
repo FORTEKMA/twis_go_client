@@ -76,7 +76,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
-  },
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  }
   loginButtonDisabled: {
     backgroundColor: '#F37A1D80',
   },
@@ -122,7 +126,7 @@ const styles = StyleSheet.create({
   recoveryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E232C',
+    color: '#18365A',
     textAlign: 'center',
   },
   btn: {
@@ -133,6 +137,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     marginBottom: 24,
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   btnText: {
     color: '#222',
@@ -140,7 +148,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   sentMessage: {
-    color: '#1E232C',
+    color: '#18365A',
     textAlign: 'center',
     marginTop: 20,
     fontWeight: '600',

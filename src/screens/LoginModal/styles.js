@@ -178,7 +178,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   registerNow: {
-    color: '#d8b56c',
+    color: '#F37A1D',
     fontWeight: '700',
   },
   switchContainer: {

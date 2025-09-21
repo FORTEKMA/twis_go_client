@@ -896,7 +896,11 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  }
   loginButtonDisabled: {
     backgroundColor: '#F37A1D80',
   },
@@ -919,7 +923,7 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     borderWidth: 3,
-    borderColor: '#ccc',
+    borderColor: '#E5E7EB',
   },
   menuButtonText: {
     fontSize: 18,
@@ -940,8 +944,11 @@ export const styles = StyleSheet.create({
     padding: 15,
     margin: 20,
     borderRadius: 10,
-    
-  },
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  }
   logoutIcon: {
     width: 20,
     height: 20,

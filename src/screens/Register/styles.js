@@ -22,7 +22,11 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F37A1D',
     borderRadius: 20,
     marginTop: 30,
-  },
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  }
   btnText: {
     color: 'black',
     textAlign: 'center',
