@@ -126,7 +126,7 @@ const Step5 = ({
           <MaterialCommunityIcons 
             name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
             size={28} 
-            color="#000" 
+            color="#18365A" 
           />
         </TouchableOpacity>
         
@@ -334,7 +334,7 @@ const localStyles = StyleSheet.create({
   uberTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#000',
+    color: '#18365A',
     marginBottom: 4,
   },
   uberSubtitle: {
@@ -357,14 +357,14 @@ const localStyles = StyleSheet.create({
     padding: 20,
     borderWidth: 2,
     borderColor: '#F0F0F0',
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   selectedOption: {
-    borderColor: '#000',
+    borderColor: '#F37A1D',
     backgroundColor: '#FAFAFA',
   },
   disabledOption: {
@@ -390,7 +390,7 @@ const localStyles = StyleSheet.create({
     marginRight: 16,
   },
   selectedIconContainer: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
   },
   disabledIconContainer: {
     backgroundColor: '#F0F0F0',
@@ -441,7 +441,7 @@ const localStyles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedRadio: {
-    borderColor: '#000',
+    borderColor: '#F37A1D',
   },
   disabledRadio: {
     borderColor: '#BDBDBD',
@@ -450,14 +450,14 @@ const localStyles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
   },
   summaryCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -469,7 +469,7 @@ const localStyles = StyleSheet.create({
   summaryTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
   },
   summaryContent: {
     gap: 12,
@@ -486,21 +486,22 @@ const localStyles = StyleSheet.create({
   summaryValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#18365A',
   },
   buttonContainer: {
     marginTop: 'auto',
     paddingBottom: Platform.OS === 'ios' ? 34 : 24,
   },
   uberButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
     borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#F37A1D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -16,10 +16,10 @@ const DateTimePicker = ({
         style={{
           width: '80%',
           borderWidth: 1,
-          borderColor: '#23252f',
+          borderColor: '#18365A',
           padding: 10,
           margin: -8,
-          backgroundColor: '#23252f',
+          backgroundColor: '#18365A',
           display: 'flex',
           flexDirection: 'row',
           justifyContent: 'space-around',

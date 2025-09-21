@@ -318,7 +318,7 @@ const ConfirmRideComponent = ({ goBack, formData, rideData, goNext, handleReset 
           <MaterialCommunityIcons 
             name={I18nManager.isRTL ? "chevron-right" : "chevron-left"} 
             size={24} 
-            color="#1a1a1a" 
+            color="#18365A" 
           />
         </TouchableOpacity>
         
@@ -536,7 +536,7 @@ const localStyles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#18365A',
     marginBottom: 2,
   },
   subtitle: {
@@ -570,7 +570,7 @@ const localStyles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
     marginBottom: 6,
   },
   routeLine: {
@@ -583,7 +583,7 @@ const localStyles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 2,
-    backgroundColor: '#000',
+    backgroundColor: '#18365A',
   },
   routeDetails: {
     flex: 1,
@@ -601,7 +601,7 @@ const localStyles = StyleSheet.create({
   },
   locationAddress: {
     fontSize: 14,
-    color: '#1a1a1a',
+    color: '#18365A',
     fontWeight: '600',
     lineHeight: 18,
   },
@@ -637,19 +637,23 @@ const localStyles = StyleSheet.create({
   priceLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#18365A',
   },
   priceValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#18365A',
   },
   buttonContainer: {
     marginTop: 'auto',
     paddingBottom: Platform.OS === 'ios' ? 20 : 16,
   },
   confirmButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
     borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 20,
@@ -685,7 +689,7 @@ const localStyles = StyleSheet.create({
   successTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#18365A',
     marginTop: 12,
     marginBottom: 8,
     textAlign: 'center',
@@ -698,7 +702,11 @@ const localStyles = StyleSheet.create({
     marginBottom: 20,
   },
   okButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#F37A1D',
+    shadowColor: '#F37A1D',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 32,
